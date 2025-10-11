@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useBusinessSignUp } from '@/services/business/hook';
 import { CreateBusinessDto } from '@/services/business/types';
 import { useRouter } from 'next/navigation';
+import { SectorCombobox } from '@/components/SectorCombobox';
 
 const SignUpPage = () => {
   const [step, setStep] = useState(1);
@@ -129,14 +130,10 @@ const SignUpPage = () => {
                   />
                 </div>
                 <div className="py-3">
-                  <span className="mb-2 text-md">Sector ID</span>
-                  <input
-                    type="text"
-                    name="sectorId"
-                    className="w-full p-2 border border-gray-300 rounded-md placeholder:font-light"
+                  <span className="mb-2 text-md">Sector</span>
+                  <SectorCombobox
                     value={formData.sectorId}
-                    onChange={handleChange}
-                    required
+                    onChange={(value) => setFormData({ ...formData, sectorId: value })}
                   />
                 </div>
                 <div className="flex justify-between mt-4">

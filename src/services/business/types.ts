@@ -35,3 +35,12 @@ export interface BusinessLoginResponse {
   access_token: string;
   refresh_token: string;
 }
+
+export interface Sector {
+  id: string;
+  name: string;
+  imageUrl: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+}

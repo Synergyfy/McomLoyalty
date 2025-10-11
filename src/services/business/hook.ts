@@ -1,6 +1,6 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api, { setBearerToken } from '../api';
-import { Business, CreateBusinessDto, BusinessLoginDto, BusinessLoginResponse } from './types';
+import {  Business,  CreateBusinessDto,  BusinessLoginDto,  BusinessLoginResponse,  Sector,} from './types';
 import Cookies from 'js-cookie';
 
 const BUSINESS_QUERY_KEY = 'business';
@@ -19,6 +19,19 @@ export const useBusinessSignUp = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [BUSINESS_QUERY_KEY] });
     },
+  });
+};
+
+// Get Sectors
+const getSectors = async (): Promise<Sector[]> => {
+  const { data } = await api.get<Sector[]>('/sectors');
+  return data;
+};
+
+export const useGetSectors = () => {
+  return useQuery({
+    queryKey: ['sectors'],
+    queryFn: getSectors,
   });
 };
 
