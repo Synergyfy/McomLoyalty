@@ -24,7 +24,7 @@ const SignInPage = () => {
     e.preventDefault();
     mutate(formData, {
       onSuccess: () => {
-        router.push('/');
+        router.push('/dashboard');
       },
     });
   };
