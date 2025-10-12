@@ -1,0 +1,29 @@
+
+import { Button } from '@/components/ui/button';
+import React from 'react';
+
+const Hero = () => {
+  return (
+    <section className='flex items-center justify-center py-20 px-8'>
+      <div className='flex flex-col md:flex-row items-center gap-16'>
+        <div className='flex flex-col gap-4 text-center md:text-left'>
+          <h1 className='text-4xl md:text-5xl font-bold'>
+            Loyalty CardX: Boost Your Business with Digital Loyalty
+          </h1>
+          <p className='text-base md:text-lg'>
+            Join our Beta program and create your first promotion in minutes.
+            Engage customers, drive repeat business, and grow your revenue with
+            our easy-to-use digital loyalty platform.
+          </p>
+          <div className='flex gap-4 justify-center md:justify-start'>
+            <Button>Join Beta</Button>
+            <Button variant='outline'>Learn More</Button>
+          </div>
+        </div>
+        <div className='w-full md:w-[500px] h-[300px] md:h-[500px] bg-gray-300'></div>
+      </div>
+    </section>
+  );
+};
+
+export default Hero;
