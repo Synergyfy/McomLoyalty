@@ -6,11 +6,22 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCreateSector } from '@/hooks/useCreateSector';
 import { CreateSectorRequest } from '@/types/sectors';
+import { useGetSectors } from '@/hooks/useGetSectors';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import Image from 'next/image';
 
 export default function SectorsPage() {
   const [name, setName] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const createSectorMutation = useCreateSector();
+  const { data: sectors, isLoading: isLoadingSectors } = useGetSectors();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +43,7 @@ export default function SectorsPage() {
       <h1 className="text-2xl font-bold mb-5 text-primary">Sectors</h1>
       <p className="mb-5">Manage sectors for the loyalty platform.</p>
 
-      <Card className="max-w-md">
+      <Card className="max-w-md mb-10">
         <CardHeader>
           <CardTitle>Create New Sector</CardTitle>
         </CardHeader>
@@ -74,6 +85,39 @@ export default function SectorsPage() {
           </form>
         </CardContent>
       </Card>
+
+      <h2 className="text-xl font-bold mb-5">All Sectors</h2>
+
+      {isLoadingSectors ? (
+        <p>Loading sectors...</p>
+      ) : (
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Image</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sectors && sectors.map((sector) => (
+                <TableRow key={sector.id}>
+                  <TableCell>{sector.name}</TableCell>
+                  <TableCell>
+                    <Image
+                      src={sector.imageUrl}
+                      alt={sector.name}
+                      width={100}
+                      height={100}
+                      className="rounded-md"
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
+      )}
     </div>
   );
 }
