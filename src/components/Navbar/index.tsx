@@ -2,9 +2,16 @@
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
+  const navigateToStaffLogin: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+    event.preventDefault();
+    console.log('Navigating to /staff/login');
+    router.push('/staff/login');
+  };
 
   return (
     <nav className='sticky top-0 z-50 backdrop-blur-lg bg-opacity-80 flex items-center justify-between px-4 py-2'>
@@ -24,7 +31,7 @@ const Navbar = () => {
         </a>
       </div>
       <div className='hidden md:flex items-center gap-2'>
-        <Button variant='ghost'>Login</Button>
+        <Button variant='ghost' onClick={navigateToStaffLogin}>Login</Button>
         <Button>Join Beta</Button>
       </div>
       <div className='md:hidden'>
@@ -46,7 +53,7 @@ const Navbar = () => {
           <a href='#faq' className='text-base font-medium'>
             FAQ
           </a>
-          <Button variant='ghost'>Login</Button>
+          <Button variant='ghost' onClick={navigateToStaffLogin}>Login</Button>
           <Button>Join Beta</Button>
         </div>
       )}
