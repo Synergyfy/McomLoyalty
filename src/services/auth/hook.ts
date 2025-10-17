@@ -13,6 +13,7 @@ export const useAdminSignIn = () => {
   return useMutation({
     mutationFn: adminSignIn,
     onSuccess: (data) => {
+      console.log('access', data.accessToken);
       Cookies.set('access', data.accessToken);
       setBearerToken(data.accessToken);
     },

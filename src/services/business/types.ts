@@ -2,6 +2,7 @@ export interface CreateBusinessDto {
   name: string;
   email: string;
   password: string;
+  confirmPassword: string;
   phone: string;
   address: string;
   sectorId: string;
@@ -32,8 +33,8 @@ export interface BusinessLoginDto {
 }
 
 export interface BusinessLoginResponse {
-  access_token: string;
-  refresh_token: string;
+  accessToken: string;
+  refreshToken: string;
   user: {
     role: string;
   };
