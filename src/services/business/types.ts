@@ -34,6 +34,9 @@ export interface BusinessLoginDto {
 export interface BusinessLoginResponse {
   access_token: string;
   refresh_token: string;
+  user: {
+    role: string;
+  };
 }
 
 export interface Sector {

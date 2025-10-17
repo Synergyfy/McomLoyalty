@@ -25,3 +25,7 @@ export interface GetRewardsResponse {
   currentPage: number;
   count: number;
 }
+
+export interface AddRewardToBusinessRequest {
+  quantity: number;
+}

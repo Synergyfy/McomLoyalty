@@ -4,9 +4,8 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useCreateReward } from '@/hooks/useCreateReward';
-import { CreateRewardRequest } from '@/types/rewards';
-import { useGetRewards } from '@/hooks/useGetRewards';
+import { useCreateReward, useGetRewards } from '@/services/rewards/hook';
+import { CreateRewardRequest } from '@/services/rewards/types';
 import {
   Table,
   TableBody,
@@ -23,7 +22,7 @@ export default function RewardsPage() {
   const [description, setDescription] = useState('');
   const [image, setImage] = useState('');
   const [quantity, setQuantity] = useState(0);
-  const createRewardMutation = useCreateReward();
+  const { mutate: createReward, isPending: isCreatingReward } = useCreateReward();
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const { data: rewardsData, isLoading: isLoadingRewards } = useGetRewards(
@@ -41,7 +40,7 @@ export default function RewardsPage() {
       image,
       quantity,
     };
-    createRewardMutation.mutate(rewardData, {
+    createReward(rewardData, {
       onSuccess: () => {
         alert('Reward created successfully!');
         setTitle('');
@@ -157,10 +156,10 @@ export default function RewardsPage() {
             </div>
             <Button
               type="submit"
-              disabled={createRewardMutation.isPending}
+              disabled={isCreatingReward}
               className="w-full"
             >
-              {createRewardMutation.isPending ? 'Creating...' : 'Create Reward'}
+              {isCreatingReward ? 'Creating...' : 'Create Reward'}
             </Button>
           </form>
         </CardContent>
