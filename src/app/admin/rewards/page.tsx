@@ -36,7 +36,7 @@ export default function RewardsPage() {
     e.preventDefault();
     const rewardData: CreateRewardRequest = {
       title,
-      pointsRequired: pointsRequired,
+      points_required: pointsRequired,
       value,
       description,
       image,

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { useGetBusinessRewards, useAddRewardToBusiness } from '@/services/rewards/hook';
 import {
   Table,
@@ -31,7 +31,7 @@ export default function BusinessRewardsPage() {
       onSuccess: () => {
         alert('Reward added successfully!');
       },
-      onError: (error: any) => { // Added any type for error for now
+      onError: (error: { response?: { status: number }; message: string }) => {
         if (error.response?.status === 409) {
           alert('This reward is already added to your business.');
         } else {

@@ -15,6 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import Image from 'next/image';
+import { CloudinaryUpload } from '@/components/ui/cloudinary-upload';
 
 export default function SectorsPage() {
   const [name, setName] = useState('');
@@ -63,16 +64,21 @@ export default function SectorsPage() {
             </div>
             <div>
               <label htmlFor="imageUrl" className="block text-sm font-medium mb-1">
-                Image URL
+                Image
               </label>
-              <Input
-                id="imageUrl"
-                type="url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="Enter image URL"
-                required
-              />
+              <CloudinaryUpload onUpload={setImageUrl} />
+              {imageUrl && (
+                <div className="mt-4">
+                  <p className="text-sm font-medium">Uploaded Image:</p>
+                  <Image
+                    src={imageUrl}
+                    alt="Uploaded sector image"
+                    width={100}
+                    height={100}
+                    className="rounded-md"
+                  />
+                </div>
+              )}
             </div>
             <Button
               type="submit"
