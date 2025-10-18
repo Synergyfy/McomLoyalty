@@ -24,13 +24,19 @@ export default function BusinessRewardsPage() {
   const { mutate: addReward, isPending: isAddingReward } = useAddRewardToBusiness();
   const [quantity, setQuantity] = useState(100);
 
+  const totalPages = rewardsData ? Math.ceil(rewardsData.total / limit) : 0;
+
   const handleAddReward = (rewardId: string) => {
     addReward({ rewardId, quantity }, {
       onSuccess: () => {
         alert('Reward added successfully!');
       },
-      onError: (error) => {
-        alert(`Error adding reward: ${error.message}`);
+      onError: (error: any) => { // Added any type for error for now
+        if (error.response?.status === 409) {
+          alert('This reward is already added to your business.');
+        } else {
+          alert(`Error adding reward: ${error.message}`);
+        }
       },
     });
   };
@@ -52,21 +58,22 @@ export default function BusinessRewardsPage() {
                 <TableHead>Title</TableHead>
                 <TableHead>Points Required</TableHead>
                 <TableHead>Value</TableHead>
-                <TableHead>Quantity</TableHead>
+                <TableHead>Quantity to Add</TableHead>
                 <TableHead>Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rewardsData?.rewards && rewardsData.rewards.map((reward) => (
+              {rewardsData?.data && rewardsData.data.map((reward) => (
                 <TableRow key={reward.id}>
                   <TableCell>{reward.title}</TableCell>
-                  <TableCell>{reward.points_required}</TableCell>
+                  <TableCell>{reward.pointsRequired}</TableCell>
                   <TableCell>{reward.value}</TableCell>
                   <TableCell>
                     <Input
                       type="number"
                       defaultValue={quantity}
                       onChange={(e) => setQuantity(Number(e.target.value))}
+                      min="1"
                     />
                   </TableCell>
                   <TableCell>
@@ -89,11 +96,11 @@ export default function BusinessRewardsPage() {
               Previous
             </Button>
             <span>
-              Page {rewardsData?.currentPage} of {rewardsData?.totalPages}
+              Page {page} of {totalPages || 1}
             </span>
             <Button
               onClick={() => setPage(page + 1)}
-              disabled={page === rewardsData?.totalPages}
+              disabled={page === totalPages || !rewardsData?.data.length}
             >
               Next
             </Button>
