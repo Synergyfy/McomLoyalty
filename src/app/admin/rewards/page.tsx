@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import Image from 'next/image';
 
 export default function RewardsPage() {
   const [title, setTitle] = useState('');
@@ -34,7 +35,7 @@ export default function RewardsPage() {
     e.preventDefault();
     const rewardData: CreateRewardRequest = {
       title,
-      points_required: pointsRequired,
+      pointsRequired: pointsRequired,
       value,
       description,
       image,
@@ -76,9 +77,10 @@ export default function RewardsPage() {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter reward title"
+                placeholder="e.g. Free Coffee"
                 required
               />
+              <p className="text-sm text-muted-foreground mt-1">The name of the reward.</p>
             </div>
             <div>
               <label
@@ -92,9 +94,10 @@ export default function RewardsPage() {
                 type="number"
                 value={pointsRequired}
                 onChange={(e) => setPointsRequired(Number(e.target.value))}
-                placeholder="Enter points required"
+                placeholder="e.g. 100"
                 required
               />
+              <p className="text-sm text-muted-foreground mt-1">How many points a customer needs to redeem this reward.</p>
             </div>
             <div>
               <label htmlFor="value" className="block text-sm font-medium mb-1">
@@ -105,9 +108,10 @@ export default function RewardsPage() {
                 type="number"
                 value={value}
                 onChange={(e) => setValue(Number(e.target.value))}
-                placeholder="Enter reward value"
+                placeholder="e.g. 5.00"
                 required
               />
+              <p className="text-sm text-muted-foreground mt-1">The monetary value of the reward, if applicable.</p>
             </div>
             <div>
               <label
@@ -121,9 +125,10 @@ export default function RewardsPage() {
                 type="text"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Enter reward description"
+                placeholder="e.g. A free coffee of your choice"
                 required
               />
+              <p className="text-sm text-muted-foreground mt-1">A short description of the reward.</p>
             </div>
             <div>
               <label htmlFor="image" className="block text-sm font-medium mb-1">
@@ -134,9 +139,10 @@ export default function RewardsPage() {
                 type="url"
                 value={image}
                 onChange={(e) => setImage(e.target.value)}
-                placeholder="Enter image URL"
+                placeholder="https://example.com/image.png"
                 required
               />
+              <p className="text-sm text-muted-foreground mt-1">A URL for the reward's image.</p>
             </div>
             <div>
               <label
@@ -150,9 +156,10 @@ export default function RewardsPage() {
                 type="number"
                 value={quantity}
                 onChange={(e) => setQuantity(Number(e.target.value))}
-                placeholder="Enter reward quantity"
+                placeholder="e.g. 100"
                 required
               />
+              <p className="text-sm text-muted-foreground mt-1">The total number of this reward available.</p>
             </div>
             <Button
               type="submit"
@@ -175,16 +182,28 @@ export default function RewardsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Title</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Image</TableHead>
                 <TableHead>Points Required</TableHead>
                 <TableHead>Value</TableHead>
                 <TableHead>Quantity</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rewardsData?.rewards && rewardsData.rewards.map((reward) => (
+              {rewardsData?.data && rewardsData.data.map((reward) => (
                 <TableRow key={reward.id}>
                   <TableCell>{reward.title}</TableCell>
-                  <TableCell>{reward.points_required}</TableCell>
+                  <TableCell>{reward.description}</TableCell>
+                  <TableCell>
+                    <Image
+                      src={reward.image}
+                      alt={reward.title}
+                      width={50}
+                      height={50}
+                      className="rounded-md"
+                    />
+                  </TableCell>
+                  <TableCell>{reward.pointsRequired}</TableCell>
                   <TableCell>{reward.value}</TableCell>
                   <TableCell>{reward.quantity}</TableCell>
                 </TableRow>
@@ -199,11 +218,11 @@ export default function RewardsPage() {
               Previous
             </Button>
             <span>
-              Page {rewardsData?.currentPage} of {rewardsData?.totalPages}
+              Page {page} of {rewardsData ? Math.ceil(rewardsData.total / limit) : 1}
             </span>
             <Button
               onClick={() => setPage(page + 1)}
-              disabled={page === rewardsData?.totalPages}
+              disabled={!rewardsData || page === Math.ceil(rewardsData.total / limit)}
             >
               Next
             </Button>

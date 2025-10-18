@@ -22,6 +22,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'www.povuluk.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
   /* config options here */
