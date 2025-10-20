@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { FcGoogle } from "react-icons/fc";
 import { useBusinessSignUp } from "@/services/business/hook";
 import { toast } from "sonner"; // or your toast lib (shadcn, react-hot-toast, etc.
+import { useRouter } from "next/router";
 
 type SignupFormData = {
   email: string;
@@ -15,11 +16,13 @@ type SignupFormData = {
 };
 
 export default function BusinessSignupPage() {
+  const router = useRouter()
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<SignupFormData>();
+
   const { mutateAsync: signUp, error} = useBusinessSignUp();
   const [showPassword, setShowPassword] = useState(false);
     const onSubmit = async (data: SignupFormData) => {
@@ -27,7 +30,7 @@ export default function BusinessSignupPage() {
       await signUp(data);
       toast.success('Business account created successfully!');
       // Redirect to dashboard, onboarding, etc.
-      // router.push('/dashboard');
+      router.push('/business/onboard');
     } catch (error) {
       console.error('Signup error:', error);
       toast.error('Failed to create account. Please try again.');
@@ -40,7 +43,7 @@ export default function BusinessSignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-pink-100 p-6">
+    <div className="min-h-screen flex items-center justify-center bg-white p-6">
       <div className="bg-white w-full max-w-md p-8 rounded-2xl shadow-lg space-y-6">
         <h2 className="text-2xl font-semibold text-center text-gray-800">
           Create Your Business Account
@@ -115,7 +118,7 @@ export default function BusinessSignupPage() {
 
           <Button
             type="submit"
-            className="w-full bg-pink-600 hover:bg-pink-700 text-white"
+            className="w-full bg-button text-white"
             disabled={isSubmitting}
           >
             {isSubmitting ? "Creating Account..." : "Sign Up"}
@@ -126,7 +129,7 @@ export default function BusinessSignupPage() {
           Already have an account?{" "}
           <a
             href="/login"
-            className="text-pink-600 hover:underline font-medium"
+            className="text-gray-500 hover:underline font-medium"
           >
             Log in
           </a>

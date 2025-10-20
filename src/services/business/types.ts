@@ -1,3 +1,9 @@
+import * as z from "zod";
+import { onboardingFullSchema } from "@/lib/validators/signupSchemas";
+
+export type businessOnboardDto = z.infer<typeof onboardingFullSchema>;
+
+
 
 export interface BusinessSignUpDto {
     password: string;
@@ -9,11 +15,11 @@ export interface CreateBusinessDto {
   password: string;
   phone: string;
   address: string;
-  sectorId: string;
+  sector: string;
   website?: string;
-  socialMedia?: {
-    [key: string]: string;
-  };
+  // socialMedia?: {
+  //   [key: string]: string;
+  // };
 }
 
 export interface Business {

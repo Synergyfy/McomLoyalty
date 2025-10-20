@@ -1,18 +1,14 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, } from '@tanstack/react-query';
 import api, { setBearerToken } from '../api';
-import {  Business,  CreateBusinessDto,  BusinessLoginDto,  BusinessLoginResponse,  Sector, BusinessSignUpDto} from './types';
+import {  Business,  BusinessLoginDto,  BusinessLoginResponse,  Sector, BusinessSignUpDto, businessOnboardDto} from './types';
 import Cookies from 'js-cookie';
 
 const BUSINESS_QUERY_KEY = 'business';
 
 // Business Sign-up
-const businessSignUp = async (signUpData: CreateBusinessDto): Promise<Business> => {
-  const { data } = await api.post<Business>('/business/signup', signUpData);
-  return data;
-};
 
 const initialBusinessSignUp = async (signUpData: BusinessSignUpDto): Promise<Business> => {
-  const { data } = await api.post<Business>('/', signUpData);
+  const { data } = await api.post<Business>('/business/signup', signUpData);
   return data;
 }
 
@@ -20,12 +16,32 @@ export const useBusinessSignUp = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: businessSignUp,
+    mutationFn: initialBusinessSignUp,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [BUSINESS_QUERY_KEY] });
     },
   });
 };
+
+
+// Business onboard
+const businessOnboard = async (onboardData: businessOnboardDto): Promise<Business> => {
+  const { data } = await api.post<Business>('/business/onboard', onboardData);
+  return data;
+};
+
+export const useBusinessOnboard = () => {
+  const QueryClient = useQueryClient();
+  return useMutation({
+    mutationFn: businessOnboard,
+    mutationKey: [BUSINESS_QUERY_KEY],
+    onSuccess: () =>
+    {
+      QueryClient.invalidateQueries({queryKey: [BUSINESS_QUERY_KEY]})
+    }
+
+  })
+}
 
 // Get Sectors
 const getSectors = async (): Promise<Sector[]> => {

@@ -51,10 +51,10 @@ export default function BusinessLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-pink-100 p-6">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br bg-white p-6">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 space-y-6">
         <h2 className="text-2xl font-semibold text-center text-gray-800">
-          Welcome Back 👋
+          Welcome Back 
         </h2>
         <p className="text-center text-gray-500 text-sm">
           Log in to manage your vouchers and rewards
@@ -126,7 +126,7 @@ export default function BusinessLoginPage() {
             </div>
             <a
               href="/forgot-password"
-              className="text-pink-600 hover:underline text-sm"
+              className="text-gray-500 hover:underline text-sm"
             >
               Forgot password?
             </a>
@@ -134,7 +134,7 @@ export default function BusinessLoginPage() {
 
           <Button
             type="submit"
-            className="w-full bg-pink-600 hover:bg-pink-700 text-white"
+            className="w-full bg-orange-500 text-white"
             disabled={isSubmitting}
           >
             {isSubmitting ? "Signing in..." : "Log In"}
