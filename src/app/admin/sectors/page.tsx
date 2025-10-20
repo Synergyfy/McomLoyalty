@@ -4,9 +4,8 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useCreateSector } from '@/hooks/useCreateSector';
-import { CreateSectorRequest } from '@/types/sectors';
-import { useGetSectors } from '@/hooks/useGetSectors';
+import { useCreateSector, useGetSectors } from '@/services/sectors/hook';
+import { CreateSectorRequest } from '@/services/sectors/types';
 import {
   Table,
   TableBody,
@@ -16,17 +15,18 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import Image from 'next/image';
+import { CloudinaryUpload } from '@/components/ui/cloudinary-upload';
 
 export default function SectorsPage() {
   const [name, setName] = useState('');
   const [imageUrl, setImageUrl] = useState('');
-  const createSectorMutation = useCreateSector();
+  const { mutate: createSector, isPending: isCreatingSector } = useCreateSector();
   const { data: sectors, isLoading: isLoadingSectors } = useGetSectors();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const sectorData: CreateSectorRequest = { name, imageUrl };
-    createSectorMutation.mutate(sectorData, {
+    createSector(sectorData, {
       onSuccess: () => {
         alert('Sector created successfully!');
         setName('');
@@ -64,23 +64,28 @@ export default function SectorsPage() {
             </div>
             <div>
               <label htmlFor="imageUrl" className="block text-sm font-medium mb-1">
-                Image URL
+                Image
               </label>
-              <Input
-                id="imageUrl"
-                type="url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="Enter image URL"
-                required
-              />
+              <CloudinaryUpload onUpload={setImageUrl} />
+              {imageUrl && (
+                <div className="mt-4">
+                  <p className="text-sm font-medium">Uploaded Image:</p>
+                  <Image
+                    src={imageUrl}
+                    alt="Uploaded sector image"
+                    width={100}
+                    height={100}
+                    className="rounded-md"
+                  />
+                </div>
+              )}
             </div>
             <Button
               type="submit"
-              disabled={createSectorMutation.isPending}
+              disabled={isCreatingSector}
               className="w-full"
             >
-              {createSectorMutation.isPending ? 'Creating...' : 'Create Sector'}
+              {isCreatingSector ? 'Creating...' : 'Create Sector'}
             </Button>
           </form>
         </CardContent>

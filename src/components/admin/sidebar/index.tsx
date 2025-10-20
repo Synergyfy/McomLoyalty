@@ -3,9 +3,18 @@ import React from 'react';
 import Link from 'next/link';
 import { LayoutDashboard, Award, Briefcase } from 'lucide-react';
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean;
+}
+
+export default function Sidebar({ isOpen }: SidebarProps) {
   return (
-    <div className="fixed h-screen w-64 bg-gray-900 text-white p-5 z-50 overflow-y-auto">
+    <div className={`
+      fixed h-screen w-64 bg-gray-900 text-white p-5 z-50 overflow-y-auto
+      transform transition-transform duration-300 ease-in-out
+      ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+      md:translate-x-0 md:block
+    `}>
       <h2 className="text-lg font-semibold mb-5">Admin Menu</h2>
       <ul>
         <li className="mb-2">
