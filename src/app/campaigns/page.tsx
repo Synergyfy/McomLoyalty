@@ -115,7 +115,7 @@ export default function CampaignsPage() {
                 <h2 className="text-xl font-bold mb-2 text-gray-800">{campaign.title}</h2>
                 <p className="text-gray-600 mb-4 h-20 overflow-hidden">{campaign.description}</p>
                 <Link href={`/campaigns/${campaign.id}`}>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full">View Details</Button>
+                  <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white rounded-full">View Details</Button>
                 </Link>
               </CardContent>
             </Card>

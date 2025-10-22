@@ -1,25 +1,43 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { useCreateCampaign } from '@/services/campaigns/hook';
+import { CreateCampaignRequest } from '@/services/campaigns/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Stepper from '@/components/dashboard/campaigns/Stepper';
 import Step1Details from '@/components/dashboard/campaigns/Step1Details';
 import Step2Dates from '@/components/dashboard/campaigns/Step2Dates';
 import Step3Reward from '@/components/dashboard/campaigns/Step3Reward';
 import Step4Review from '@/components/dashboard/campaigns/Step4Review';
-import { Button } from '@/components/ui/button';
-import { useCreateCampaign } from '@/services/campaigns/hook';
-import { CreateCampaignRequest } from '@/services/campaigns/types';
+
+const steps = ['Details', 'Dates', 'Reward', 'Review'];
 
 export default function CampaignsPage() {
-  const [step, setStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [rewardId, setRewardId] = useState('');
+  
   const { mutate: createCampaign, isPending: isCreatingCampaign } = useCreateCampaign();
 
-  const nextStep = () => setStep(step + 1);
-  const prevStep = () => setStep(step - 1);
+  const nextStep = () => {
+    if (currentStep < steps.length) {
+      setCompletedSteps([...completedSteps, currentStep]);
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCompletedSteps(completedSteps.filter(step => step !== currentStep - 1));
+      setCurrentStep(currentStep - 1);
+    }
+  };
 
   const handleSubmit = () => {
     const campaignData: CreateCampaignRequest = {
@@ -32,7 +50,8 @@ export default function CampaignsPage() {
     createCampaign(campaignData, {
       onSuccess: () => {
         alert('Campaign created successfully!');
-        setStep(1);
+        setCurrentStep(1);
+        setCompletedSteps([]);
         setTitle('');
         setDescription('');
         setStartDate(undefined);
@@ -46,45 +65,59 @@ export default function CampaignsPage() {
   };
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-5 text-primary">Create Campaign</h1>
-      <div className="max-w-md">
-        {step === 1 && (
-          <Step1Details
-            title={title}
-            description={description}
-            setTitle={setTitle}
-            setDescription={setDescription}
-          />
-        )}
-        {step === 2 && (
-          <Step2Dates
-            startDate={startDate}
-            endDate={endDate}
-            setStartDate={setStartDate}
-            setEndDate={setEndDate}
-          />
-        )}
-        {step === 3 && <Step3Reward rewardId={rewardId} setRewardId={setRewardId} />}
-        {step === 4 && (
-          <Step4Review
-            title={title}
-            description={description}
-            startDate={startDate}
-            endDate={endDate}
-            rewardId={rewardId}
-          />
-        )}
-        <div className="flex justify-between mt-10">
-          {step > 1 && <Button onClick={prevStep}>Back</Button>}
-          {step < 4 && <Button onClick={nextStep}>Next</Button>}
-          {step === 4 && (
-            <Button onClick={handleSubmit} disabled={isCreatingCampaign}>
-              {isCreatingCampaign ? 'Creating...' : 'Create Campaign'}
-            </Button>
-          )}
-        </div>
+    <div className="space-y-8">
+      <div className="text-center">
+        <h1 className="text-4xl font-extrabold tracking-tight">Create a New Campaign</h1>
+        <p className="mt-2 text-lg text-muted-foreground">Engage your customers with exciting new offers.</p>
       </div>
+
+      <Card className="max-w-4xl mx-auto shadow-2xl rounded-2xl">
+        <CardHeader>
+          <Stepper steps={steps} currentStep={currentStep} completedSteps={completedSteps} />
+        </CardHeader>
+        <CardContent className="px-8 py-10">
+          <div className="min-h-[300px]">
+            {currentStep === 1 && (
+              <Step1Details
+                title={title}
+                description={description}
+                setTitle={setTitle}
+                setDescription={setDescription}
+              />
+            )}
+            {currentStep === 2 && (
+              <Step2Dates
+                startDate={startDate}
+                endDate={endDate}
+                setStartDate={setStartDate}
+                setEndDate={setEndDate}
+              />
+            )}
+            {currentStep === 3 && <Step3Reward rewardId={rewardId} setRewardId={setRewardId} />}
+            {currentStep === 4 && (
+              <Step4Review
+                title={title}
+                description={description}
+                startDate={startDate}
+                endDate={endDate}
+                rewardId={rewardId}
+              />
+            )}
+          </div>
+          <div className="flex justify-between mt-12 border-t pt-6">
+            <Button onClick={prevStep} variant="outline" disabled={currentStep === 1}>
+              Back
+            </Button>
+            {currentStep < steps.length ? (
+              <Button onClick={nextStep}>Next</Button>
+            ) : (
+              <Button onClick={handleSubmit} disabled={isCreatingCampaign} className="bg-green-600 hover:bg-green-700">
+                {isCreatingCampaign ? 'Creating...' : 'Finish & Create Campaign'}
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
