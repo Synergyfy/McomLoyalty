@@ -25,71 +25,17 @@ export default function CreateRewardDialog({ isOpen, onClose }: CreateRewardDial
   const [pointsRequired, setPointsRequired] = useState(0);
   const [value, setValue] = useState(0);
   const [description, setDescription] = useState('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [image, setImage] = useState(''); // Simplified to a single image state
   const [quantity, setQuantity] = useState(0);
   const { mutate: createReward, isPending: isCreatingReward } = useCreateReward();
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
-
-  const handleFileSelect = (file: File | null, previewUrl: string | null) => {
-    setSelectedFile(file);
-    setImagePreviewUrl(previewUrl);
-  };
-
-  const uploadImageToCloudinary = async (file: File): Promise<string> => {
-    setIsUploadingImage(true);
-    try {
-      const paramsToSign = {
-        timestamp: Math.round((new Date).getTime()/1000),
-      };
-
-      const signatureResponse = await fetch('/api/sign-cloudinary-params', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paramsToSign }),
-      });
-      const { signature } = await signatureResponse.json();
-
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!);
-      formData.append('timestamp', paramsToSign.timestamp.toString());
-      formData.append('signature', signature);
-
-      const response = await fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Cloudinary upload failed.');
-      }
-
-      const data = await response.json();
-      return data.secure_url;
-    } finally {
-      setIsUploadingImage(false);
-    }
-  };
 
   const handleSubmit = async () => {
-    let imageUrlToSubmit = '';
-
-    if (selectedFile) {
-      try {
-        imageUrlToSubmit = await uploadImageToCloudinary(selectedFile);
-      } catch (error) {
-        alert(`Image upload failed: ${error}`);
-        return; // Stop submission if image upload fails
-      }
-    }
-
     const rewardData: CreateRewardRequest = {
       title,
       points_required: pointsRequired,
       value,
       description,
-      image: imageUrlToSubmit,
+      image,
       quantity,
     };
     createReward(rewardData, {
@@ -101,8 +47,7 @@ export default function CreateRewardDialog({ isOpen, onClose }: CreateRewardDial
         setPointsRequired(0);
         setValue(0);
         setDescription('');
-        setSelectedFile(null);
-        setImagePreviewUrl(null);
+        setImage(''); // Reset local image state
         setQuantity(0);
       },
       onError: (error) => {
@@ -211,19 +156,20 @@ export default function CreateRewardDialog({ isOpen, onClose }: CreateRewardDial
             <TooltipProvider>
               <Tooltip delayDuration={0}>
                 <TooltipTrigger asChild>
-                  <CloudinaryUpload onFileSelect={handleFileSelect} />
+                  {/* CloudinaryUpload directly calls setImage with the URL */}
+                  <CloudinaryUpload onUpload={setImage} />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Upload a visually appealing image for the reward.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            {imagePreviewUrl && (
+            {image && (
               <div className="col-span-4 mt-4">
                 <p className="text-sm font-medium">Uploaded Image:</p>
                 <div className="relative h-24 w-24 rounded-full overflow-hidden">
                   <Image
-                    src={imagePreviewUrl}
+                    src={image}
                     alt="Uploaded reward image"
                     layout="fill"
                     objectFit="cover"
@@ -255,8 +201,8 @@ export default function CreateRewardDialog({ isOpen, onClose }: CreateRewardDial
             </TooltipProvider>
           </div>
         </div>
-        <Button onClick={handleSubmit} disabled={isCreatingReward || isUploadingImage}>
-          {isCreatingReward || isUploadingImage ? 'Processing...' : 'Create Reward'}
+        <Button onClick={handleSubmit} disabled={isCreatingReward}>
+          {isCreatingReward ? 'Creating...' : 'Create Reward'}
         </Button>
       </DialogContent>
     </Dialog>

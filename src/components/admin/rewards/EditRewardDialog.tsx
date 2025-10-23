@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useUpdateReward } from "@/services/rewards/hook";
-import { RewardResponse, UpdateRewardRequest } from "@/services/rewards/types";
+import { RewardResponse, CreateRewardRequest } from "@/services/rewards/types";
 import { useState } from "react";
 
 interface EditRewardDialogProps {
@@ -20,7 +20,7 @@ interface EditRewardDialogProps {
 
 export default function EditRewardDialog({ reward, isOpen, onClose }: EditRewardDialogProps) {
   const [title, setTitle] = useState(reward.title);
-  const [pointsRequired, setPointsRequired] = useState(reward.points_required);
+  const [pointsRequired, setPointsRequired] = useState(reward.pointsRequired);
   const [value, setValue] = useState(reward.value);
   const [description, setDescription] = useState(reward.description);
   const [image, setImage] = useState(reward.image);
@@ -28,7 +28,7 @@ export default function EditRewardDialog({ reward, isOpen, onClose }: EditReward
   const { mutate: updateReward, isPending: isUpdatingReward } = useUpdateReward();
 
   const handleSubmit = () => {
-    const rewardData: UpdateRewardRequest = {
+    const rewardData: Partial<CreateRewardRequest> = {
       title,
       points_required: pointsRequired,
       value,

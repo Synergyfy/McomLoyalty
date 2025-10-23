@@ -6,6 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import { Calendar, Tag } from "lucide-react";
 
+interface PageProps {
+  params: { campaignId: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
+}
+
 // Mock data for a single campaign, since the API is not yet available
 const mockCampaign = {
     id: '1',
@@ -27,7 +32,7 @@ const mockCampaign = {
     category: 'Restaurants',
 };
 
-export default function CampaignDetailPage({ params }: { params: { campaignId: string } }) {
+export default function CampaignDetailPage({ params }: PageProps) {
   // const { data: campaign, isLoading } = useGetPublicCampaignDetails(params.campaignId);
   const { mutate: joinCampaign, isPending: isJoining } = useJoinCampaign();
 

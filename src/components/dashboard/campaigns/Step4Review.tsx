@@ -9,6 +9,8 @@ interface Step4ReviewProps {
   description: string;
   startDate: Date | undefined;
   endDate: Date | undefined;
+  thumbnailUrl: string;
+  subImageUrls: string[];
   rewardId: string;
 }
 
