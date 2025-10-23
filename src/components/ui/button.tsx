@@ -48,17 +48,19 @@ function Button({
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
   }) {
-  const Comp = asChild ? motion(Slot) : motion.button
+  const Comp = asChild ? motion(Slot) : motion.button;
+
+  const { whileHover, whileTap, ...rest } = props as React.ComponentProps<typeof motion.button>;
 
   return (
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      {...props}
+      whileHover={whileHover || { scale: 1.05 }}
+      whileTap={whileTap || { scale: 0.95 }}
+      {...rest}
     />
-  )
+  );
 }
 
 export { Button, buttonVariants }
