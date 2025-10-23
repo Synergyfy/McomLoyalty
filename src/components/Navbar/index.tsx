@@ -2,6 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 import React, { useState } from 'react';
+import Link from 'next/link';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,8 +25,12 @@ const Navbar = () => {
         </a>
       </div>
       <div className='hidden md:flex items-center gap-2'>
-        <Button variant='ghost'>Login</Button>
-        <Button>Join Beta</Button>
+        <Link href='/signin'>
+          <Button variant='ghost'>Login</Button>
+        </Link>
+        <Link href='/signup'>
+          <Button>Join Beta</Button>
+        </Link>
       </div>
       <div className='md:hidden'>
         <button onClick={() => setIsOpen(!isOpen)}>
@@ -46,8 +51,12 @@ const Navbar = () => {
           <a href='#faq' className='text-base font-medium'>
             FAQ
           </a>
-          <Button variant='ghost'>Login</Button>
-          <Button>Join Beta</Button>
+          <Link href='/signin'>
+            <Button variant='ghost'>Login</Button>
+          </Link>
+          <Link href='/signup'>
+            <Button>Join Beta</Button>
+          </Link>
         </div>
       )}
     </nav>
