@@ -8,67 +8,48 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Stepper from '@/components/dashboard/campaigns/Stepper';
 import Step1Details from '@/components/dashboard/campaigns/Step1Details';
 import Step2Dates from '@/components/dashboard/campaigns/Step2Dates';
-import Step3Reward from '@/components/dashboard/campaigns/Step3Reward';
+import Step3Images from '@/components/dashboard/campaigns/Step3Images';
 import Step4Review from '@/components/dashboard/campaigns/Step4Review';
-import { RewardResponse } from '@/services/rewards/types'; // Import RewardResponse
+import Step3Reward from '@/components/dashboard/campaigns/Step3Reward';
 
-const steps = ['Details', 'Dates', 'Reward', 'Review'];
+const steps = ['Details', 'Dates', 'Images', 'Reward', 'Review'];
 
 export default function CampaignsPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
+  const [thumbnailUrl, setThumbnailUrl] = useState('');
+  const [subImageUrls, setSubImageUrls] = useState<string[]>([]);
   const [rewardId, setRewardId] = useState('');
-  const [selectedRewardObject, setSelectedRewardObject] = useState<RewardResponse | undefined>(undefined); // New state for the full reward object
   
   const { mutate: createCampaign, isPending: isCreatingCampaign } = useCreateCampaign();
 
-  const validateStep = () => {
-    const errors: Record<string, string> = {};
-    if (currentStep === 1) {
-      if (!title.trim()) errors.title = 'Campaign Title is required.';
-      if (!description.trim()) errors.description = 'Campaign Description is required.';
-    } else if (currentStep === 2) {
-      if (!startDate) errors.startDate = 'Start Date is required.';
-      if (!endDate) errors.endDate = 'End Date is required.';
-      if (startDate && endDate && startDate > endDate) errors.dateRange = 'End Date cannot be before Start Date.';
-    } else if (currentStep === 3) {
-      if (!rewardId) errors.rewardId = 'Reward selection is required.';
-    }
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleNext = () => {
-    if (validateStep()) {
-      if (currentStep < steps.length) {
-        setCompletedSteps([...completedSteps, currentStep]);
-        setCurrentStep(currentStep + 1);
-      }
+  const nextStep = () => {
+    if (currentStep < steps.length) {
+      setCompletedSteps([...completedSteps, currentStep]);
+      setCurrentStep(currentStep + 1);
     }
   };
 
-  const handlePrev = () => {
+  const prevStep = () => {
     if (currentStep > 1) {
       setCompletedSteps(completedSteps.filter(step => step !== currentStep - 1));
       setCurrentStep(currentStep - 1);
-      setValidationErrors({}); // Clear errors on back navigation
     }
   };
 
   const handleSubmit = () => {
-    if (!validateStep()) return;
-
     const campaignData: CreateCampaignRequest = {
       title,
       description,
       startDate: startDate?.toISOString() || '',
       endDate: endDate?.toISOString() || '',
+      thumbnailUrl,
+      subImageUrls: subImageUrls.filter(url => url), // Ensure only valid URLs are sent
       rewardId,
     };
     createCampaign(campaignData, {
@@ -80,20 +61,14 @@ export default function CampaignsPage() {
         setDescription('');
         setStartDate(undefined);
         setEndDate(undefined);
+        setThumbnailUrl('');
+        setSubImageUrls([]);
         setRewardId('');
-        setSelectedRewardObject(undefined); // Reset selected reward object
-        setValidationErrors({});
       },
       onError: (error) => {
         alert(`Error creating campaign: ${error.message}`);
       },
     });
-  };
-
-  // Handler to update both rewardId and selectedRewardObject
-  const handleRewardSelect = (id: string, reward: RewardResponse) => {
-    setRewardId(id);
-    setSelectedRewardObject(reward);
   };
 
   return (
@@ -115,7 +90,6 @@ export default function CampaignsPage() {
                 description={description}
                 setTitle={setTitle}
                 setDescription={setDescription}
-                error={validationErrors.title || validationErrors.description}
               />
             )}
             {currentStep === 2 && (
@@ -124,36 +98,35 @@ export default function CampaignsPage() {
                 endDate={endDate}
                 setStartDate={setStartDate}
                 setEndDate={setEndDate}
-                error={validationErrors.startDate || validationErrors.endDate || validationErrors.dateRange}
               />
             )}
-            {currentStep === 3 && <Step3Reward rewardId={rewardId} setRewardId={handleRewardSelect} error={validationErrors.rewardId} />}
-            {currentStep === 4 && (
+            {currentStep === 3 && (
+              <Step3Images
+                thumbnailUrl={thumbnailUrl}
+                subImageUrls={subImageUrls}
+                setThumbnailUrl={setThumbnailUrl}
+                setSubImageUrls={setSubImageUrls}
+              />
+            )}
+            {currentStep === 4 && <Step3Reward rewardId={rewardId} setRewardId={setRewardId} />}
+            {currentStep === 5 && (
               <Step4Review
                 title={title}
                 description={description}
                 startDate={startDate}
                 endDate={endDate}
-                reward={selectedRewardObject}
+                thumbnailUrl={thumbnailUrl}
+                subImageUrls={subImageUrls}
+                rewardId={rewardId}
               />
-            )}
-            {Object.keys(validationErrors).length > 0 && (
-              <div className="text-red-500 text-sm mt-4">
-                Please correct the following errors:
-                <ul>
-                  {Object.values(validationErrors).map((msg, index) => (
-                    <li key={index}>- {msg}</li>
-                  ))}
-                </ul>
-              </div>
             )}
           </div>
           <div className="flex justify-between mt-12 border-t pt-6">
-            <Button onClick={handlePrev} variant="outline" disabled={currentStep === 1}>
+            <Button onClick={prevStep} variant="outline" disabled={currentStep === 1}>
               Back
             </Button>
             {currentStep < steps.length ? (
-              <Button onClick={handleNext}>Next</Button>
+              <Button onClick={nextStep}>Next</Button>
             ) : (
               <Button onClick={handleSubmit} disabled={isCreatingCampaign} className="bg-green-600 hover:bg-green-700">
                 {isCreatingCampaign ? 'Creating...' : 'Finish & Create Campaign'}

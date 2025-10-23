@@ -33,7 +33,7 @@ export default function RewardCard({ reward, onEditClick, onDeleteClick }: Rewar
                     </div>
                     <div className="flex flex-col text-center">
                       <span className="text-xs text-muted-foreground">Value</span>
-                      <span className="font-bold text-lg">${reward.value}</span>
+                      <span className="font-bold text-lg">£{reward.value}</span>
                     </div>
                     <div className="flex flex-col text-right">
                       <span className="text-xs text-muted-foreground">Quantity</span>

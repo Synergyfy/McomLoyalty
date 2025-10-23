@@ -1,42 +1,32 @@
 'use client';
 
-import React, { useRef } from 'react';
+import { CldUploadButton } from 'next-cloudinary';
 import { Button } from '@/components/ui/button';
 import { Upload } from 'lucide-react';
 
 interface CloudinaryUploadProps {
-  onFileSelect: (file: File | null, previewUrl: string | null) => void;
+  onUpload: (url: string) => void;
 }
 
-export function CloudinaryUpload({ onFileSelect }: CloudinaryUploadProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const previewUrl = URL.createObjectURL(file);
-      onFileSelect(file, previewUrl);
-    } else {
-      onFileSelect(null, null);
-    }
-  };
-
+export function CloudinaryUpload({ onUpload }: CloudinaryUploadProps) {
   return (
-    <>
-      <input
-        type="file"
-        ref={inputRef}
-        onChange={handleFileChange}
-        className="hidden"
-        accept="image/*"
-      />
-      <Button 
-        type="button" 
-        onClick={() => inputRef.current?.click()}
-      >
+    <CldUploadButton
+      options={{ maxFiles: 1 }}
+      signatureEndpoint="/api/sign-cloudinary-params"
+      onSuccess={(result: any) => {
+        if (result.info && typeof result.info === 'object' && 'secure_url' in result.info) {
+          onUpload(result.info.secure_url);
+        }
+      }}
+      onError={(error) => {
+        console.error('Cloudinary upload error:', error);
+        alert('An error occurred during the upload. Please try again.');
+      }}
+    >
+      <div className="flex items-center">
         <Upload className="mr-2 h-4 w-4" />
-        Upload Image
-      </Button>
-    </>
+        <span>Upload Image</span>
+      </div>
+    </CldUploadButton>
   );
 }
