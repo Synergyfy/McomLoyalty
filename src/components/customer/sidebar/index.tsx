@@ -3,17 +3,17 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Award, Megaphone, UserCheck } from 'lucide-react';
+import { Home, Wallet, Megaphone } from 'lucide-react';
 
-interface BusinessSidebarProps {
+interface CustomerSidebarProps {
   isOpen: boolean;
 }
 
-export default function BusinessSidebar({ isOpen }: BusinessSidebarProps) {
+export default function CustomerSidebar({ isOpen }: CustomerSidebarProps) {
   const pathname = usePathname();
 
   const linkClasses = (path: string) => {
-    const isActive = pathname.startsWith(path);
+    const isActive = pathname === path;
     return `flex items-center p-2 rounded-lg transition-colors duration-200 ${isActive ? 'bg-orange-600 text-white' : 'text-gray-600 hover:bg-orange-100 hover:text-orange-600'}`;
   };
 
@@ -26,24 +26,24 @@ export default function BusinessSidebar({ isOpen }: BusinessSidebarProps) {
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}
     >
-      <h2 className="text-2xl font-bold mb-6 text-orange-600">Business Menu</h2>
+      <h2 className="text-2xl font-bold mb-6 text-orange-600">Menu</h2>
       <ul className="space-y-2">
         <li>
-          <Link href="/dashboard/rewards" className={linkClasses("/dashboard/rewards")}>
-            <Award className="mr-3" />
-            Rewards
+          <Link href="/" className={linkClasses("/")}>
+            <Home className="mr-3" />
+            Home
           </Link>
         </li>
-        <li>
-          <Link href="/dashboard/campaigns" className={linkClasses("/dashboard/campaigns")}>
+        <li className="mb-2">
+          <Link href="/my-campaigns" className={linkClasses("/my-campaigns")}>
             <Megaphone className="mr-3" />
-            Campaigns
+            My Campaigns
           </Link>
         </li>
-        <li>
-          <Link href="/dashboard/campaign-access" className={linkClasses("/dashboard/campaign-access")}>
-            <UserCheck className="mr-3" />
-            Campaign Access
+        <li className="mb-2">
+          <Link href="/wallet" className={linkClasses("/wallet")}>
+            <Wallet className="mr-3" />
+            Wallet
           </Link>
         </li>
       </ul>

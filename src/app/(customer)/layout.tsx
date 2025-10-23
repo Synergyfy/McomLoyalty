@@ -1,10 +1,10 @@
 'use client';
 
-import BusinessSidebar from '@/components/dashboard/sidebar';
-import BusinessHeader from '@/components/dashboard/header';
+import CustomerSidebar from '@/components/customer/sidebar';
+import CustomerHeader from '@/components/customer/header';
 import React, { useState } from 'react';
 
-export default function DashboardLayout({
+export default function CustomerLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -26,12 +26,12 @@ export default function DashboardLayout({
           )}
 
           {/* Sidebar */}
-          <BusinessSidebar isOpen={isSidebarOpen} />
+          <CustomerSidebar isOpen={isSidebarOpen} />
 
           {/* Main content */}
           <div className="flex-1 md:ml-64">
             {/* Header for mobile */}
-            <BusinessHeader onMenuClick={toggleSidebar} />
+            <CustomerHeader onMenuClick={toggleSidebar} />
             <main className="p-4 sm:p-6 md:p-10">
               {children}
             </main>
