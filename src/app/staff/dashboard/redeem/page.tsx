@@ -29,10 +29,15 @@ const mockRewards = [
   { id: "RWD002", title: "Discount Voucher", pointsRequired: 200 },
   { id: "RWD003", title: "Exclusive Gift", pointsRequired: 300 },
 ];
-
+type CustomerType = {
+  id: string;
+  name: string;
+  email: string;
+  points: number;
+};
 export default function StaffRedeemPage() {
   const form = useForm<{ searchId: string }>({ defaultValues: { searchId: "" } });
-  const [customer, setCustomer] = useState<any | null>(null);
+  const [customer, setCustomer] = useState<CustomerType | null>(null);
   const [openScanner, setOpenScanner] = useState(false);
   const [notify, setNotify] = useState<{
     type: "success" | "error" | "warning" | null;
@@ -261,7 +266,7 @@ export default function StaffRedeemPage() {
               onScan={(data: string | null) => {
                 if (data) handleScan(data);
               }}
-              onError={(err: any) => console.error(err)}
+              onError={(err) => console.error(err)}
               style={{ width: "100%" }}
             />
           </div>

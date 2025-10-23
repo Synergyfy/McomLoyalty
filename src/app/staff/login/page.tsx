@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState} from "react";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";

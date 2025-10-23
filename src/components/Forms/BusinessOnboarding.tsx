@@ -71,8 +71,8 @@ const handleNext = async () => {
         await onboardBusiness(data);
         toast.success("Business onboarded successfully!");
         router.push("/dashboard");
-      } catch (error: any) {
-        toast.error(`Failed to onboard business: ${error.message}`);
+      } catch (error) {
+        toast.error(`Failed to onboard business try again.`);
         console.error("Onboarding error:", error);
       }
 

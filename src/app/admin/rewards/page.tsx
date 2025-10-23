@@ -7,7 +7,7 @@ import { useGetRewards, useDeleteReward } from '@/services/rewards/hook';
 import { RewardResponse } from '@/services/rewards/types';
 import EditRewardDialog from '@/components/admin/rewards/EditRewardDialog';
 import CreateRewardDialog from '@/components/admin/rewards/CreateRewardDialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+// import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Plus } from 'lucide-react';
 import RewardCard from '@/components/admin/rewards/RewardCard';
 

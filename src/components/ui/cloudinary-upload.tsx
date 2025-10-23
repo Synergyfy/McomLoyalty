@@ -1,7 +1,7 @@
 'use client';
 
 import { CldUploadButton } from 'next-cloudinary';
-import { Button } from '@/components/ui/button';
+
 import { Upload } from 'lucide-react';
 
 interface CloudinaryUploadProps {
@@ -13,7 +13,7 @@ export function CloudinaryUpload({ onUpload }: CloudinaryUploadProps) {
     <CldUploadButton
       options={{ maxFiles: 1 }}
       signatureEndpoint="/api/sign-cloudinary-params"
-      onSuccess={(result: any) => {
+      onSuccess={(result) => {
         if (result.info && typeof result.info === 'object' && 'secure_url' in result.info) {
           onUpload(result.info.secure_url);
         }

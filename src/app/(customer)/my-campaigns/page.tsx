@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
 const mockMyCampaigns = [
@@ -36,7 +36,7 @@ export default function MyCampaignsPage() {
     <div className="space-y-8">
       <div className="text-center">
         <h1 className="text-4xl md:text-5xl font-extrabold text-gray-800 tracking-tight">My Campaigns</h1>
-        <p className="mt-4 text-lg text-gray-600">Track your progress and see the rewards you're working towards.</p>
+        <p className="mt-4 text-lg text-gray-600">Track your progress and see the rewards you&lsquo;re working towards.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

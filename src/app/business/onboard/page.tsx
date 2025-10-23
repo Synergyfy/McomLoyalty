@@ -1,6 +1,6 @@
 // src/app/business/signup/page.tsx
 import React from "react";
-import BusinessOnboard from "@/components/Forms/MultiStepWizard/steps/BusinessOnboarding";
+import BusinessOnboard from "@/components/Forms/BusinessOnboarding";
 
 
 export default function BusinessSignupPage() {

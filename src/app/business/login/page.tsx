@@ -41,8 +41,9 @@ export default function BusinessLoginPage() {
       } else {
         router.push("/business/dashboard");
       }
-    } catch (error: any) {
-      toast.error(error.message || "Login failed. Please try again.");
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error("Login failed. Please try again.");
     }
   };
 
