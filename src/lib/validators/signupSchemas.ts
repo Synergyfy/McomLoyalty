@@ -10,14 +10,9 @@ const socialMediaSchema = z
   .optional();
 
 export const createBusinessSchema = z.object({
-sectorId: z
-  .string()
-  .transform((v) => (v === "" ? null : v))
-  .nullable()
-  .refine((val) => !val || (typeof val === "string" && val.length >= 2), "Select a sector"),
-  email: z.email("Valid email is required"),
-  phone: z.string().optional().nullable(),
-  address: z.string().optional().nullable(),
+  sectorId: z.string(),
+  phone: z.string().min(7, "Valid phone number is required"),
+  address: z.string(),
   website: z.url().nullish().or(z.literal("")).optional(),
   socialMedia: socialMediaSchema,
   referralCapacity: z.number({

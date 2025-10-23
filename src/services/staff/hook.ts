@@ -11,7 +11,7 @@ interface StaffLoginDto {
 };
 
 // Staff login
-const staffSignIn = async (loginData: StaffLoginDto): Promise<BusinessLoginResponse> => {
+const staffLogin = async (loginData: StaffLoginDto): Promise<BusinessLoginResponse> => {
   const { data } = await api.post<BusinessLoginResponse>('/auth/login', loginData);
   return data;
 };
@@ -22,7 +22,7 @@ export const useStaffLogin = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: staffSignIn,
+    mutationFn: staffLogin,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [STAFF_QUERY_KEY] });
     },
