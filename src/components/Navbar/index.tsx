@@ -2,11 +2,10 @@
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 import React, { useState } from 'react';
-import LoginDialog from '@/components/LoginDialog';
+import Link from 'next/link';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   return (
     <nav className='sticky top-0 z-50 backdrop-blur-lg bg-opacity-80 flex items-center justify-between px-4 py-2'>
@@ -26,8 +25,12 @@ const Navbar = () => {
         </a>
       </div>
       <div className='hidden md:flex items-center gap-2'>
-        <Button variant='ghost' onClick={() => setIsLoginOpen(true)}>Login</Button>
-        <Button onClick={() => setIsLoginOpen(true)}>Join Beta</Button>
+        <Link href='/signin'>
+          <Button variant='ghost'>Login</Button>
+        </Link>
+        <Link href='/signup'>
+          <Button>Join Beta</Button>
+        </Link>
       </div>
       <div className='md:hidden'>
         <button onClick={() => setIsOpen(!isOpen)}>
@@ -48,11 +51,14 @@ const Navbar = () => {
           <a href='#faq' className='text-base font-medium'>
             FAQ
           </a>
-          <Button variant='ghost' onClick={() => setIsLoginOpen(true)}>Login</Button>
-          <Button onClick={() => setIsLoginOpen(true)}>Join Beta</Button>
+          <Link href='/signin'>
+            <Button variant='ghost'>Login</Button>
+          </Link>
+          <Link href='/signup'>
+            <Button>Join Beta</Button>
+          </Link>
         </div>
       )}
-      <LoginDialog isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </nav>
   );
 };
