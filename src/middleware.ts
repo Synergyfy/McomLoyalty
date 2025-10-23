@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 
 <<<<<<< HEAD
 export function middleware(req: NextRequest) {
-  const token = req.cookies.get('accessToken');
+  const token = req.cookies.get('access');
 
   if (!token) {
     return NextResponse.redirect(new URL('/', req.url));

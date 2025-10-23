@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api, { setBearerToken } from '../api';
 import {  Business,  CreateBusinessDto,  BusinessLoginDto,  BusinessLoginResponse,  Sector,} from './types';
 import Cookies from 'js-cookie';
+import { useRouter } from 'next/navigation';
 
 const BUSINESS_QUERY_KEY = 'business';
 
@@ -42,12 +43,20 @@ const businessSignIn = async (loginData: BusinessLoginDto): Promise<BusinessLogi
 };
 
 export const useBusinessSignIn = () => {
+  const router = useRouter();
+
   return useMutation({
     mutationFn: businessSignIn,
     onSuccess: (data) => {
       Cookies.set('access', data.accessToken);
       Cookies.set('refresh', data.refreshToken);
       setBearerToken(data.accessToken);
+
+      if (data.user.role === 'Admin') {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/dashboard');
+      }
     },
   });
 };

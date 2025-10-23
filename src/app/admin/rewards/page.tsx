@@ -2,215 +2,106 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useCreateReward } from '@/hooks/useCreateReward';
-import { CreateRewardRequest } from '@/types/rewards';
-import { useGetRewards } from '@/hooks/useGetRewards';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { useGetRewards, useDeleteReward } from '@/services/rewards/hook';
+import { RewardResponse } from '@/services/rewards/types';
+import EditRewardDialog from '@/components/admin/rewards/EditRewardDialog';
+import CreateRewardDialog from '@/components/admin/rewards/CreateRewardDialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Plus } from 'lucide-react';
+import RewardCard from '@/components/admin/rewards/RewardCard';
 
 export default function RewardsPage() {
-  const [title, setTitle] = useState('');
-  const [pointsRequired, setPointsRequired] = useState(0);
-  const [value, setValue] = useState(0);
-  const [description, setDescription] = useState('');
-  const [image, setImage] = useState('');
-  const [quantity, setQuantity] = useState(0);
-  const createRewardMutation = useCreateReward();
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
-  const { data: rewardsData, isLoading: isLoadingRewards } = useGetRewards(
-    page,
-    limit
-  );
+  const { data: rewardsData, isLoading: isLoadingRewards } = useGetRewards(page, limit);
+  const { mutate: deleteReward } = useDeleteReward();
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedReward, setSelectedReward] = useState<RewardResponse | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const rewardData: CreateRewardRequest = {
-      title,
-      points_required: pointsRequired,
-      value,
-      description,
-      image,
-      quantity,
-    };
-    createRewardMutation.mutate(rewardData, {
+  const handleEditClick = (reward: RewardResponse) => {
+    setSelectedReward(reward);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = (rewardId: string) => {
+    deleteReward(rewardId, {
       onSuccess: () => {
-        alert('Reward created successfully!');
-        setTitle('');
-        setPointsRequired(0);
-        setValue(0);
-        setDescription('');
-        setImage('');
-        setQuantity(0);
+        alert('Reward deleted successfully!');
       },
       onError: (error) => {
-        alert(`Error creating reward: ${error.message}`);
+        alert(`Error deleting reward: ${error.message}`);
       },
     });
   };
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-5 text-primary">Rewards</h1>
-      <p className="mb-5">Manage rewards for the loyalty platform.</p>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Manage Rewards</h1>
+        <p className="text-muted-foreground">Create, edit, and delete rewards for your platform.</p>
+      </div>
 
-      <Card className="max-w-md mb-10">
+      <Card>
         <CardHeader>
-          <CardTitle>Create New Reward</CardTitle>
+          <CardTitle>All Rewards</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium mb-1">
-                Title
-              </label>
-              <Input
-                id="title"
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter reward title"
-                required
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="pointsRequired"
-                className="block text-sm font-medium mb-1"
-              >
-                Points Required
-              </label>
-              <Input
-                id="pointsRequired"
-                type="number"
-                value={pointsRequired}
-                onChange={(e) => setPointsRequired(Number(e.target.value))}
-                placeholder="Enter points required"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="value" className="block text-sm font-medium mb-1">
-                Value
-              </label>
-              <Input
-                id="value"
-                type="number"
-                value={value}
-                onChange={(e) => setValue(Number(e.target.value))}
-                placeholder="Enter reward value"
-                required
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="description"
-                className="block text-sm font-medium mb-1"
-              >
-                Description
-              </label>
-              <Input
-                id="description"
-                type="text"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Enter reward description"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="image" className="block text-sm font-medium mb-1">
-                Image URL
-              </label>
-              <Input
-                id="image"
-                type="url"
-                value={image}
-                onChange={(e) => setImage(e.target.value)}
-                placeholder="Enter image URL"
-                required
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="quantity"
-                className="block text-sm font-medium mb-1"
-              >
-                Quantity
-              </label>
-              <Input
-                id="quantity"
-                type="number"
-                value={quantity}
-                onChange={(e) => setQuantity(Number(e.target.value))}
-                placeholder="Enter reward quantity"
-                required
-              />
-            </div>
-            <Button
-              type="submit"
-              disabled={createRewardMutation.isPending}
-              className="w-full"
-            >
-              {createRewardMutation.isPending ? 'Creating...' : 'Create Reward'}
-            </Button>
-          </form>
+          {isLoadingRewards ? (
+            <p>Loading rewards...</p>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {rewardsData?.data && rewardsData.data.map((reward) => (
+                  <RewardCard
+                    key={reward.id}
+                    reward={reward}
+                    onEditClick={handleEditClick}
+                    onDeleteClick={() => handleDeleteClick(reward.id)}
+                  />
+                ))}
+              </div>
+              <div className="flex justify-center items-center mt-6 space-x-4 p-4 border-t">
+                <Button
+                  onClick={() => setPage(page - 1)}
+                  disabled={page === 1}
+                  variant="outline"
+                >
+                  Previous
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Page {rewardsData?.currentPage} of {rewardsData?.totalPages}
+                </span>
+                <Button
+                  onClick={() => setPage(page + 1)}
+                  disabled={!rewardsData || page === rewardsData.totalPages}
+                  variant="outline"
+                >
+                  Next
+                </Button>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
-      <h2 className="text-xl font-bold mb-5">All Rewards</h2>
-
-      {isLoadingRewards ? (
-        <p>Loading rewards...</p>
-      ) : (
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Points Required</TableHead>
-                <TableHead>Value</TableHead>
-                <TableHead>Quantity</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rewardsData?.rewards && rewardsData.rewards.map((reward) => (
-                <TableRow key={reward.id}>
-                  <TableCell>{reward.title}</TableCell>
-                  <TableCell>{reward.points_required}</TableCell>
-                  <TableCell>{reward.value}</TableCell>
-                  <TableCell>{reward.quantity}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <div className="flex justify-between items-center p-4">
-            <Button
-              onClick={() => setPage(page - 1)}
-              disabled={page === 1}
-            >
-              Previous
-            </Button>
-            <span>
-              Page {rewardsData?.currentPage} of {rewardsData?.totalPages}
-            </span>
-            <Button
-              onClick={() => setPage(page + 1)}
-              disabled={page === rewardsData?.totalPages}
-            >
-              Next
-            </Button>
-          </div>
-        </Card>
+      {selectedReward && (
+        <EditRewardDialog
+          reward={selectedReward}
+          isOpen={isEditDialogOpen}
+          onClose={() => setIsEditDialogOpen(false)}
+        />
       )}
+
+      <CreateRewardDialog isOpen={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)} />
+
+      <Button
+        onClick={() => setIsCreateDialogOpen(true)}
+        className="fixed bottom-8 right-8 h-16 w-16 rounded-full shadow-lg"
+      >
+        <Plus className="h-8 w-8" />
+      </Button>
     </div>
   );
 }

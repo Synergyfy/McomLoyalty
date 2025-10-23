@@ -22,11 +22,7 @@ const SignInPage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    mutate(formData, {
-      onSuccess: () => {
-        router.push('/dashboard');
-      },
-    });
+    mutate(formData);
   };
 
   return (

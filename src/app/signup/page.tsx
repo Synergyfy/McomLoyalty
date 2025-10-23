@@ -16,6 +16,7 @@ const SignUpPage = () => {
     name: '',
     email: '',
     password: '',
+    confirmPassword: '',
     phone: '',
     address: '',
     sectorId: '',
@@ -54,7 +55,7 @@ const SignUpPage = () => {
       return;
     }
     if (validate()) {
-      mutate(formData, {
+      mutate({...formData, confirmPassword}, {
         onSuccess: () => {
           router.push('/signin');
         },
