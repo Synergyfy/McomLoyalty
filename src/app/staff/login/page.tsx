@@ -88,7 +88,7 @@ const router = useRouter();
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-pink-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-white p-4">
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
@@ -138,7 +138,7 @@ const router = useRouter();
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-pink-600 hover:bg-pink-700 text-white rounded-full py-2 mt-2"
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-full py-2 mt-2"
           >
             {loading ? (
               <Loader2 className="animate-spin h-4 w-4 mr-2 inline-block" />
@@ -152,7 +152,7 @@ const router = useRouter();
         <div className="text-center mt-4">
           <Dialog>
             <DialogTrigger asChild>
-              <button className="text-sm text-pink-600 hover:text-pink-700 underline">
+              <button className="text-sm text-orange-500 hover:text-orange-600 underline">
                 Forgot your password?
               </button>
             </DialogTrigger>
@@ -195,7 +195,7 @@ const router = useRouter();
                   <Button
                     type="submit"
                     disabled={forgotLoading}
-                    className="bg-pink-600 hover:bg-pink-700 text-white"
+                    className="bg-orange-500 hover:bg-orange-600 text-white"
                   >
                     {forgotLoading ? (
                       <Loader2 className="animate-spin h-4 w-4 mr-2 inline-block" />
