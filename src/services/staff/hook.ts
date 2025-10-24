@@ -7,7 +7,7 @@ const STAFF_QUERY_KEY = 'staff';
 
 // staff login
 const staffLogin = async (credentials: { email: string; password: string }): Promise<Staff> => {
-  const { data } = await api.post<Staff>('/staff/login', credentials);
+  const { data } = await api.post<Staff>('/auth/login', credentials);
   return data;
 };
 
