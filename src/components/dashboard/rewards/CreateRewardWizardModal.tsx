@@ -1,0 +1,305 @@
+'use client';
+
+import React, { useState, useEffect, useMemo } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Progress } from '@/components/ui/progress';
+import { CloudinaryUpload } from '@/components/ui/cloudinary-upload';
+import Image from 'next/image';
+import DateTimePicker from '@/components/dashboard/campaigns/datePicker';
+import { useCreateReward } from '@/services/rewards/hook';
+import { CreateRewardRequest } from '@/services/rewards/types';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+
+interface CreateRewardWizardModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onCampaignPrompt?: () => void; // Callback for campaign prompt
+}
+
+const rewardTypes = [
+  { value: 'voucher', label: 'Voucher', icon: '🎟️' },
+  { value: 'gift_card', label: 'Gift Card', icon: '🎁' },
+  { value: 'coupon', label: 'Coupon', icon: '🏷️' },
+  { value: 'points_offer', label: 'Points Offer', icon: '⭐' },
+  { value: 'physical_product', label: 'Physical Product', icon: '📦' },
+];
+
+export default function CreateRewardWizardModal({ isOpen, onClose, onCampaignPrompt }: CreateRewardWizardModalProps) {
+  const [step, setStep] = useState(1);
+  const totalSteps = 2;
+
+  // Step 1: Details
+  const [rewardType, setRewardType] = useState('');
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [value, setValue] = useState(0);
+  const [pointsRequired, setPointsRequired] = useState(0);
+  const [badgeLevel, setBadgeLevel] = useState('');
+  const [expiry, setExpiry] = useState(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)); // Default 30 days
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  // Step 2: Review (read-only)
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showCampaignPrompt, setShowCampaignPrompt] = useState(false);
+
+  const { mutate: createReward, isPending: isCreatingReward } = useCreateReward();
+
+  const handleFileSelect = (file: File | null, previewUrl: string | null) => {
+    setSelectedFile(file);
+    setImagePreviewUrl(previewUrl);
+  };
+
+  // Validation for Step 1
+  useEffect(() => {
+    const newErrors: Record<string, string> = {};
+    if (!rewardType) newErrors.rewardType = 'Reward type is required.';
+    if (!name.trim()) newErrors.name = 'Name is required.';
+    if (!description.trim()) newErrors.description = 'Description is required.';
+    if (value <= 0) newErrors.value = 'Value must be greater than 0.';
+    if (pointsRequired <= 0 && !badgeLevel) newErrors.pointsOrBadge = 'Points Required or Badge Level is required.';
+    if (!selectedFile) newErrors.image = 'Image is required.';
+    setErrors(newErrors);
+  }, [rewardType, name, description, value, pointsRequired, badgeLevel, selectedFile]);
+
+  const isStep1Valid = useMemo(() => Object.keys(errors).length === 0, [errors]);
+
+  const uploadImageToCloudinary = async (file: File): Promise<string> => {
+    setIsUploadingImage(true);
+    try {
+      const paramsToSign = {
+        timestamp: Math.round((new Date).getTime() / 1000),
+      };
+
+      const signatureResponse = await fetch('/api/sign-cloudinary-params', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paramsToSign }),
+      });
+      const { signature } = await signatureResponse.json();
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!);
+      formData.append('timestamp', paramsToSign.timestamp.toString());
+      formData.append('signature', signature);
+
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Cloudinary upload failed.');
+      }
+
+      const data = await response.json();
+      return data.secure_url;
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleNext = () => {
+    if (step === 1 && isStep1Valid) {
+      setStep(2);
+    }
+  };
+
+  const handleBack = () => {
+    if (step > 1) setStep(step - 1);
+  };
+
+  const handleSubmit = async () => {
+    let imageUrlToSubmit = '';
+
+    if (selectedFile) {
+      try {
+        imageUrlToSubmit = await uploadImageToCloudinary(selectedFile);
+      } catch (error) {
+        alert(`Image upload failed: ${error}`);
+        return;
+      }
+    }
+
+    const rewardData: CreateRewardRequest = {
+      title: name,
+      points_required: pointsRequired,
+      value,
+      description,
+      image: imageUrlToSubmit,
+      quantity: 100, // Default or from form, adjust as needed
+      // Add type and expiry if API supports, else mock
+    };
+
+    createReward(rewardData, {
+      onSuccess: () => {
+        setShowCampaignPrompt(true);
+      },
+      onError: (error) => {
+        alert(`Error creating reward: ${error.message}`);
+      },
+    });
+  };
+
+  const handleCampaignYes = () => {
+    setShowCampaignPrompt(false);
+    onClose();
+    if (onCampaignPrompt) onCampaignPrompt();
+  };
+
+  const handleCampaignNo = () => {
+    setShowCampaignPrompt(false);
+    onClose();
+    resetForm();
+  };
+
+  const resetForm = () => {
+    setStep(1);
+    setRewardType('');
+    setName('');
+    setDescription('');
+    setValue(0);
+    setPointsRequired(0);
+    setBadgeLevel('');
+    setExpiry(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
+    setSelectedFile(null);
+    setImagePreviewUrl(null);
+    setErrors({});
+  };
+
+  const progressValue = (step / totalSteps) * 100;
+
+  return (
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Reward</DialogTitle>
+            <Progress value={progressValue} className="mt-2" />
+          </DialogHeader>
+
+          {step === 1 && (
+            <div className="grid gap-4 py-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Reward Type</label>
+                <Select value={rewardType} onValueChange={setRewardType}>
+                  <SelectTrigger className={errors.rewardType ? 'border-red-500' : ''}>
+                    <SelectValue placeholder="Select reward type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {rewardTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.icon} {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.rewardType && <p className="text-red-500 text-xs mt-1">{errors.rewardType}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium mb-1">Name</label>
+                <Input id="name" placeholder="Reward Name" value={name} onChange={(e) => setName(e.target.value)} className={errors.name ? 'border-red-500' : ''} />
+                {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium mb-1">Description</label>
+                <Textarea id="description" placeholder="Describe the reward" value={description} onChange={(e) => setDescription(e.target.value)} className={errors.description ? 'border-red-500' : ''} />
+                {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="value" className="block text-sm font-medium mb-1">Value ($)</label>
+                  <Input id="value" type="number" placeholder="0" value={value} onChange={(e) => setValue(Number(e.target.value))} className={errors.value ? 'border-red-500' : ''} />
+                  {errors.value && <p className="text-red-500 text-xs mt-1">{errors.value}</p>}
+                </div>
+                <div>
+                  <label htmlFor="points" className="block text-sm font-medium mb-1">Points Required</label>
+                  <Input id="points" type="number" placeholder="0" value={pointsRequired} onChange={(e) => setPointsRequired(Number(e.target.value))} />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="badge" className="block text-sm font-medium mb-1">Badge Level (Optional)</label>
+                <Input id="badge" placeholder="e.g., Gold" value={badgeLevel} onChange={(e) => setBadgeLevel(e.target.value)} />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Expiry Date</label>
+                <DateTimePicker date={expiry} setDate={setExpiry} />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Reward Image</label>
+                <CloudinaryUpload onFileSelect={handleFileSelect} />
+                {errors.image && <p className="text-red-500 text-xs mt-1">{errors.image}</p>}
+                {imagePreviewUrl && (
+                  <div className="mt-4">
+                    <p className="text-sm font-medium">Image Preview:</p>
+                    <div className="relative h-24 w-24 rounded-full overflow-hidden">
+                      <Image src={imagePreviewUrl} alt="Preview" layout="fill" objectFit="cover" />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="grid gap-4 py-4">
+              <h3 className="text-lg font-semibold">Review Your Reward</h3>
+              <div className="space-y-2">
+                <p><strong>Type:</strong> {rewardTypes.find(t => t.value === rewardType)?.label}</p>
+                <p><strong>Name:</strong> {name}</p>
+                <p><strong>Description:</strong> {description}</p>
+                <p><strong>Value:</strong> ${value}</p>
+                <p><strong>Points Required:</strong> {pointsRequired}</p>
+                <p><strong>Badge Level:</strong> {badgeLevel || 'None'}</p>
+                <p><strong>Expiry:</strong> {expiry.toLocaleString()}</p>
+                {imagePreviewUrl && <Image src={imagePreviewUrl} alt="Review" width={100} height={100} className="rounded" />}
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={handleBack} disabled={step === 1}>
+              Back
+            </Button>
+            {step < totalSteps ? (
+              <Button onClick={handleNext} disabled={!isStep1Valid}>
+                Next
+              </Button>
+            ) : (
+              <Button onClick={handleSubmit} disabled={isUploadingImage || isCreatingReward}>
+                {isUploadingImage ? 'Uploading...' : isCreatingReward ? 'Creating...' : 'Create Reward'}
+              </Button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={showCampaignPrompt} onOpenChange={setShowCampaignPrompt}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reward Created Successfully!</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your reward has been created. Do you want to launch a campaign for this reward?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCampaignNo}>No</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCampaignYes}>Yes, Launch Campaign</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
