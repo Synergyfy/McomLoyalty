@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,8 +11,6 @@ import { Progress } from '@/components/ui/progress';
 import { CloudinaryUpload } from '@/components/ui/cloudinary-upload';
 import Image from 'next/image';
 import DateTimePicker from '@/components/dashboard/campaigns/datePicker';
-import { useCreateReward } from '@/services/rewards/hook';
-import { CreateRewardRequest } from '@/services/rewards/types';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +18,6 @@ import { Badge } from '@/components/ui/badge';
 interface CreateRewardWizardModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCampaignPrompt?: () => void; // Callback for campaign prompt
 }
 
 const rewardTypes = [
@@ -30,7 +28,8 @@ const rewardTypes = [
   { value: 'physical_product', label: 'Physical Product', icon: '📦' },
 ];
 
-export default function CreateRewardWizardModal({ isOpen, onClose, onCampaignPrompt }: CreateRewardWizardModalProps) {
+export default function CreateRewardWizardModal({ isOpen, onClose }: CreateRewardWizardModalProps) {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const totalSteps = 2;
 
@@ -44,13 +43,10 @@ export default function CreateRewardWizardModal({ isOpen, onClose, onCampaignPro
   const [expiry, setExpiry] = useState(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)); // Default 30 days
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Step 2: Review (read-only)
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showCampaignPrompt, setShowCampaignPrompt] = useState(false);
-
-  const { mutate: createReward, isPending: isCreatingReward } = useCreateReward();
 
   const handleFileSelect = (file: File | null, previewUrl: string | null) => {
     setSelectedFile(file);
@@ -71,42 +67,6 @@ export default function CreateRewardWizardModal({ isOpen, onClose, onCampaignPro
 
   const isStep1Valid = useMemo(() => Object.keys(errors).length === 0, [errors]);
 
-  const uploadImageToCloudinary = async (file: File): Promise<string> => {
-    setIsUploadingImage(true);
-    try {
-      const paramsToSign = {
-        timestamp: Math.round((new Date).getTime() / 1000),
-      };
-
-      const signatureResponse = await fetch('/api/sign-cloudinary-params', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paramsToSign }),
-      });
-      const { signature } = await signatureResponse.json();
-
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!);
-      formData.append('timestamp', paramsToSign.timestamp.toString());
-      formData.append('signature', signature);
-
-      const response = await fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Cloudinary upload failed.');
-      }
-
-      const data = await response.json();
-      return data.secure_url;
-    } finally {
-      setIsUploadingImage(false);
-    }
-  };
-
   const handleNext = () => {
     if (step === 1 && isStep1Valid) {
       setStep(2);
@@ -117,42 +77,16 @@ export default function CreateRewardWizardModal({ isOpen, onClose, onCampaignPro
     if (step > 1) setStep(step - 1);
   };
 
-  const handleSubmit = async () => {
-    let imageUrlToSubmit = '';
-
-    if (selectedFile) {
-      try {
-        imageUrlToSubmit = await uploadImageToCloudinary(selectedFile);
-      } catch (error) {
-        alert(`Image upload failed: ${error}`);
-        return;
-      }
-    }
-
-    const rewardData: CreateRewardRequest = {
-      title: name,
-      points_required: pointsRequired,
-      value,
-      description,
-      image: imageUrlToSubmit,
-      quantity: 100, // Default or from form, adjust as needed
-      // Add type and expiry if API supports, else mock
-    };
-
-    createReward(rewardData, {
-      onSuccess: () => {
-        setShowCampaignPrompt(true);
-      },
-      onError: (error) => {
-        alert(`Error creating reward: ${error.message}`);
-      },
-    });
+  const handleSubmit = () => {
+    // Prototype: Directly show campaign prompt without backend call
+    setShowCampaignPrompt(true);
   };
 
   const handleCampaignYes = () => {
     setShowCampaignPrompt(false);
     onClose();
-    if (onCampaignPrompt) onCampaignPrompt();
+    resetForm();
+    router.push('/dashboard/campaigns/create');
   };
 
   const handleCampaignNo = () => {
@@ -202,42 +136,50 @@ export default function CreateRewardWizardModal({ isOpen, onClose, onCampaignPro
                     ))}
                   </SelectContent>
                 </Select>
+                <p className="text-sm text-muted-foreground mt-1">Select the type of reward, like a voucher or gift card.</p>
               </div>
 
               <div>
                 <label htmlFor="name" className="block text-sm font-medium mb-1">Name</label>
                 <Input id="name" placeholder="Reward Name" value={name} onChange={(e) => setName(e.target.value)} />
+                <p className="text-sm text-muted-foreground mt-1">Give your reward a short, catchy name.</p>
               </div>
 
               <div>
                 <label htmlFor="description" className="block text-sm font-medium mb-1">Description</label>
                 <Textarea id="description" placeholder="Describe the reward" value={description} onChange={(e) => setDescription(e.target.value)} />
+                <p className="text-sm text-muted-foreground mt-1">Explain what the reward is and any important details.</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="value" className="block text-sm font-medium mb-1">Value ($)</label>
+                  <label htmlFor="value" className="block text-sm font-medium mb-1">Value (£)</label>
                   <Input id="value" type="number" placeholder="0" value={value} onChange={(e) => setValue(Number(e.target.value))} />
+                  <p className="text-sm text-muted-foreground mt-1">Enter the monetary value of the reward in pounds.</p>
                 </div>
                 <div>
                   <label htmlFor="points" className="block text-sm font-medium mb-1">Points Required</label>
                   <Input id="points" type="number" placeholder="0" value={pointsRequired} onChange={(e) => setPointsRequired(Number(e.target.value))} />
+                  <p className="text-sm text-muted-foreground mt-1">How many points does a customer need to redeem this?</p>
                 </div>
               </div>
 
               <div>
                 <label htmlFor="badge" className="block text-sm font-medium mb-1">Badge Level (Optional)</label>
                 <Input id="badge" placeholder="e.g., Gold" value={badgeLevel} onChange={(e) => setBadgeLevel(e.target.value)} />
+                <p className="text-sm text-muted-foreground mt-1">If this reward is for a specific customer level, enter it here (e.g., Gold, VIP).</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium mb-2">Expiry Date</label>
                 <DateTimePicker date={expiry} setDate={setExpiry} />
+                <p className="text-sm text-muted-foreground mt-1">Customers won't be able to claim it after this date.</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium mb-2">Reward Image</label>
                 <CloudinaryUpload onFileSelect={handleFileSelect} />
+                <p className="text-sm text-muted-foreground mt-1">Upload an attractive image for the reward. This will be shown to customers.</p>
                 {imagePreviewUrl && (
                   <div className="mt-4">
                     <p className="text-sm font-medium">Image Preview:</p>
@@ -283,7 +225,7 @@ export default function CreateRewardWizardModal({ isOpen, onClose, onCampaignPro
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">Value:</span>
-                      <span>${value}</span>
+                      <span>£{value}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">Points:</span>
@@ -314,8 +256,8 @@ export default function CreateRewardWizardModal({ isOpen, onClose, onCampaignPro
                 Next
               </Button>
             ) : (
-              <Button onClick={handleSubmit} disabled={isUploadingImage || isCreatingReward}>
-                {isUploadingImage ? 'Uploading...' : isCreatingReward ? 'Creating...' : 'Create Reward'}
+              <Button onClick={handleSubmit}>
+                Create Reward
               </Button>
             )}
           </div>

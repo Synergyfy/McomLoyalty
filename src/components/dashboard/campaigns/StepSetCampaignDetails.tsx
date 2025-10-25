@@ -21,26 +21,35 @@ interface StepProps {
 
 // Mock rewards data (replace with actual API call later)
 const mockRewards = [
-  { id: '1', title: 'Summer Voucher ($50)', image: 'https://via.placeholder.com/150' },
-  { id: '2', title: 'Gift Card ($100)', image: 'https://via.placeholder.com/150' },
-  { id: '3', title: 'Discount Coupon (20% off)', image: 'https://via.placeholder.com/150' },
+  { id: '1', title: 'Summer Voucher ($50)', image: 'https://images.unsplash.com/photo-1529592691919-7a6aa481f520?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
+  { id: '2', title: 'Gift Card ($100)', image: 'https://images.unsplash.com/photo-1579621970795-87f943b9e7a6?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
+  { id: '3', title: 'Discount Coupon (20% off)', image: 'https://images.unsplash.com/photo-1508615039623-a25605d2b022?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
 ];
 
 export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
   const { formData, updateFormData } = useCampaignForm();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(formData.imageUrl || null);
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(formData.logoUrl || null);
 
   useEffect(() => {
     if (formData.imageUrl) {
       setImagePreviewUrl(formData.imageUrl);
     }
-  }, [formData.imageUrl]);
+    if (formData.logoUrl) {
+      setLogoPreviewUrl(formData.logoUrl);
+    }
+  }, [formData.imageUrl, formData.logoUrl]);
 
   const handleFileSelect = (file: File | null, previewUrl: string | null) => {
     setSelectedFile(file);
     setImagePreviewUrl(previewUrl);
     updateFormData({ imageUrl: previewUrl || '' });
+  };
+
+  const handleLogoSelect = (file: File | null, previewUrl: string | null) => {
+    setLogoPreviewUrl(previewUrl);
+    updateFormData({ logoUrl: previewUrl || '' });
   };
 
   const isFormValid = () => {
@@ -173,6 +182,19 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
           </div>
 
           <div>
+            <Label>Logo (optional)</Label>
+            <CloudinaryUpload onFileSelect={handleLogoSelect} />
+            {logoPreviewUrl && (
+              <div className="mt-4">
+                <p className="text-sm font-medium">Logo Preview:</p>
+                <div className="relative h-24 w-24 rounded-full overflow-hidden bg-gray-200">
+                  <Image src={logoPreviewUrl} alt="Logo Preview" layout="fill" objectFit="cover" />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div>
             <Label htmlFor="ctaButtonText">CTA Button</Label>
             <Select
               value={formData.ctaButtonText}
@@ -189,22 +211,65 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
             </Select>
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="primaryColor">Primary Color</Label>
+              <Input
+                id="primaryColor"
+                type="color"
+                value={formData.primaryColor}
+                onChange={(e) => updateFormData({ primaryColor: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="secondaryColor">Secondary Color</Label>
+              <Input
+                id="secondaryColor"
+                type="color"
+                value={formData.secondaryColor}
+                onChange={(e) => updateFormData({ secondaryColor: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="accentColor">Accent Color</Label>
+              <Input
+                id="accentColor"
+                type="color"
+                value={formData.accentColor}
+                onChange={(e) => updateFormData({ accentColor: e.target.value })}
+              />
+            </div>
+          </div>
+
           {/* Campaign Preview Section */}
           <div className="mt-6 p-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl shadow-xl border border-gray-300">
             <h4 className="text-xl font-bold text-gray-800 mb-4 text-center">Campaign Preview</h4>
             <p className="text-sm text-gray-600 mb-4 text-center">See how your campaign will appear on web and mobile devices.</p>
 
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
-              {imagePreviewUrl && (
-                <div className="relative h-48 w-full overflow-hidden">
-                  <Image src={imagePreviewUrl} alt="Campaign Preview" layout="fill" objectFit="cover" />
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200" style={{ backgroundColor: formData.primaryColor }}>
+                <div className="relative h-48 w-full overflow-hidden bg-gray-200">
+                    {imagePreviewUrl && (
+                        <Image src={imagePreviewUrl} alt="Campaign Preview" layout="fill" objectFit="cover" />
+                    )}
                 </div>
-              )}
-              <div className="p-5">
+                <div className="relative px-5">
+                    <div className="absolute -top-12 left-1/2 -translate-x-1/2">
+                        <div className="relative h-24 w-24 rounded-full overflow-hidden border-4 border-white bg-gray-300 shadow-md">
+                            {logoPreviewUrl ? (
+                                <Image src={logoPreviewUrl} alt="Logo Preview" layout="fill" objectFit="cover" />
+                            ) : (
+                                <div className="h-full w-full flex items-center justify-center text-gray-500">
+                                    <span className="text-xs">Logo</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+              <div className="pt-16 p-5 text-center" style={{ backgroundColor: formData.secondaryColor }}>
                 <h5 className="font-extrabold text-2xl text-gray-900 mb-2">{formData.campaignName || '[Campaign Name]'}</h5>
                 <p className="text-gray-700 text-base mb-4">{formData.campaignMessage || '[Campaign Message]'}</p>
 
-                <div className="space-y-3 text-sm text-gray-800 mb-5">
+                <div className="space-y-3 text-sm text-gray-800 mb-5 border-t pt-4">
                   <div className="flex items-center justify-between">
                     <span className="flex items-center font-medium text-gray-600"><Gift className="h-4 w-4 mr-2 text-blue-500" />Reward:</span>
                     <span className="text-right">{mockRewards.find(r => r.id === formData.rewardId)?.title || '[Select Reward]'}</span>
@@ -230,7 +295,7 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
                     </span>
                   </div>
                 </div>
-                <Button className="w-full py-3 text-lg font-semibold bg-orange-600 hover:bg-orange-700 transition-colors duration-200">
+                <Button className="w-full py-3 text-lg font-semibold bg-orange-600 hover:bg-orange-700 transition-colors duration-200" style={{ backgroundColor: formData.accentColor }}>
                   {formData.ctaButtonText}
                 </Button>
               </div>

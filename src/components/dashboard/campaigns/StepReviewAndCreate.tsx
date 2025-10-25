@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCampaignForm } from '@/context/CampaignFormContext';
 import Image from 'next/image';
+import { Calendar, Users, Gift, Tag } from 'lucide-react';
 
 interface StepProps {
   onBack: () => void;
@@ -42,28 +43,65 @@ export default function StepReviewAndCreate({ onBack }: StepProps) {
         <CardTitle>Step 5: Review and Create Campaign</CardTitle>
       </CardHeader>
       <CardContent>
-        <h4 className="text-lg font-semibold mb-3">Campaign Details</h4>
-        <div className="grid gap-2 mb-6 text-sm">
-          <p><strong>Campaign Type:</strong> {formData.campaignType}</p>
-          <p><strong>Campaign Name:</strong> {formData.campaignName}</p>
-          <p><strong>Reward:</strong> {selectedReward?.title || 'N/A'}</p>
-          <p><strong>Start Date:</strong> {formData.startDate?.toLocaleString() || 'N/A'}</p>
-          <p><strong>End Date:</strong> {formData.endDate?.toLocaleString() || 'N/A'}</p>
-          <p><strong>Rewards Available:</strong> {formData.rewardsAvailable}</p>
-          <p><strong>Audience Type:</strong> {formData.audienceType} {formData.audienceType === 'badge_level' && `(${formData.badgeLevel})`}</p>
-          <p><strong>Message:</strong> {formData.campaignMessage}</p>
-          <p><strong>CTA Button:</strong> {ctaButtonLabels[formData.ctaButtonText]}</p>
-          {formData.imageUrl && (
-            <div>
-              <strong>Image/Banner:</strong>
-              <div className="relative h-32 w-full rounded-lg overflow-hidden bg-gray-200 mt-2">
-                <Image src={formData.imageUrl} alt="Campaign Banner" layout="fill" objectFit="cover" />
+        <div className="mt-6 p-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl shadow-xl border border-gray-300">
+            <h4 className="text-xl font-bold text-gray-800 mb-4 text-center">Campaign Preview</h4>
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+                <div className="relative h-48 w-full overflow-hidden bg-gray-200">
+                    {formData.imageUrl && (
+                        <Image src={formData.imageUrl} alt="Campaign Preview" layout="fill" objectFit="cover" />
+                    )}
+                </div>
+                <div className="relative px-5">
+                    <div className="absolute -top-12 left-1/2 -translate-x-1/2">
+                        <div className="relative h-24 w-24 rounded-full overflow-hidden border-4 border-white bg-gray-300 shadow-md">
+                            {formData.logoUrl ? (
+                                <Image src={formData.logoUrl} alt="Logo Preview" layout="fill" objectFit="cover" />
+                            ) : (
+                                <div className="h-full w-full flex items-center justify-center text-gray-500">
+                                    <span className="text-xs">Logo</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+              <div className="pt-16 p-5 text-center">
+                <h5 className="font-extrabold text-2xl text-gray-900 mb-2">{formData.campaignName || '[Campaign Name]'}</h5>
+                <p className="text-gray-700 text-base mb-4">{formData.campaignMessage || '[Campaign Message]'}</p>
+
+                <div className="space-y-3 text-sm text-gray-800 mb-5 border-t pt-4">
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center font-medium text-gray-600"><Gift className="h-4 w-4 mr-2 text-blue-500" />Reward:</span>
+                    <span className="text-right">{selectedReward?.title || '[Select Reward]'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center font-medium text-gray-600"><Tag className="h-4 w-4 mr-2 text-green-500" />Available:</span>
+                    <span className="text-right">{formData.rewardsAvailable > 0 ? formData.rewardsAvailable : 'Unlimited'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center font-medium text-gray-600"><Calendar className="h-4 w-4 mr-2 text-purple-500" />Starts:</span>
+                    <span className="text-right">{formData.startDate ? formData.startDate.toLocaleDateString() : '[Start Date]'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center font-medium text-gray-600"><Calendar className="h-4 w-4 mr-2 text-red-500" />Ends:</span>
+                    <span className="text-right">{formData.endDate ? formData.endDate.toLocaleDateString() : '[End Date]'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center font-medium text-gray-600"><Users className="h-4 w-4 mr-2 text-orange-500" />Audience:</span>
+                    <span className="text-right">
+                      {formData.audienceType === 'badge_level'
+                        ? `Badge Level: ${formData.badgeLevel || '[Level]'}`
+                        : formData.audienceType}
+                    </span>
+                  </div>
+                </div>
+                <Button className="w-full py-3 text-lg font-semibold bg-orange-600 hover:bg-orange-700 transition-colors duration-200">
+                  {ctaButtonLabels[formData.ctaButtonText]}
+                </Button>
               </div>
             </div>
-          )}
-        </div>
+          </div>
 
-        <h4 className="text-lg font-semibold mb-3">Distribution Channels</h4>
+        <h4 className="text-lg font-semibold mb-3 mt-6">Distribution Channels</h4>
         <div className="grid gap-2 mb-6 text-sm">
           <p><strong>QR Code:</strong> {formData.distributionChannels.qrCode ? 'Enabled' : 'Disabled'}</p>
           <p><strong>Share Link:</strong> {formData.distributionChannels.shareLink ? 'Enabled' : 'Disabled'}</p>

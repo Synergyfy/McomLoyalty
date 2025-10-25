@@ -18,7 +18,7 @@ const mockRewards = [
     value: 50,
     pointsRequired: 1000,
     expiry: new Date('2024-08-31'),
-    image: 'https://via.placeholder.com/150',
+    image: 'https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=150&h=150&fit=crop&q=80',
     description: 'Get 50% off on summer items',
     status: 'active',
   },
@@ -29,7 +29,7 @@ const mockRewards = [
     value: 100,
     pointsRequired: 2000,
     expiry: new Date('2024-12-31'),
-    image: 'https://via.placeholder.com/150',
+    image: 'https://images.unsplash.com/photo-1577538205243-a71bf516c5b2?w=150&h=150&fit=crop&q=80',
     description: 'Universal gift card',
     status: 'active',
   },
@@ -40,7 +40,7 @@ const mockRewards = [
     value: 20,
     pointsRequired: 500,
     expiry: new Date('2024-06-30'),
-    image: 'https://via.placeholder.com/150',
+    image: 'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=150&h=150&fit=crop&q=80',
     description: '20% off any purchase',
     status: 'expired',
   },
@@ -51,7 +51,7 @@ const mockRewards = [
     value: 0,
     pointsRequired: 0,
     expiry: new Date('2024-10-31'),
-    image: 'https://via.placeholder.com/150',
+    image: 'https://images.unsplash.com/photo-1508672019048-805c876b67e2?w=150&h=150&fit=crop&q=80',
     description: 'Double points for a week',
     status: 'active',
   },
@@ -62,7 +62,7 @@ const mockRewards = [
     value: 75,
     pointsRequired: 1500,
     expiry: new Date('2024-09-30'),
-    image: 'https://via.placeholder.com/150',
+    image: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=150&h=150&fit=crop&q=80',
     description: 'Free branded t-shirt',
     status: 'active',
   },
@@ -73,7 +73,7 @@ const mockRewards = [
     value: 30,
     pointsRequired: 800,
     expiry: new Date('2024-07-15'),
-    image: 'https://via.placeholder.com/150',
+    image: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=150&h=150&fit=crop&q=80',
     description: '30% off exclusive items',
     status: 'active',
   },
@@ -84,7 +84,7 @@ const mockRewards = [
     value: 100,
     pointsRequired: 2500,
     expiry: new Date('2024-12-25'),
-    image: 'https://via.placeholder.com/150',
+    image: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=150&h=150&fit=crop&q=80',
     description: 'Holiday season voucher',
     status: 'active',
   },
@@ -95,7 +95,7 @@ const mockRewards = [
     value: 50,
     pointsRequired: 1200,
     expiry: new Date('2024-11-30'),
-    image: 'https://via.placeholder.com/150',
+    image: 'https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=150&h=150&fit=crop&q=80',
     description: 'Thank you gift card',
     status: 'active',
   },
@@ -198,7 +198,7 @@ export default function BusinessRewardsPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">Value:</span>
-                      <span>${reward.value}</span>
+                      <span>£{reward.value}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">Points:</span>

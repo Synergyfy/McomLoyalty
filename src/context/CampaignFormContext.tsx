@@ -13,6 +13,7 @@ interface CampaignFormData {
   badgeLevel?: string;
   campaignMessage: string;
   imageUrl: string;
+  logoUrl: string;
   ctaButtonText: 'Claim Reward' | 'Join Now' | 'Refer & Earn';
   distributionChannels: {
     qrCode: boolean;
@@ -26,6 +27,9 @@ interface CampaignFormData {
     pauseOnRewardEmpty: boolean;
     autoSwitchToPoints: boolean;
   };
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
 }
 
 interface CampaignFormContextType {
@@ -44,6 +48,7 @@ const defaultFormData: CampaignFormData = {
   audienceType: 'everyone',
   campaignMessage: '',
   imageUrl: '',
+  logoUrl: '',
   ctaButtonText: 'Claim Reward',
   distributionChannels: {
     qrCode: false,
