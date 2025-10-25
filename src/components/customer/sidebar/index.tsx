@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Wallet, Megaphone } from 'lucide-react';
+import { Home, Wallet, Megaphone, HandCoins } from 'lucide-react';
 
 interface CustomerSidebarProps {
   isOpen: boolean;
@@ -44,6 +44,12 @@ export default function CustomerSidebar({ isOpen }: CustomerSidebarProps) {
           <Link href="/wallet" className={linkClasses("/wallet")}>
             <Wallet className="mr-3" />
             Wallet
+          </Link>
+        </li>
+        <li className="mb-2">
+          <Link href="/redemption" className={linkClasses("/redemption")}>
+            <HandCoins className="mr-3" />
+            Redemption
           </Link>
         </li>
       </ul>
