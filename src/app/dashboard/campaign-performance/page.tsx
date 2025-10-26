@@ -175,7 +175,7 @@ export default function CampaignsPage() {
 
                   <Button
                     onClick={() =>
-                      router.push(`/business/dashboard/campaigns/${campaign.id}/performance`)
+                      router.push(`/dashboard/${campaign.id}/performance`)
                     }
                     className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white"
                   >

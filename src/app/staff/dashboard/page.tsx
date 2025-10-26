@@ -44,7 +44,7 @@ export default function StaffDashboard() {
 
   return (
     <div className="flex min-h-screen bg-pink-50">
-      {/* 🧭 Sidebar */}
+      {/* Sidebar */}
       <aside
         className={`${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
