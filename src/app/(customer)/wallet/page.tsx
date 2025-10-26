@@ -5,31 +5,25 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { PointHistoryRecord } from '@/services/wallet/types';
-import { ArrowDown, ArrowUp, Gift, ShoppingCart } from 'lucide-react';
+import { ArrowDown, ArrowUp, Gift, ShoppingCart, Users, Award } from 'lucide-react';
 
 // --- Mock Data ---
 const mockWalletData = { balance: 1250 };
 
-const mockCampaignsData = {
-  data: [
-    { id: '1', title: 'Summer Bonanza' },
-    { id: '2', title: 'Winter Wonderland Deals' },
-    { id: '3', title: 'Loyalty Members Exclusive' },
-  ],
-};
-
 const mockPointHistoryData: PointHistoryRecord[] = [
     { id: '1', timestamp: '2025-10-26T10:00:00Z', description: 'Joined Summer Bonanza', type: 'earned', points: 100, campaign: { id: '1', title: 'Summer Bonanza' } },
     { id: '2', timestamp: '2025-10-25T14:30:00Z', description: 'Redeemed: Free Coffee', type: 'spent', points: 50 },
+    { id: '7', timestamp: '2025-10-25T11:00:00Z', description: 'Purchase at Burger Queen', type: 'purchase', points: 75 },
     { id: '3', timestamp: '2025-10-24T09:00:00Z', description: 'Joined Winter Wonderland', type: 'earned', points: 150, campaign: { id: '2', title: 'Winter Wonderland Deals' } },
-    { id: '4', timestamp: '2025-10-23T18:00:00Z', description: 'Admin bonus', type: 'earned', points: 20 },
+    { id: '8', timestamp: '2025-10-23T20:00:00Z', description: 'Referral bonus for inviting test@example.com', type: 'referral_bonus', points: 100 },
+    { id: '4', timestamp: '2025-10-23T18:00:00Z', description: 'Admin bonus', type: 'manual_adjustment', points: 20 },
     { id: '5', timestamp: '2025-10-22T11:00:00Z', description: 'Joined Loyalty Exclusive', type: 'earned', points: 200, campaign: { id: '3', title: 'Loyalty Members Exclusive' } },
     { id: '6', timestamp: '2025-10-21T16:45:00Z', description: 'Redeemed: 10% Discount', type: 'spent', points: 100 },
     { id: '11', timestamp: '2025-10-16T10:00:00Z', description: 'Welcome bonus', type: 'earned', points: 500 },
   ];
 // --- End of Mock Data ---
 
-const filterCategories = ['All', 'Earned', 'Spent'];
+const filterCategories = ['All', 'Earned', 'Spent', 'Purchase'];
 
 export default function WalletPage() {
   const [page, setPage] = useState(1);
@@ -39,6 +33,9 @@ export default function WalletPage() {
   const filteredHistory = useMemo(() => {
     if (activeFilter === 'All') {
       return mockPointHistoryData;
+    }
+    if (activeFilter === 'Purchase') {
+        return mockPointHistoryData.filter(record => record.type === 'purchase');
     }
     return mockPointHistoryData.filter(record => record.type === activeFilter.toLowerCase());
   }, [activeFilter]);
@@ -50,11 +47,21 @@ export default function WalletPage() {
 
   const totalPages = Math.ceil(filteredHistory.length / limit);
 
-  const getIconForType = (type: 'earned' | 'spent') => {
-    if (type === 'earned') {
-      return <ArrowUp className="w-5 h-5 text-green-500" />;
+  const getIconForType = (type: PointHistoryRecord['type']) => {
+    switch (type) {
+      case 'earned':
+        return <ArrowUp className="w-5 h-5 text-green-500" />;
+      case 'spent':
+        return <ArrowDown className="w-5 h-5 text-red-500" />;
+      case 'purchase':
+        return <ShoppingCart className="w-5 h-5 text-blue-500" />;
+      case 'referral_bonus':
+        return <Users className="w-5 h-5 text-purple-500" />;
+      case 'manual_adjustment':
+        return <Award className="w-5 h-5 text-yellow-500" />;
+      default:
+        return <Gift className="w-5 h-5 text-gray-500" />;
     }
-    return <ArrowDown className="w-5 h-5 text-red-500" />;
   };
 
   return (
@@ -65,9 +72,9 @@ export default function WalletPage() {
           <p className="mt-4 text-lg text-gray-600">Your points balance and transaction history.</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          {/* Left Column: Balance Card */}
-          <div className="lg:col-span-1">
+        <div className="space-y-8">
+          {/* Top: Balance Card */}
+          <div>
             <Card className="shadow-xl rounded-2xl overflow-hidden bg-orange-600 text-white">
               <CardContent className="p-8 flex flex-col items-center justify-center text-center">
                 <h2 className="text-lg font-semibold opacity-80 mb-2">Total Balance</h2>
@@ -80,8 +87,8 @@ export default function WalletPage() {
             </Card>
           </div>
 
-          {/* Right Column: Point History */}
-          <div className="lg:col-span-2">
+          {/* Bottom: Point History */}
+          <div>
             <Card className="shadow-lg rounded-2xl">
               <CardHeader>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">

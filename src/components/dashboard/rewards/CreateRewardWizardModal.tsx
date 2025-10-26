@@ -34,7 +34,7 @@ export default function CreateRewardWizardModal({ isOpen, onClose }: CreateRewar
   const totalSteps = 2;
 
   // Step 1: Details
-  const [rewardType, setRewardType] = useState('');
+  const [rewardType, setRewardType] = useState('points_offer');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [value, setValue] = useState(0);

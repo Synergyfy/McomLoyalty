@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -28,9 +29,17 @@ const mockRewards = [
 
 export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
   const { formData, updateFormData } = useCampaignForm();
+  const searchParams = useSearchParams();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(formData.imageUrl || null);
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(formData.logoUrl || null);
+  const itemName = searchParams.get('itemName');
+
+  useEffect(() => {
+    if (itemName && !formData.campaignName) {
+      updateFormData({ campaignName: `${itemName} Campaign`, audienceType: 'wishlist_target' });
+    }
+  }, [searchParams, formData.campaignName, updateFormData, itemName]);
 
   useEffect(() => {
     if (formData.imageUrl) {
@@ -105,18 +114,24 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Start Date & Time</Label>
-              <DateTimePicker
-                date={formData.startDate}
-                setDate={(date) => updateFormData({ startDate: date || undefined })}
-              />
+              <div className="flex items-center rounded-md border px-3">
+                <Calendar className="mr-2 h-4 w-4 opacity-50" />
+                <DateTimePicker
+                  date={formData.startDate}
+                  setDate={(date) => updateFormData({ startDate: date || undefined })}
+                />
+              </div>
               <p className="text-sm text-gray-500 mt-1">When the campaign will become active.</p>
             </div>
             <div>
               <Label>End Date & Time</Label>
-              <DateTimePicker
-                date={formData.endDate}
-                setDate={(date) => updateFormData({ endDate: date || undefined })}
-              />
+              <div className="flex items-center rounded-md border px-3">
+                <Calendar className="mr-2 h-4 w-4 opacity-50" />
+                <DateTimePicker
+                  date={formData.endDate}
+                  setDate={(date) => updateFormData({ endDate: date || undefined })}
+                />
+              </div>
               <p className="text-sm text-gray-500 mt-1">When the campaign will automatically deactivate.</p>
             </div>
           </div>
@@ -128,7 +143,7 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
               type="number"
               placeholder="0"
               value={formData.rewardsAvailable}
-              onChange={(e) => updateFormData({ rewardsAvailable: Number(e.target.value) })}
+              onChange={(e) => updateFormData({ rewardsAvailable: e.target.value === '' ? '' : Number(e.target.value) })}
             />
             <p className="text-sm text-gray-500 mt-1">The total number of rewards that can be claimed.</p>
           </div>
@@ -137,9 +152,15 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
             <Label>Audience Type</Label>
             <RadioGroup
               value={formData.audienceType}
-              onValueChange={(value: 'everyone' | 'members' | 'badge_level') => updateFormData({ audienceType: value })}
+              onValueChange={(value) => updateFormData({ audienceType: value })}
               className="flex flex-col space-y-1"
             >
+              {itemName && (
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="wishlist_target" id="r4" />
+                  <Label htmlFor="r4">Target Wishlist: <span className="font-bold">{itemName}</span></Label>
+                </div>
+              )}
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="everyone" id="r1" />
                 <Label htmlFor="r1">Everyone</Label>
@@ -176,9 +197,11 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
           </div>
 
           <div>
-            <Label>Image or Banner (optional)</Label>
-            <CloudinaryUpload onFileSelect={handleFileSelect} />
-            <p className="text-sm text-gray-500 mt-1">Upload a banner image for your campaign.</p>
+            <div className="flex items-center gap-4">
+              <Label>Image or Banner (optional)</Label>
+              <CloudinaryUpload onFileSelect={handleFileSelect} />
+            </div>
+            <p className="text-sm text-gray-500 mt-1">Upload a banner image for your campaign. Recommended size: 1200x400 pixels (3:1 aspect ratio).</p>
             {imagePreviewUrl && ( // Display image preview if available
               <div className="mt-4">
                 <p className="text-sm font-medium">Image Preview:</p>
@@ -190,8 +213,10 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
           </div>
 
           <div>
-            <Label>Logo (optional)</Label>
-            <CloudinaryUpload onFileSelect={handleLogoSelect} />
+            <div className="flex items-center gap-4">
+              <Label>Logo (optional)</Label>
+              <CloudinaryUpload onFileSelect={handleLogoSelect} />
+            </div>
             <p className="text-sm text-gray-500 mt-1">Upload your business logo.</p>
             {logoPreviewUrl && (
               <div className="mt-4">

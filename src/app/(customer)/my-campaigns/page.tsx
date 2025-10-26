@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import CampaignTransactionHistoryDialog from '@/components/customer/CampaignTransactionHistoryDialog';
+import { WishlistButton } from '@/components/customer/wishlist/WishlistButton';
+import { WishlistModal } from '@/components/customer/wishlist/WishlistModal';
 
 const mockMyCampaigns = [
   {
@@ -34,13 +36,21 @@ const mockMyCampaigns = [
 
 export default function MyCampaignsPage() {
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
+  const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
   const [selectedCampaignId, setSelectedCampaignId] = useState('');
   const [selectedCampaignTitle, setSelectedCampaignTitle] = useState('');
+  const [selectedWishlistItemName, setSelectedWishlistItemName] = useState<string | undefined>();
 
   const handleCardClick = (campaignId: string, campaignTitle: string) => {
     setSelectedCampaignId(campaignId);
     setSelectedCampaignTitle(campaignTitle);
     setIsHistoryDialogOpen(true);
+  };
+
+  const handleWishlistClick = (e: React.MouseEvent, title: string) => {
+    e.stopPropagation();
+    setSelectedWishlistItemName(title);
+    setIsWishlistModalOpen(true);
   };
 
   return (
@@ -59,6 +69,9 @@ export default function MyCampaignsPage() {
           >
             <div className="relative h-40 w-full">
               <img src={campaign.imageUrl} alt={campaign.title} className="h-full w-full object-cover" />
+              <div className="absolute top-2 right-2 bg-black/30 rounded-full backdrop-blur-sm">
+                <WishlistButton onClick={(e) => handleWishlistClick(e, campaign.title)} />
+              </div>
             </div>
             <CardContent className="p-6">
               <h3 className="text-sm font-semibold text-gray-500">{campaign.business}</h3>
@@ -76,6 +89,11 @@ export default function MyCampaignsPage() {
         onClose={() => setIsHistoryDialogOpen(false)}
         campaignId={selectedCampaignId}
         campaignTitle={selectedCampaignTitle}
+      />
+      <WishlistModal 
+        isOpen={isWishlistModalOpen}
+        onClose={() => setIsWishlistModalOpen(false)}
+        itemName={selectedWishlistItemName}
       />
     </div>
   );

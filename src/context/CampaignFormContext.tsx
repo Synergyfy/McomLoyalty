@@ -9,7 +9,7 @@ interface CampaignFormData {
   startDate: Date | undefined;
   endDate: Date | undefined;
   rewardsAvailable: number;
-  audienceType: 'everyone' | 'members' | 'badge_level';
+  audienceType: 'everyone' | 'members' | 'badge_level' | 'wishlist_target';
   badgeLevel?: string;
   campaignMessage: string;
   imageUrl: string;

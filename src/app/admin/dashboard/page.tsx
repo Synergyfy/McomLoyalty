@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, DollarSign, Activity } from 'lucide-react';
+import { Users, DollarSign, Activity, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 
 export default function Dashboard() {
   return (
@@ -12,7 +12,7 @@ export default function Dashboard() {
         <p className="text-muted-foreground">An overview of your platform&apos;s activity.</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-orange-600">Total Users</CardTitle>
@@ -26,6 +26,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-orange-600">Total Sales</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">£56,789</div>
@@ -35,10 +36,27 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-orange-600">Recent Activities</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">582</div>
             <p className="text-xs text-green-500">+19% from last month</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-orange-600">Point Velocity (24h)</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center text-green-500">
+                <ArrowUpCircle className="h-5 w-5 mr-2"/>
+                <span className="text-xl font-bold">+1,250</span>
+            </div>
+            <div className="flex items-center text-red-500 mt-2">
+                <ArrowDownCircle className="h-5 w-5 mr-2"/>
+                <span className="text-xl font-bold">-350</span>
+            </div>
           </CardContent>
         </Card>
       </div>
