@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, use } from 'react';
 import { useGetPublicCampaignDetails, useJoinCampaign } from "@/services/customer-campaigns/hook";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
-import { Calendar, Tag, Info, Gift, CheckCircle } from "lucide-react";
+import { Calendar, Tag, Info, Gift, CheckCircle, Users } from "lucide-react";
 import { JoinConfirmationDialog } from "@/components/customer/JoinConfirmationDialog";
 
 interface PageProps {
-  params: { campaignId: string };
+  params: Promise<{ campaignId: string }>; // Changed to Promise
   searchParams?: { [key: string]: string | string[] | undefined };
 }
 
@@ -25,6 +25,12 @@ const mockCampaign = {
   startDate: '2025-06-01T00:00:00.000Z',
   endDate: '2025-08-31T23:59:59.000Z',
   category: 'Retail & Lifestyle',
+  campaignType: 'special_occasion', // Added from StepChooseCampaignType
+  rewardsAvailable: 500, // Added from StepSetCampaignDetails
+  audienceType: ['members', 'badge_level'], // Added from StepSetCampaignDetails
+  badgeLevel: 'GOLD', // Added from StepSetCampaignDetails
+  wishlistItemId: '', // Added from StepSetCampaignDetails (empty for this mock)
+  stopAfterClaims: 100, // Added from StepCampaignScheduling
   reward: {
     id: 'reward-summer-getaway',
     title: 'Luxury Weekend Getaway for Two!',
@@ -50,7 +56,8 @@ const mockCampaign = {
 };
 
 export default function CampaignDetailPage({ params }: PageProps) {
-  const { campaignId } = params; // Destructure campaignId from params
+  const resolvedParams = use(params); // Unwrap params with React.use()
+  const { campaignId } = resolvedParams;
 
   // const { data: campaign, isLoading } = useGetPublicCampaignDetails(campaignId); // Use destructured campaignId
   const { mutate: joinCampaign, isPending: isJoining } = useJoinCampaign();
@@ -160,6 +167,53 @@ export default function CampaignDetailPage({ params }: PageProps) {
                     <p>{campaign.category}</p>
                   </CardContent>
                 </Card>
+              </section>
+
+              {/* Eligibility & Limits */}
+              <section>
+                <h2 className="text-3xl font-bold text-gray-800 mb-4">Eligibility & Limits</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card className="p-6 shadow-md border-l-4 border-orange-600">
+                    <CardHeader className="!p-0 mb-3">
+                      <CardTitle className="text-xl font-semibold flex items-center text-gray-800">
+                        <Users className="w-5 h-5 mr-2 text-orange-600" />
+                        Target Audience
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="!p-0 text-gray-700 text-lg">
+                      {campaign.audienceType.length > 0 ? (
+                        <p>
+                          {campaign.audienceType.map((type, index) => {
+                            let audienceText = '';
+                            if (type === 'members') audienceText = 'All Members';
+                            if (type === 'badge_level' && campaign.badgeLevel) audienceText = `Members with ${campaign.badgeLevel} Badge`;
+                            if (type === 'wishlist_target' && campaign.wishlistItemId) audienceText = `Wishlist for "${campaign.wishlistItemId}"`;
+                            return (
+                              <span key={index} className="inline-block bg-gray-100 text-gray-800 text-xs font-semibold px-2.5 py-0.5 rounded-full mr-2 mb-1">
+                                {audienceText}
+                              </span>
+                            );
+                          })}
+                        </p>
+                      ) : (
+                        <p>All Customers</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                  <Card className="p-6 shadow-md border-l-4 border-orange-600">
+                    <CardHeader className="!p-0 mb-3">
+                      <CardTitle className="text-xl font-semibold flex items-center text-gray-800">
+                        <Info className="w-5 h-5 mr-2 text-orange-600" />
+                        Campaign Limits
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="!p-0 text-gray-700 text-lg">
+                      {campaign.rewardsAvailable > 0 && <p>Rewards Available: {campaign.rewardsAvailable}</p>}
+                      {campaign.stopAfterClaims > 0 && <p>Stops After: {campaign.stopAfterClaims} Claims</p>}
+                      {campaign.rewardsAvailable === 0 && campaign.stopAfterClaims === 0 && <p>Unlimited Rewards/Claims</p>}
+                    </CardContent>
+                  </Card>
+                </div>
               </section>
 
               {/* Reward Details */}
