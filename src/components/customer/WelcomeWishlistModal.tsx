@@ -17,39 +17,33 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import DateTimePicker from "@/components/dashboard/campaigns/datePicker";
 
-interface WishlistModalProps {
+interface WelcomeWishlistModalProps {
   isOpen: boolean;
   onClose: () => void;
-  itemName?: string;
 }
 
-export const WishlistModal = ({ isOpen, onClose, itemName }: WishlistModalProps) => {
-  const [name, setName] = useState(itemName || '');
+export const WelcomeWishlistModal = ({ isOpen, onClose }: WelcomeWishlistModalProps) => {
+  const [name, setName] = useState('');
   const [occasion, setOccasion] = useState('None');
   const [season, setSeason] = useState('None');
   const [targetDate, setTargetDate] = useState<Date | undefined>();
   const [priority, setPriority] = useState('Medium');
   const [consent, setConsent] = useState(false);
 
-  useEffect(() => {
-    if (itemName) {
-      setName(itemName);
-    }
-  }, [itemName]);
-
   const handleSave = () => {
     // Mock save logic
     console.log({ name, occasion, season, targetDate, priority, consent });
-    onClose();
+    // In a real app, you'd save this to a database
+    onClose(); // Close the modal after saving
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Save to Wishlist</DialogTitle>
+          <DialogTitle>Tell Us Your Wishlists</DialogTitle>
           <DialogDescription>
-            Add this item to your wishlist to get updates and special offers.
+            Fill the short form below to add your wishlists.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
