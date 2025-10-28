@@ -37,8 +37,8 @@ export default function CreateRewardWizardModal({ isOpen, onClose }: CreateRewar
   const [rewardType, setRewardType] = useState('points_offer');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [value, setValue] = useState(0);
-  const [pointsRequired, setPointsRequired] = useState(0);
+  const [value, setValue] = useState<number | string>(0);
+  const [pointsRequired, setPointsRequired] = useState<number | string>(0);
   const [badgeLevel, setBadgeLevel] = useState('');
   const [expiry, setExpiry] = useState(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)); // Default 30 days
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -154,20 +154,32 @@ export default function CreateRewardWizardModal({ isOpen, onClose }: CreateRewar
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="value" className="block text-sm font-medium mb-1">Value (£)</label>
-                  <Input id="value" type="number" placeholder="0" value={value} onChange={(e) => setValue(Number(e.target.value))} />
+                  <Input id="value" type="number" placeholder="0" value={value} onChange={(e) => setValue(e.target.value === '' ? '' : Number(e.target.value))} />
                   <p className="text-sm text-muted-foreground mt-1">Enter the monetary value of the reward in pounds.</p>
                 </div>
                 <div>
                   <label htmlFor="points" className="block text-sm font-medium mb-1">Points Required</label>
-                  <Input id="points" type="number" placeholder="0" value={pointsRequired} onChange={(e) => setPointsRequired(Number(e.target.value))} />
+                  <Input id="points" type="number" placeholder="0" value={pointsRequired} onChange={(e) => setPointsRequired(e.target.value === '' ? '' : Number(e.target.value))} />
                   <p className="text-sm text-muted-foreground mt-1">How many points does a customer need to redeem this?</p>
                 </div>
               </div>
 
               <div>
                 <label htmlFor="badge" className="block text-sm font-medium mb-1">Badge Level (Optional)</label>
-                <Input id="badge" placeholder="e.g., Gold" value={badgeLevel} onChange={(e) => setBadgeLevel(e.target.value)} />
-                <p className="text-sm text-muted-foreground mt-1">If this reward is for a specific customer level, enter it here (e.g., Gold, VIP).</p>
+                <Select value={badgeLevel} onValueChange={(value) => setBadgeLevel(value === 'NONE' ? '' : value)}>
+                  <SelectTrigger id="badge">
+                    <SelectValue placeholder="Select a badge level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="NONE">
+                      <em>None</em>
+                    </SelectItem>
+                    {['BRONZE', 'SILVER', 'GOLD', 'PLATINUM'].map(level => (
+                      <SelectItem key={level} value={level}>{level}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground mt-1">If this reward is for a specific customer level, select it here.</p>
               </div>
 
               <div>
