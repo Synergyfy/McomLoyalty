@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Award, Megaphone, UserCheck, Heart } from 'lucide-react';
+import { Award, Megaphone, UserCheck, Heart, Users } from 'lucide-react';
 
 interface BusinessSidebarProps {
   isOpen: boolean;
@@ -44,6 +44,12 @@ export default function BusinessSidebar({ isOpen }: BusinessSidebarProps) {
           <Link href="/dashboard/wishlist-insights" className={linkClasses("/dashboard/wishlist-insights")}>
             <Heart className="mr-3" />
             Wishlist Insights
+          </Link>
+        </li>
+        <li>
+          <Link href="/dashboard/affiliate" className={linkClasses("/dashboard/affiliate")}>
+            <Users className="mr-3" />
+            Affiliate
           </Link>
         </li>
         <li>
