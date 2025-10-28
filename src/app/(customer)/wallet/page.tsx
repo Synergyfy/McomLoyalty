@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { PointHistoryRecord } from '@/services/wallet/types';
 import { ArrowDown, ArrowUp, Gift, ShoppingCart, Users, Award, Tag } from 'lucide-react';
+import { ClaimableCampaignsTicker } from '@/components/customer/ClaimableCampaignsTicker';
 
 // --- Mock Data ---
 const mockWalletData = { balance: 1250 };
@@ -98,6 +99,8 @@ export default function WalletPage() {
               </CardContent>
             </Card>
           </div>
+
+          <ClaimableCampaignsTicker />
 
           {/* Bottom: Point History */}
           <div>
