@@ -3,6 +3,7 @@ import api, { setBearerToken } from '../api';
 import { AddRewardToBusinessRequest, CreateRewardRequest, GetRewardsResponse, RewardResponse, UpdateRewardRequest } from './types';
 import Cookies from 'js-cookie';
 import toast from 'react-hot-toast';
+import { AxiosError } from 'axios';
 
 const REWARDS_QUERY_KEY = 'rewards';
 const BUSINESS_REWARDS_QUERY_KEY = 'business_rewards';
