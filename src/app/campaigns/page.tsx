@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Search } from 'lucide-react';
 import { WishlistButton } from '@/components/customer/wishlist/WishlistButton';
 import { WishlistModal } from '@/components/customer/wishlist/WishlistModal';
@@ -118,7 +119,7 @@ export default function CampaignsPage() {
             {filteredCampaigns.map((campaign) => (
               <Card key={campaign.id} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-2xl">
                 <div className="relative h-48 w-full">
-                  <img src={campaign.imageUrl} alt={campaign.title} className="h-full w-full object-cover" />
+                  <Image src={campaign.imageUrl} alt={campaign.title} layout="fill" objectFit="cover" />
                   <div className="absolute top-2 right-2 bg-white text-gray-800 text-xs font-bold px-2 py-1 rounded-full shadow-md">
                     {campaign.category}
                   </div>

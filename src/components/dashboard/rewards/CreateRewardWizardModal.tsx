@@ -59,8 +59,8 @@ export default function CreateRewardWizardModal({ isOpen, onClose }: CreateRewar
     if (!rewardType) newErrors.rewardType = 'Reward type is required.';
     if (!name.trim()) newErrors.name = 'Name is required.';
     if (!description.trim()) newErrors.description = 'Description is required.';
-    if (value <= 0) newErrors.value = 'Value must be greater than 0.';
-    if (pointsRequired <= 0 && !badgeLevel) newErrors.pointsOrBadge = 'Points Required or Badge Level is required.';
+    if (Number(value) <= 0) newErrors.value = 'Value must be greater than 0.';
+    if (Number(pointsRequired) <= 0 && !badgeLevel) newErrors.pointsOrBadge = 'Points Required or Badge Level is required.';
     if (!selectedFile) newErrors.image = 'Image is required.';
     setErrors(newErrors);
   }, [rewardType, name, description, value, pointsRequired, badgeLevel, selectedFile]);
@@ -185,7 +185,7 @@ export default function CreateRewardWizardModal({ isOpen, onClose }: CreateRewar
               <div>
                 <label className="block text-sm font-medium mb-2">Expiry Date</label>
                 <DateTimePicker date={expiry} setDate={setExpiry} />
-                <p className="text-sm text-muted-foreground mt-1">Customers won't be able to claim it after this date.</p>
+                <p className="text-sm text-muted-foreground mt-1">Customers won&apos;t be able to claim it after this date.</p>
               </div>
 
               <div>

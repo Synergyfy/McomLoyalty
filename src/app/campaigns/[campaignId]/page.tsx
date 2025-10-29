@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, use } from 'react';
-import { useGetPublicCampaignDetails, useJoinCampaign } from "@/services/customer-campaigns/hook";
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
@@ -55,12 +54,8 @@ const mockCampaign = {
   ],
 };
 
-export default function CampaignDetailPage({ params }: PageProps) {
-  const resolvedParams = use(params); // Unwrap params with React.use()
-  const { campaignId } = resolvedParams;
-
+export default function CampaignDetailPage({}: PageProps) {
   // const { data: campaign, isLoading } = useGetPublicCampaignDetails(campaignId); // Use destructured campaignId
-  const { mutate: joinCampaign, isPending: isJoining } = useJoinCampaign();
   const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false); // New state
   const [joinedCampaignTitle, setJoinedCampaignTitle] = useState(''); // New state
 
@@ -70,7 +65,7 @@ export default function CampaignDetailPage({ params }: PageProps) {
 
   const handleJoin = () => {
     // Temporarily bypass actual joinCampaign for modal testing
-    // joinCampaign(campaignId, {
+    // joinCampaign(campaignId, { 
     //   onSuccess: (data) => {
     //     setJoinedCampaignTitle(campaign.title);
     //     setIsJoinDialogOpen(true);
@@ -123,10 +118,9 @@ export default function CampaignDetailPage({ params }: PageProps) {
                 </p>
                 <Button
                   onClick={handleJoin}
-                  disabled={isJoining}
                   className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
                 >
-                  {isJoining ? 'Joining...' : 'Join Campaign & Get Reward'}
+                  Join Campaign & Get Reward
                 </Button>
               </div>
             </div>
@@ -186,8 +180,8 @@ export default function CampaignDetailPage({ params }: PageProps) {
                           {campaign.audienceType.map((type, index) => {
                             let audienceText = '';
                             if (type === 'members') audienceText = 'All Members';
-                            if (type === 'badge_level' && campaign.badgeLevel) audienceText = `Members with ${campaign.badgeLevel} Badge`;
-                            if (type === 'wishlist_target' && campaign.wishlistItemId) audienceText = `Wishlist for "${campaign.wishlistItemId}"`;
+                            if (type === 'badge_level') audienceText = `Members with ${campaign.badgeLevel} Badge`;
+                            if (type === 'wishlist_target') audienceText = `Wishlist for "${campaign.wishlistItemId}"`;
                             return (
                               <span key={index} className="inline-block bg-gray-100 text-gray-800 text-xs font-semibold px-2.5 py-0.5 rounded-full mr-2 mb-1">
                                 {audienceText}
@@ -276,10 +270,9 @@ export default function CampaignDetailPage({ params }: PageProps) {
             <div className="max-w-4xl mx-auto flex justify-center">
               <Button
                 onClick={handleJoin}
-                disabled={isJoining}
                 className="w-full md:w-auto bg-orange-600 hover:bg-orange-700 text-white text-lg px-12 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
               >
-                {isJoining ? 'Joining...' : 'Join Campaign & Get Reward'}
+                Join Campaign & Get Reward
               </Button>
             </div>
           </div>

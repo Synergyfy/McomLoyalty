@@ -1,10 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CampaignFormProvider, useCampaignForm } from '@/context/CampaignFormContext';
+import { CampaignFormProvider } from '@/context/CampaignFormContext';
 
 import StepChooseCampaignType from '@/components/dashboard/campaigns/StepChooseCampaignType';
 import StepSetCampaignDetails from '@/components/dashboard/campaigns/StepSetCampaignDetails';

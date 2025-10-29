@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import api from '../api';
 import { PaginatedPointHistory, PointHistoryRecord, Wallet } from './types';
 
 const POINT_HISTORY_QUERY_KEY = 'pointHistory';

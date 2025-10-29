@@ -32,7 +32,7 @@ export const affiliateData = {
     { id: '2', businessName: 'Local Threads', joinDate: '2025-10-12', status: 'Completed', reward: 100 },
     { id: '3', businessName: 'Quick Bites', joinDate: '2025-10-10', status: 'Pending', reward: 0 },
     { id: '4', businessName: 'Gourmet Grocer', joinDate: '2025-09-28', status: 'Completed', reward: 100 },
-  ],
+  ] as Referral[],
   rewardsLadder: [
     { level: 1, referralsNeeded: 5, description: 'Reach 5 successful referrals', reward: '500 Bonus Points' },
     { level: 2, referralsNeeded: 10, description: 'Reach 10 successful referrals', reward: '1000 Bonus Points' },
