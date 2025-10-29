@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useRouter } from 'next/navigation';
 import { AudienceEstimateModal } from '@/components/dashboard/campaigns/AudienceEstimateModal';
-import WishlistChart from '@/components/dashboard/wishlist-insights/WishlistChart';
 
 type WishlistInsight = {
   itemName: string;

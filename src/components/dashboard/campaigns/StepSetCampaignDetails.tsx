@@ -48,7 +48,6 @@ const mockWishlistInsights = [
 export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
   const { formData, updateFormData } = useCampaignForm();
   const searchParams = useSearchParams();
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(formData.imageUrl || null);
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(formData.logoUrl || null);
   const itemName = searchParams.get('itemName');
@@ -73,7 +72,6 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
   }, [formData.imageUrl, formData.logoUrl]);
 
   const handleFileSelect = (file: File | null, previewUrl: string | null) => {
-    setSelectedFile(file);
     setImagePreviewUrl(previewUrl);
     updateFormData({ imageUrl: previewUrl || '' });
   };

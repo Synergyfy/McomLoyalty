@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+
 
 interface Step4ReviewProps {
   title: string;
