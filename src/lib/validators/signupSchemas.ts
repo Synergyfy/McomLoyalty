@@ -1,6 +1,7 @@
 // src/lib/validators/signupSchemas.ts
 import z from "zod";
 
+
 const socialMediaSchema = z
   .object({
     facebook: z.string().url().nullish().or(z.literal("")).optional(),
@@ -19,6 +20,13 @@ export const createBusinessSchema = z.object({
     error: "Referral capacity is required",
 }).min(0, "Referral capacity must be >= 0")
  
+});
+
+export const businessSignUpSchema = z.object({
+  name: z.string().min(2, "Business name is required"),
+  email: z.email("Valid email is required"),
+  password: z.string().min(8, "Password must be at least 8 characters long"),
+  confirmPassword: z.string().min(8, "Confirm password must be at least 8 characters long"),
 });
 
 export const staffSchema = z.object({

@@ -47,10 +47,10 @@ export default function StaffDashboard() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex min-h-[90vh] bg-white">
   
       {/* 💻 Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen md:ml-64">
+      <div className="flex-1 flex flex-col min-h-[90vh] md:ml-64">
         {/* 🔝 Top Bar */}
       
         {/* 📊 Dashboard Body */}

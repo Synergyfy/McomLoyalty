@@ -4,14 +4,14 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { PlusCircle } from "lucide-react";
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogFooter,
+// } from "@/components/ui/dialog";
+// import { PlusCircle } from "lucide-react";
 import { Customer } from "../type";
 import { allCustomers } from "../customerData";
 
@@ -38,24 +38,24 @@ export default function CustomersPage() {
   const totalPages = Math.ceil(filtered.length / pageSize);
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
 
-  const handleOpenModal = (customer: Customer) => {
-    setSelectedCustomer(customer);
-    setPointsToAdd("");
-  };
+  // const handleOpenModal = (customer: Customer) => {
+  //   setSelectedCustomer(customer);
+  //   setPointsToAdd("");
+  // };
 
-  const handleConfirmAdd = () => {
-    const add = parseInt(pointsToAdd);
-    if (isNaN(add) || add <= 0) return alert("Please enter a valid number.");
+  // const handleConfirmAdd = () => {
+  //   const add = parseInt(pointsToAdd);
+  //   if (isNaN(add) || add <= 0) return alert("Please enter a valid number.");
 
-    setCustomers((prev) =>
-      prev.map((c) =>
-        c.id === selectedCustomer?.id ? { ...c, points: c.points + add } : c
-      )
-    );
+  //   setCustomers((prev) =>
+  //     prev.map((c) =>
+  //       c.id === selectedCustomer?.id ? { ...c, points: c.points + add } : c
+  //     )
+  //   );
 
-    setSelectedCustomer(null);
-    setPointsToAdd("");
-  };
+  //   setSelectedCustomer(null);
+  //   setPointsToAdd("");
+  // };
 
   return (
     <motion.div
@@ -85,7 +85,7 @@ export default function CustomersPage() {
               <th className="py-3 px-4">Name</th>
               <th className="py-3 px-4">Email</th>
               <th className="py-3 px-4">Points</th>
-              <th className="py-3 px-4 text-right">Action</th>
+              {/* <th className="py-3 px-4 text-right">Action</th> */}
             </tr>
           </thead>
           <tbody>
@@ -97,14 +97,14 @@ export default function CustomersPage() {
                 <td className="py-3 px-4 font-medium">{c.name}</td>
                 <td className="py-3 px-4 text-gray-600">{c.email}</td>
                 <td className="py-3 px-4 text-gray-800">{c.points}</td>
-                <td className="py-3 px-4 text-right">
+                {/* <td className="py-3 px-4 text-right">
                   <Button
                     onClick={() => handleOpenModal(c)}
                     className="bg-orange-600 hover:bg-orange-700 text-white text-xs flex items-center gap-2"
                   >
                     <PlusCircle className="w-4 h-4" /> Add Points
                   </Button>
-                </td>
+                </td> */}
               </tr>
             ))}
           </tbody>
@@ -135,7 +135,7 @@ export default function CustomersPage() {
       </div>
 
       {/* Add Points Modal */}
-      <Dialog open={!!selectedCustomer} onOpenChange={() => setSelectedCustomer(null)}>
+      {/* <Dialog open={!!selectedCustomer} onOpenChange={() => setSelectedCustomer(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Add Points</DialogTitle>
@@ -168,7 +168,7 @@ export default function CustomersPage() {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </motion.div>
   );
 }

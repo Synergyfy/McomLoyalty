@@ -93,11 +93,11 @@ export default function StaffRedeemPage() {
       ...customer,
       points: customer.points - reward!.pointsRequired,
     });
-    showNotify("success", "Reward Redeemed 🎉", `${reward!.title} successfully redeemed!`);
+    showNotify("success", "Reward Redeemed ", `${reward!.title} successfully redeemed!`);
   };
 
   return (
-    <div className="min-h-screen bg-white py-10 px-5">
+    <div className="min-h-[88vh] bg-white py-10 px-5">
       <div className="max-w-3xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-2">

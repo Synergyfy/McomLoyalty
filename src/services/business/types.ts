@@ -1,16 +1,12 @@
 import * as z from "zod";
-import { createBusinessSchema} from "@/lib/validators/signupSchemas";
+import { businessSignUpSchema, createBusinessSchema} from "@/lib/validators/signupSchemas";
 
 export type CreateBusinessDto = z.infer<typeof createBusinessSchema>;
+export type BusinessSignUpDto = z.infer<typeof businessSignUpSchema>;
 
 
 
-export interface BusinessSignUpDto {
-  password: string;
-  email: string;
-  confirmPassword: string;
-  name: string;
-}
+
 // export interface CreateBusinessDto {
 //   name: string;
 //   email: string;

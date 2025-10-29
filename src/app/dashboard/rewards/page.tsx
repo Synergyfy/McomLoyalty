@@ -228,7 +228,6 @@ export default function BusinessRewardsPage() {
         <CreateRewardWizardModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          onCampaignPrompt={handleCampaignPrompt}
         />
       </div>
     </div>

@@ -173,7 +173,7 @@ export default function CreateRewardWizardModal({ isOpen, onClose }: CreateRewar
               <div>
                 <label className="block text-sm font-medium mb-2">Expiry Date</label>
                 <DateTimePicker date={expiry} setDate={setExpiry} />
-                <p className="text-sm text-muted-foreground mt-1">Customers won't be able to claim it after this date.</p>
+                <p className="text-sm text-muted-foreground mt-1">Customers won&apos;t be able to claim it after this date.</p>
               </div>
 
               <div>

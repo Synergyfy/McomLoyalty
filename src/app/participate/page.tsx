@@ -60,9 +60,9 @@ export default function CampaignCustomerSignUp() {
 
       setIsSuccess(true);
       reset();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Customer creation failed:", error);
-      toast.error(error?.response?.data?.message || "Failed to sign up customer.");
+      toast.error("Failed to sign up customer.");
     }
   };
 
