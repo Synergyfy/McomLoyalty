@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -68,7 +69,7 @@ export default function MyCampaignsPage() {
             onClick={() => handleCardClick(campaign.id, campaign.title)}
           >
             <div className="relative h-40 w-full">
-              <img src={campaign.imageUrl} alt={campaign.title} className="h-full w-full object-cover" />
+              <Image src={campaign.imageUrl} alt={campaign.title} layout='fill' objectFit='cover' />
               <div className="absolute top-2 right-2 bg-black/30 rounded-full backdrop-blur-sm">
                 <WishlistButton onClick={(e) => handleWishlistClick(e, campaign.title)} />
               </div>

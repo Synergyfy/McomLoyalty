@@ -3,6 +3,7 @@ import api, { setBearerToken } from '../api';
 import { AddRewardToBusinessRequest, CreateRewardRequest, GetRewardsResponse, RewardResponse, UpdateRewardRequest } from './types';
 import Cookies from 'js-cookie';
 import toast from 'react-hot-toast';
+import { AxiosError } from 'axios';
 
 const REWARDS_QUERY_KEY = 'rewards';
 const BUSINESS_REWARDS_QUERY_KEY = 'business_rewards';
@@ -23,7 +24,7 @@ export const useCreateReward = () => {
       toast.success('Reward created successfully!');
       queryClient.invalidateQueries({ queryKey: [REWARDS_QUERY_KEY] });
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<{ message: string }>) => {
       const message = error.response?.data?.message || 'An unexpected error occurred.';
       toast.error(message);
     },

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -9,8 +9,9 @@ import {
 } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { ArrowDown, ArrowUp } from 'lucide-react';
+import { ArrowDown, ArrowUp, Star } from 'lucide-react';
 import { useGetPointHistory } from '@/services/wallet/hook';
+import { PointHistoryRecord } from '@/services/wallet/types';
 
 interface CampaignTransactionHistoryDialogProps {
   isOpen: boolean;
@@ -31,11 +32,14 @@ export default function CampaignTransactionHistoryDialog({
 
   const totalPages = historyData ? Math.ceil(historyData.total / limit) : 1;
 
-  const getIconForType = (type: 'earned' | 'spent') => {
-    if (type === 'earned') {
+  const getIconForType = (type: PointHistoryRecord['type']) => {
+    if (type === 'earned' || type === 'referral_bonus' || type === 'manual_adjustment') {
       return <ArrowUp className="w-5 h-5 text-green-500" />;
     }
-    return <ArrowDown className="w-5 h-5 text-red-500" />;
+    if (type === 'spent' || type === 'purchase') {
+      return <ArrowDown className="w-5 h-5 text-red-500" />;
+    }
+    return <Star className="w-5 h-5 text-gray-500" />; // Default icon for other types
   };
 
   return (
@@ -68,8 +72,8 @@ export default function CampaignTransactionHistoryDialog({
                         <p className="font-semibold">{record.description}</p>
                       </TableCell>
                       <TableCell>{new Date(record.timestamp).toLocaleDateString()}</TableCell>
-                      <TableCell className={`text-right font-bold ${record.type === 'earned' ? 'text-green-600' : 'text-red-600'}`}>
-                        {record.type === 'earned' ? '+' : '-'}{record.points}
+                      <TableCell className={`text-right font-bold ${record.type === 'earned' || record.type === 'referral_bonus' || record.type === 'manual_adjustment' ? 'text-green-600' : 'text-red-600'}`}>
+                        {record.type === 'earned' || record.type === 'referral_bonus' || record.type === 'manual_adjustment' ? '+' : '-'}{record.points}
                       </TableCell>
                     </TableRow>
                   ))}

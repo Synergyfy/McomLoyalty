@@ -65,7 +65,7 @@ export default function RewardCard({ reward, onEditClick, onDeleteClick }: Rewar
                   <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                   <AlertDialogDescription>
                     This action cannot be undone. This will permanently delete the reward.
-                    To confirm, please type "delete" below.
+                    To confirm, please type &quot;delete&quot; below.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <Input 

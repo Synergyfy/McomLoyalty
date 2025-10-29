@@ -11,7 +11,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { mockAdminTransactions, AdminPointTransaction } from '@/lib/mock-data/admin-transactions'; // Updated import
+import { mockAdminTransactions } from '@/lib/mock-data/admin-transactions'; // Updated import
 
 export default function PointsLogPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -136,10 +136,6 @@ export default function PointsLogPage() {
                   <TableCell>
                     <div className="font-medium">{tx.customer.name}</div>
                     <div className="text-sm text-muted-foreground">{tx.customer.email}</div>
-                  </TableCell>
-                  <TableCell>{tx.description}</TableCell>
-                  <TableCell>
-                    {tx.campaign?.title || tx.reward?.title || '-'}
                   </TableCell>
                   <TableCell>
                     <span className="capitalize bg-muted px-2 py-1 rounded-md text-xs">{tx.transactionType.replace('_', ' ')}</span>

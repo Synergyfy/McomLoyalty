@@ -23,6 +23,7 @@ export default function EditRewardDialog({ reward, isOpen, onClose }: EditReward
   const [pointsRequired, setPointsRequired] = useState(reward.pointsRequired);
   const [value, setValue] = useState(reward.value);
   const [description, setDescription] = useState(reward.description);
+  const [image, setImage] = useState(reward.image);
   const [quantity, setQuantity] = useState(reward.quantity);
   const { mutate: updateReward, isPending: isUpdatingReward } = useUpdateReward();
 
@@ -96,6 +97,17 @@ export default function EditRewardDialog({ reward, isOpen, onClose }: EditReward
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <label htmlFor="image" className="text-right col-span-1">
+              Image URL
+            </label>
+            <Input
+              id="image"
+              value={image}
+              onChange={(e) => setImage(e.target.value)}
               className="col-span-3"
             />
           </div>
