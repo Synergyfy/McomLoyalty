@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Award, Megaphone, Heart, Users, Ticket } from 'lucide-react';
+import { Award, Megaphone, UserCheck, Heart, Users, Ticket } from 'lucide-react';
 
 interface BusinessSidebarProps {
   isOpen: boolean;

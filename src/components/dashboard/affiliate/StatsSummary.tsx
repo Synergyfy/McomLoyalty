@@ -22,7 +22,7 @@ const StatCard = ({ title, value, icon }: { title: string; value: string | numbe
 export default function StatsSummary({ stats }: StatsSummaryProps) {
   return (
     <div className="space-y-4">
-        <h2 className="text-xl font-bold">Statistics</h2>
+        <h2 class="text-xl font-bold">Statistics</h2>
         <StatCard 
             title="Total Invites" 
             value={stats.totalInvites} 

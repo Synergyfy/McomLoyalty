@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge'; // Assuming Badge component exists
-import { ArrowDown, ArrowUp, Star } from 'lucide-react';
+import { ArrowDown, ArrowUp, Gift, ShoppingCart, Users, Award, Tag, Star } from 'lucide-react';
 import { Transaction } from '@/lib/mock-data/wallet'; // Import the Transaction interface
 
 interface TransactionHistoryProps {

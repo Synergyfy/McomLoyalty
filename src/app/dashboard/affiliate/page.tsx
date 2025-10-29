@@ -3,7 +3,7 @@ import InviteCard from '@/components/dashboard/affiliate/InviteCard';
 import StatsSummary from '@/components/dashboard/affiliate/StatsSummary';
 import ReferralsHistoryTable from '@/components/dashboard/affiliate/ReferralsHistoryTable';
 import RewardsLadder from '@/components/dashboard/affiliate/RewardsLadder';
-import { affiliateData, Referral } from '@/lib/mock-data/affiliate';
+import { affiliateData } from '@/lib/mock-data/affiliate';
 
 export default function AffiliatePage() {
   return (
@@ -16,7 +16,7 @@ export default function AffiliatePage() {
             referralLink={affiliateData.referralLink} 
             qrCodeUrl={affiliateData.qrCodeUrl} 
           />
-          <ReferralsHistoryTable referrals={affiliateData.referrals as Referral[]} />
+          <ReferralsHistoryTable referrals={affiliateData.referrals} />
         </div>
         <div className="space-y-8">
           <StatsSummary stats={affiliateData.stats} />

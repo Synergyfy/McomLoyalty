@@ -11,7 +11,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { mockAdminTransactions } from '@/lib/mock-data/admin-transactions'; // Updated import
+import { mockAdminTransactions, AdminPointTransaction } from '@/lib/mock-data/admin-transactions'; // Updated import
 
 export default function PointsLogPage() {
   const [searchTerm, setSearchTerm] = useState('');

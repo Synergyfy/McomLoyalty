@@ -75,7 +75,7 @@ export default function DealForm() {
                   <Input id="title" {...register("title", { required: "Title is required" })} />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Enter a concise title for your deal (e.g., &quot;20% Off Coffee&quot;).</p>
+                  <p>Enter a concise title for your deal (e.g., "20% Off Coffee").</p>
                 </TooltipContent>
               </Tooltip>
               {errors.title && <p className="text-red-500 text-sm">{errors.title.message}</p>}
@@ -140,7 +140,7 @@ export default function DealForm() {
                     <Input id="value" placeholder="e.g., 20, 10.50" {...register("value", { required: "Value is required" })} />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Enter the monetary value or percentage of the deal (e.g., &quot;20&quot;, &quot;10.50&quot;).</p>
+                    <p>Enter the monetary value or percentage of the deal (e.g., "20", "10.50").</p>
                   </TooltipContent>
                 </Tooltip>
                 {errors.value && <p className="text-red-500 text-sm">{errors.value.message}</p>}

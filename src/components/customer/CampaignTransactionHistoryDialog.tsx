@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { useGetPointHistory } from '@/services/wallet/hook';
-import { PointHistoryRecord } from '@/services/wallet/types';
 
 interface CampaignTransactionHistoryDialogProps {
   isOpen: boolean;
@@ -32,18 +31,11 @@ export default function CampaignTransactionHistoryDialog({
 
   const totalPages = historyData ? Math.ceil(historyData.total / limit) : 1;
 
-  const getIconForType = (type: PointHistoryRecord['type']) => {
-    switch (type) {
-      case 'earned':
-      case 'referral_bonus':
-      case 'manual_adjustment':
-        return <ArrowUp className="w-5 h-5 text-green-500" />;
-      case 'spent':
-      case 'purchase':
-        return <ArrowDown className="w-5 h-5 text-red-500" />;
-      default:
-        return null; // Or a default icon if needed
+  const getIconForType = (type: 'earned' | 'spent') => {
+    if (type === 'earned') {
+      return <ArrowUp className="w-5 h-5 text-green-500" />;
     }
+    return <ArrowDown className="w-5 h-5 text-red-500" />;
   };
 
   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -50,7 +50,7 @@ export const WelcomeWishlistModal = ({ isOpen, onClose }: WelcomeWishlistModalPr
           <div className="space-y-2">
             <Label htmlFor="name">Item Name</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
-            <p className="text-xs text-gray-500">The name of the item you&apos;re wishing for.</p>
+            <p className="text-xs text-gray-500">The name of the item you're wishing for.</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="occasion">Occasion</Label>

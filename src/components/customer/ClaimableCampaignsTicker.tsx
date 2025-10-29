@@ -10,36 +10,30 @@ const mockClaimableCampaigns = [
     id: '4',
     title: "Coffee Lover's Dream",
     business: 'The Daily Grind',
-    pointsCost: 100,
   },
   {
     id: '5',
     title: 'Bookworm Rewards',
     business: 'The Reading Nook',
-    pointsCost: 150,
   },
   {
     id: '6',
     title: 'Tech Gadget Expo',
     business: 'Tech World',
-    pointsCost: 200,
   },
   {
     id: '7',
     title: 'Free Movie Ticket',
     business: 'Cineplex',
-    pointsCost: 50,
   },
 ];
 
 export const ClaimableCampaignsTicker = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState('');
-  const [selectedCampaignPointsCost, setSelectedCampaignPointsCost] = useState(0);
 
-  const handleClaimClick = (campaignTitle: string, pointsCost: number) => {
+  const handleClaimClick = (campaignTitle: string) => {
     setSelectedCampaign(campaignTitle);
-    setSelectedCampaignPointsCost(pointsCost);
     setIsDialogOpen(true);
   };
 
@@ -87,7 +81,7 @@ export const ClaimableCampaignsTicker = () => {
                                     </div>
                                     <Button
                                         size="sm"
-                                        onClick={() => handleClaimClick(campaign.title, campaign.pointsCost)}
+                                        onClick={() => handleClaimClick(campaign.title)}
                                         className="bg-orange-600 hover:bg-orange-700 text-white ml-4 flex-shrink-0"
                                     >
                                         Claim
@@ -105,7 +99,6 @@ export const ClaimableCampaignsTicker = () => {
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         campaignName={selectedCampaign}
-        pointsCost={selectedCampaignPointsCost}
       />
     </>
   );

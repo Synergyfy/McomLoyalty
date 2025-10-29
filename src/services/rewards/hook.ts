@@ -1,9 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api, { setBearerToken } from '../api';
-import { AxiosError } from 'axios';
-interface ErrorResponseData {
-  message?: string;
-}
 import { AddRewardToBusinessRequest, CreateRewardRequest, GetRewardsResponse, RewardResponse, UpdateRewardRequest } from './types';
 import Cookies from 'js-cookie';
 import toast from 'react-hot-toast';
@@ -27,8 +23,8 @@ export const useCreateReward = () => {
       toast.success('Reward created successfully!');
       queryClient.invalidateQueries({ queryKey: [REWARDS_QUERY_KEY] });
     },
-    onError: (error: AxiosError) => {
-      const message = (error.response?.data as ErrorResponseData)?.message || 'An unexpected error occurred.';
+    onError: (error: any) => {
+      const message = error.response?.data?.message || 'An unexpected error occurred.';
       toast.error(message);
     },
   });
