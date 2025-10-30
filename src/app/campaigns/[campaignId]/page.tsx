@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
-import { Calendar, Tag, Info, Gift, CheckCircle, Users, Trophy, Menu, X } from "lucide-react";
+import { Calendar, Tag, Info, Gift, CheckCircle, Users, Trophy } from "lucide-react";
 import { JoinConfirmationDialog } from "@/components/customer/JoinConfirmationDialog";
 
 interface PageProps {
@@ -77,7 +77,6 @@ const mockCampaign = {
 export default function CampaignDetailPage({}: PageProps) {
   const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
   const [joinedCampaignTitle, setJoinedCampaignTitle] = useState('');
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State for mobile menu
 
   const campaign = mockCampaign;
   const isLoading = false;
@@ -93,53 +92,6 @@ export default function CampaignDetailPage({}: PageProps) {
         <p className="text-center text-lg py-20">Loading campaign details...</p>
       ) : campaign ? (
         <div className="relative">
-          <header className="relative bg-white shadow-md z-50 fixed top-0 left-0 right-0">
-            <div className="container mx-auto flex justify-between items-center p-4">
-              {/* Logo Section */}
-              <div className="flex items-center space-x-3">
-                {campaign.businessLogoUrl && (
-                  <Image
-                    src={campaign.businessLogoUrl}
-                    alt={campaign.businessName + ' Logo'}
-                    width={50}
-                    height={50}
-                    className="rounded-full border-2 border-gray-200 shadow-sm"
-                  />
-                )}
-                <span className="text-xl font-bold text-gray-800">{campaign.businessName}</span>
-              </div>
-
-              {/* Desktop Menu */}
-              <nav className="hidden md:flex">
-                <ul className="flex space-x-6">
-                  <li><a href="/campaigns/earn-points" className="text-gray-600 hover:text-orange-600 transition-colors duration-200">EARN POINTS</a></li>
-                  <li><a href="/campaigns/redeem-points" className="text-gray-600 hover:text-orange-600 transition-colors duration-200">REDEEM POINTS</a></li>
-                  <li><a href="/campaigns/contact-us" className="text-gray-600 hover:text-orange-600 transition-colors duration-200">CONTACT US</a></li>
-                  <li><a href="/my-points" className="text-gray-600 hover:text-orange-600 transition-colors duration-200">MY POINTS</a></li>
-                </ul>
-              </nav>
-
-              {/* Mobile Menu Toggle */}
-              <div className="md:hidden">
-                <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-                  {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                </Button>
-              </div>
-            </div>
-
-            {/* Mobile Menu Overlay */}
-            {isMobileMenuOpen && (
-              <div className="md:hidden bg-white absolute top-full left-0 w-full shadow-lg pb-4 pt-2">
-                <ul className="flex flex-col items-center space-y-4">
-                  <li><a href="/campaigns/earn-points" className="text-gray-800 hover:text-orange-600 transition-colors duration-200 text-lg" onClick={() => setIsMobileMenuOpen(false)}>EARN POINTS</a></li>
-                  <li><a href="/campaigns/redeem-points" className="text-gray-800 hover:text-orange-600 transition-colors duration-200 text-lg" onClick={() => setIsMobileMenuOpen(false)}>REDEEM POINTS</a></li>
-                  <li><a href="/campaigns/contact-us" className="text-gray-800 hover:text-orange-600 transition-colors duration-200 text-lg" onClick={() => setIsMobileMenuOpen(false)}>CONTACT US</a></li>
-                  <li><a href="/my-points" className="text-gray-800 hover:text-orange-600 transition-colors duration-200 text-lg" onClick={() => setIsMobileMenuOpen(false)}>MY POINTS</a></li>
-                </ul>
-              </div>
-            )}
-          </header>
-
           {/* Hero Section - Title and Headline */}
           <div className="relative h-[400px] md:h-[500px] w-full overflow-hidden">
             <Image
@@ -323,17 +275,6 @@ export default function CampaignDetailPage({}: PageProps) {
               </Button>
             </div>
           </div>
-
-          {/* Footer */}
-          <footer className="bg-gray-800 text-white py-8 mt-12">
-            <div className="container mx-auto text-center">
-              <p>&copy; 2025 Mcom Loyalty Store. All rights reserved.</p>
-              <div className="flex justify-center space-x-4 mt-4">
-                <a href="#" className="text-gray-400 hover:text-white">Privacy Policy</a>
-                <a href="#" className="text-gray-400 hover:text-white">Terms of Service</a>
-              </div>
-            </div>
-          </footer>
         </div>
       ) : (
         <p className="text-center text-lg text-red-500 py-20">Campaign not found.</p>

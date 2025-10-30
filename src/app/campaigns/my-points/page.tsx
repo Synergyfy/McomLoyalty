@@ -60,16 +60,6 @@ export default function MyPointsPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
-            My Points
-          </h1>
-          <p className="mt-4 text-xl text-gray-600">
-            View your current point balance and transaction history.
-          </p>
-        </div>
-
         <Tabs defaultValue="balance" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="balance">Balance</TabsTrigger>
