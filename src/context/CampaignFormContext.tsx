@@ -5,7 +5,7 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 interface CampaignFormData {
   campaignType: string;
   campaignName: string;
-  rewardId: string;
+  rewardIds: string[];
   startDate: Date | undefined;
   endDate: Date | undefined;
   rewardsAvailable: number | string;
@@ -43,7 +43,7 @@ interface CampaignFormContextType {
 const defaultFormData: CampaignFormData = {
   campaignType: '',
   campaignName: '',
-  rewardId: '',
+  rewardIds: [],
   startDate: undefined,
   endDate: undefined,
   rewardsAvailable: 0,

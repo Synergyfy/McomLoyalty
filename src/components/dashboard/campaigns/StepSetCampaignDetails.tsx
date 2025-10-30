@@ -2,15 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Select from 'react-select';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select as ShadcnSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CloudinaryUpload } from '@/components/ui/cloudinary-upload';
-import DateTimePicker from '@/components/dashboard/campaigns/datePicker';
+import DateTimePicker from './datePicker';
 import Image from 'next/image';
 import { Calendar, Users, Gift, Tag } from 'lucide-react'; // Added icons
 import { useCampaignForm } from '@/context/CampaignFormContext';
@@ -23,7 +24,7 @@ interface StepProps {
 // Mock rewards data (replace with actual API call later)
 const mockRewards = [
   { id: '1', title: 'Summer Voucher ($50)', image: 'https://images.unsplash.com/photo-1529592691919-7a6aa481f520?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-  { id: '2', title: 'Gift Card ($100)', image: 'https://images.unsplash.com/photo-1579621970795-87f943b9e7a6?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
+  { id: '2', title: 'Gift Card (00)', image: 'https://images.unsplash.com/photo-1579621970795-87f943b9e7a6?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
   { id: '3', title: 'Discount Coupon (20% off)', image: 'https://images.unsplash.com/photo-1508615039623-a25605d2b022?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
 ];
 
@@ -54,10 +55,10 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
 
   useEffect(() => {
     if (itemName && !formData.campaignName) {
-      updateFormData({ 
-        campaignName: `${itemName} Campaign`, 
+      updateFormData({
+        campaignName: `${itemName} Campaign`,
         audienceType: ['wishlist_target'],
-        wishlistItemId: itemName 
+        wishlistItemId: itemName
       });
     }
   }, [searchParams, formData.campaignName, updateFormData, itemName]);
@@ -84,7 +85,7 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
   const isFormValid = () => {
     const {
       campaignName,
-      rewardId,
+      rewardIds,
       startDate,
       endDate,
       rewardsAvailable,
@@ -97,7 +98,7 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
 
     if (
       !campaignName.trim() ||
-      !rewardId.trim() ||
+      rewardIds.length === 0 ||
       !startDate ||
       !endDate ||
       Number(rewardsAvailable) <= 0 ||
@@ -122,6 +123,8 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
     return true;
   };
 
+  const rewardOptions = mockRewards.map(reward => ({ value: reward.id, label: reward.title }));
+
   return (
     <Card>
       <CardHeader>
@@ -141,23 +144,17 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
           </div>
 
           <div>
-            <Label htmlFor="rewardToAttach">Reward to Attach</Label>
+            <Label htmlFor="rewardToAttach">Rewards to Attach</Label>
             <Select
-              value={formData.rewardId}
-              onValueChange={(value) => updateFormData({ rewardId: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a reward" />
-              </SelectTrigger>
-              <SelectContent>
-                {mockRewards.map((reward) => (
-                  <SelectItem key={reward.id} value={reward.id}>
-                    {reward.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-sm text-gray-500 mt-1">Choose the reward to be given out in this campaign.</p>
+              isMulti
+              options={rewardOptions}
+              value={rewardOptions.filter(option => formData.rewardIds.includes(option.value))}
+              onChange={(selectedOptions) => {
+                const selectedIds = selectedOptions ? selectedOptions.map(option => option.value) : [];
+                updateFormData({ rewardIds: selectedIds });
+              }}
+            />
+            <p className="text-sm text-gray-500 mt-1">Choose the rewards to be given out in this campaign.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -242,7 +239,7 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
             </div>
             <p className="text-sm text-gray-500 mt-1">Choose who can participate in this campaign.</p>
             {formData.audienceType.includes('badge_level') && (
-              <Select
+              <ShadcnSelect
                 value={formData.badgeLevel}
                 onValueChange={(value) => updateFormData({ badgeLevel: value })}
               >
@@ -254,10 +251,10 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
                     <SelectItem key={level} value={level}>{level}</SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+              </ShadcnSelect>
             )}
             {formData.audienceType.includes('wishlist_target') && (
-              <Select
+              <ShadcnSelect
                 value={formData.wishlistItemId}
                 onValueChange={(value) => updateFormData({ wishlistItemId: value })}
               >
@@ -271,7 +268,7 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+              </ShadcnSelect>
             )}
           </div>
 
@@ -320,7 +317,7 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
 
           <div>
             <Label htmlFor="ctaButtonText">CTA Button</Label>
-            <Select
+            <ShadcnSelect
               value={formData.ctaButtonText}
               onValueChange={(value: 'Claim Reward' | 'Join Now' | 'Refer & Earn') => updateFormData({ ctaButtonText: value })}
             >
@@ -332,7 +329,7 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
                 <SelectItem value="Join Now">Join Now</SelectItem>
                 <SelectItem value="Refer & Earn">Refer & Earn</SelectItem>
               </SelectContent>
-            </Select>
+            </ShadcnSelect>
             <p className="text-sm text-gray-500 mt-1">The call-to-action text for the button.</p>
           </div>
 
@@ -409,8 +406,8 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
 
                 <div className="space-y-3 text-sm mb-5 border-t pt-4">
                   <div className="flex items-center justify-between">
-                    <span className="flex items-center font-medium"><Gift className="h-4 w-4 mr-2 text-blue-500" />Reward:</span>
-                    <span className="text-right">{mockRewards.find(r => r.id === formData.rewardId)?.title || '[Select Reward]'}</span>
+                    <span className="flex items-center font-medium"><Gift className="h-4 w-4 mr-2 text-blue-500" />Rewards:</span>
+                    <span className="text-right">{formData.rewardIds.map(id => mockRewards.find(r => r.id === id)?.title).join(', ') || '[Select Rewards]'}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="flex items-center font-medium"><Tag className="h-4 w-4 mr-2 text-green-500" />Available:</span>

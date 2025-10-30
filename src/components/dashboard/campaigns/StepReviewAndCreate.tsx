@@ -42,10 +42,10 @@ export default function StepReviewAndCreate({ onBack }: StepProps) {
   const handleDialogAcknowledge = () => {
     setShowSuccessDialog(false);
     resetFormData();
-    router.push('/dashboard/campaigns/list');
+    router.push('/dashboard/campaigns');
   };
 
-  const selectedReward = mockRewards.find(r => r.id === formData.rewardId);
+  const selectedRewards = mockRewards.filter(r => formData.rewardIds.includes(r.id));
 
   return (
     <>
@@ -81,8 +81,8 @@ export default function StepReviewAndCreate({ onBack }: StepProps) {
 
                   <div className="space-y-3 text-sm text-gray-800 mb-5 border-t pt-4">
                     <div className="flex items-center justify-between">
-                      <span className="flex items-center font-medium text-gray-600"><Gift className="h-4 w-4 mr-2 text-blue-500" />Reward:</span>
-                      <span className="text-right">{selectedReward?.title || '[Select Reward]'}</span>
+                      <span className="flex items-center font-medium text-gray-600"><Gift className="h-4 w-4 mr-2 text-blue-500" />Rewards:</span>
+                      <span className="text-right">{selectedRewards.map(r => r.title).join(', ') || '[Select Rewards]'}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="flex items-center font-medium text-gray-600"><Tag className="h-4 w-4 mr-2 text-green-500" />Available:</span>
