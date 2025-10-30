@@ -3,15 +3,17 @@
    - Allow users (Admin or Business Owner) to select and add multiple rewards when creating a campaign.
 
 2. *Redesign the Campaign Front Page*
-   - Update the layout of individual campaign pages (not the campaign list view).
+   - Update the layout of individual campaign pages - src/app/campaigns/[campaignId]/page.tsx  (not the campaign list view).
    - Include the following structure:
      - (1) Logo section (top right)
      - (2) Title section
      - (2b) Headline
      - (2c) Menu bar
-     - (3) Multiple rewards display
+     - (3) and the info the admin or business filled in the campaign creation wizard(src/app/admin/campaigns/create/page.tsx) check the components it imported to know the field the admin field 
+     - (3b) Multiple rewards display
      - (4) Instructions section
      - (5) Footer
+  - it should look like a full aesthetic page 
 
 3. *Maintain Existing Campaign Creation Page*
    - Keep the current campaign creation flow but integrate the new layout elements mentioned above.
