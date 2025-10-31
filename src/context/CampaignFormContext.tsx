@@ -2,10 +2,10 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-interface CampaignFormData {
+export interface CampaignFormData {
   campaignType: string;
   campaignName: string;
-  rewardId: string;
+  rewardIds: string[];
   startDate: Date | undefined;
   endDate: Date | undefined;
   rewardsAvailable: number | string;
@@ -32,6 +32,17 @@ interface CampaignFormData {
   ctaBgColor: string;
   bgColorTextColor: string;
   ctaTextColor: string;
+  earnTitle?: string;
+  earnText?: string;
+  redeemTitle?: string;
+  redeemText?: string;
+  contactTitle?: string;
+  contactText?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  footerText?: string;
+  howToEarn: string[];
+  termsAndConditions: string[];
 }
 
 interface CampaignFormContextType {
@@ -43,7 +54,7 @@ interface CampaignFormContextType {
 const defaultFormData: CampaignFormData = {
   campaignType: '',
   campaignName: '',
-  rewardId: '',
+  rewardIds: [],
   startDate: undefined,
   endDate: undefined,
   rewardsAvailable: 0,
@@ -69,6 +80,17 @@ const defaultFormData: CampaignFormData = {
   ctaBgColor: '#000000',
   bgColorTextColor: '#000000',
   ctaTextColor: '#FFFFFF',
+  earnTitle: '',
+  earnText: '',
+  redeemTitle: '',
+  redeemText: '',
+  contactTitle: '',
+  contactText: '',
+  contactEmail: '',
+  contactPhone: '',
+  footerText: '',
+  howToEarn: [],
+  termsAndConditions: [],
 };
 
 const CampaignFormContext = createContext<CampaignFormContextType | undefined>(undefined);

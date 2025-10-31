@@ -3,6 +3,7 @@
 import BusinessSidebar from '@/components/dashboard/sidebar/index';
 import BusinessHeader from '@/components/dashboard/header';
 import React, { useState } from 'react';
+import Navbar from '@/components/Navbar';
 
 export default function DashboardLayout({
   children,
@@ -14,9 +15,13 @@ export default function DashboardLayout({
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   return (
-    <html lang="en">
-      <body>
-        <div className="relative min-h-screen md:flex">
+    <>
+  
+      <div className="relative min-h-screen md:flex">
+        <div className="hidden md:block">
+          <Navbar />
+        </div>
+          
           {/* Mobile overlay */}
           {isSidebarOpen && (
             <div
@@ -32,12 +37,12 @@ export default function DashboardLayout({
           <div className="flex-1 md:ml-64">
             {/* Header for mobile */}
             <BusinessHeader onMenuClick={toggleSidebar} />
-            <main className="p-4 sm:p-6 md:p-10">
+            <main className="p-4 mt-4 sm:p-6 md:p-10">
               {children}
             </main>
           </div>
-        </div>
-      </body>
-    </html>
+    </div>
+      
+ </>
   );
 }

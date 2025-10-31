@@ -9,7 +9,7 @@ import Link from 'next/link';
 
 import { usePathname } from 'next/navigation';
 
-import { LayoutDashboard, Award, Briefcase, History } from 'lucide-react';
+import { LayoutDashboard, Award, Briefcase, History, Megaphone, Lightbulb } from 'lucide-react';
 
 
 
@@ -71,17 +71,29 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
 
         </li>
 
-        <li>
+                <li>
 
-          <Link href="/admin/rewards" className={linkClasses("/admin/rewards")}>
+                  <Link href="/admin/rewards" className={linkClasses("/admin/rewards")}>
 
-            <Award className="mr-3" />
+                    <Award className="mr-3" />
 
-            Rewards
+                    Rewards
 
-          </Link>
+                  </Link>
 
-        </li>
+                </li>
+
+                <li>
+
+                  <Link href="/admin/campaigns/list" className={linkClasses("/admin/campaigns/list")}>
+
+                    <Megaphone className="mr-3" />
+
+                    Campaigns
+
+                  </Link>
+
+                </li>
 
         <li>
 
@@ -98,6 +110,12 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
           <Link href="/admin/points-log" className={linkClasses("/admin/points-log")}>
             <History className="mr-3" />
             Points Log
+          </Link>
+        </li>
+        <li>
+          <Link href="/admin/wishlist-insights" className={linkClasses("/admin/wishlist-insights")}>
+            <Lightbulb className="mr-3" />
+            Wishlist Insights
           </Link>
         </li>
 

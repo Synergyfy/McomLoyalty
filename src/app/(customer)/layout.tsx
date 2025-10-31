@@ -4,6 +4,7 @@ import CustomerSidebar from '@/components/customer/sidebar';
 import CustomerHeader from '@/components/customer/header';
 import React, { useState, useEffect } from 'react';
 import { WelcomeWishlistModal } from '@/components/customer/WelcomeWishlistModal';
+import DashboardNavbar from '@/components/Navbar';
 
 export default function CustomerLayout({
   children,
@@ -31,6 +32,8 @@ export default function CustomerLayout({
     <html lang="en">
       <body>
         <div className="relative min-h-screen md:flex">
+          <DashboardNavbar />
+          
           {/* Mobile overlay */}
           {isSidebarOpen && (
             <div

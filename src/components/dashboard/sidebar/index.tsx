@@ -2,108 +2,171 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-// import { Award, Megaphone, UserCheck, Trophy, ChevronDown, ChevronUp, Users  } from 'lucide-react';
+import {
+  Award,
+  Megaphone,
+  Heart,
+  Users,
+  Ticket,
+  User,
+  LogOut,
+} from 'lucide-react';
 import { useLinkClasses } from '@/app/hooks';
-// import { usePathname } from 'next/navigation';
-import { Award, Megaphone, Heart, Users, Ticket, Trophy} from 'lucide-react';
+import TierBadge from '../../ui/tierBadge';
+import { motion } from 'framer-motion';
+import {mockBusinessData as data} from '../../../app/data';
+
 
 interface BusinessSidebarProps {
   isOpen: boolean;
 }
 
 export default function BusinessSidebar({ isOpen }: BusinessSidebarProps) {
-  const [isStaffOpen, setIsStaffOpen] = useState(true);
+  const [isStaffOpen, setIsStaffOpen] = useState(false);
+  const [isCampaignsOpen, setIsCampaignsOpen] = useState(false)
+  const [ isVouchersOpen, setIsVouchersOpen] = useState (false);
   const linkClasses = useLinkClasses();
-
-
 
   return (
     <div
       className={`
-        fixed top-0 left-0 h-full w-64 bg-white text-gray-800 p-4 z-40 shadow-lg
+        fixed top-0 left-0 h-full w-64 bg-white text-gray-800 p-4 z-50 shadow-2xl
         transform transition-transform duration-300 ease-in-out
         md:translate-x-0
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}
     >
-      <h2 className="text-2xl font-bold mb-6 text-orange-600">Business Menu</h2>
-      <ul className="space-y-2">
+      {/* Business Name*/}
+      <div className="flex items-center justify-between mb-3">
+         <motion.h1
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-3xl font-semibold text-orange-500 mb-6"
+              >
+                {data.businessName} 
+              </motion.h1>
+      </div>
+
+      {/* 🔗 Navigation Links */}
+      <ul className="space-y-2 text-sm font-medium">
         <li>
-          <Link href="/dashboard" className={linkClasses("/dashboard", true)}>
+          <Link href="/dashboard" className={linkClasses('/dashboard', true)}>
             <Award className="mr-3" />
-           Dashboard
+            Overview
           </Link>
         </li>
+
         <li>
-          <Link href="/dashboard/rewards" className={linkClasses("/dashboard/rewards")}>
+          <Link href="/dashboard/rewards" className={linkClasses('/dashboard/rewards')}>
             <Award className="mr-3" />
             Rewards
           </Link>
         </li>
+
         <li>
-          <Link href="/dashboard/campaigns/list" className={linkClasses("/dashboard/campaigns/list")}>
-            <Megaphone className="mr-3" />
-            Campaigns
-          </Link>
+          <button
+            className={linkClasses('/dashboard/campaigns')}
+            onClick={() => setIsCampaignsOpen(!isCampaignsOpen)}  
+          >
+            <span className="flex items-center justify-between w-full">
+              <span className="flex items-center">
+                <Megaphone className="mr-3" />
+                Campaigns
+              </span>
+              <span className="text-gray-400 text-xs">{isCampaignsOpen ? '−' : '+'}</span>
+            </span>
+          </button>
+          {isCampaignsOpen && (
+            <ul className="ml-8 mt-2 space-y-1">
+                  <li>
+              <Link href="/dashboard/campaigns/list" className={linkClasses('/dashboard/campaigns/list')}>
+              
+                View Campaigns
+              </Link>
+            </li>
+               <li>
+                <Link href="/dashboard/campaign-performance" className={linkClasses('/dashboard/campaign-performance')}>
+                
+                  Campaign Performance
+                </Link>
+               </li>
+            </ul>
+          )}
         </li>
         <li>
-          <Link href="/dashboard/wishlist-insights" className={linkClasses("/dashboard/wishlist-insights")}>
+          <button
+            className={linkClasses('/dashboard/vouchers')}
+            onClick={() => setIsVouchersOpen(!isVouchersOpen)}
+          >
+            <span className="flex items-center justify-between w-full">
+              <span className="flex items-center">
+                <Ticket className="mr-3" />
+                Vouchers
+              </span>
+              <span className="text-gray-400 text-xs">{isVouchersOpen ? '−' : '+'}</span>
+            </span>
+          </button>
+          {isVouchersOpen && (
+            <ul className="ml-8 mt-2 space-y-1">
+              <li>
+                <Link href="/dashboard/vouchers/list" className={linkClasses('/dashboard/vouchers/list')}>
+                  View Vouchers
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard/vouchers/create" className={linkClasses('/dashboard/vouchers/create')}>
+                  Create Voucher
+                </Link>
+              </li>
+            </ul>
+          )}
+        </li>
+
+        <li>
+          <Link href="/dashboard/wishlist-insights" className={linkClasses('/dashboard/wishlist-insights')}>
             <Heart className="mr-3" />
             Wishlist Insights
           </Link>
         </li>
+
         <li>
-          <Link href="/dashboard/affiliate" className={linkClasses("/dashboard/affiliate")}>
+          <Link href="/dashboard/affiliate" className={linkClasses('/dashboard/affiliate')}>
             <Users className="mr-3" />
             Affiliate
           </Link>
         </li>
+
         <li>
-          <Link href="/dashboard/deals" className={linkClasses("/dashboard/deals")}>
+          <Link href="/dashboard/deals" className={linkClasses('/dashboard/deals')}>
             <Ticket className="mr-3" />
             Deals
           </Link>
         </li>
-        <li>
-          {/* <Link href="/dashboard/campaign-access" className={linkClasses("/dashboard/campaign-access")}>
-            <UserCheck className="mr-3" />
-            Campaign Access
-          </Link> */}
-        </li>
-         <li>
-          <Link href="/dashboard/campaign-performance" className={linkClasses("/dashboard/campaign-performance")}>
-            <Trophy className="mr-3" />
-            Campaign Performance
-          </Link>
-        </li>
 
-       <li>
+        {/* 👥 Staff Dropdown */}
+        <li>
           <button
-            className={linkClasses("/dashboard/staff")}
+            className={linkClasses('/dashboard/staff')}
+            onClick={() => setIsStaffOpen(!isStaffOpen)}
           >
-            <span className="flex items-center">
-              <Users className="mr-3" />
-              Staff Management
+            <span className="flex items-center justify-between w-full">
+              <span className="flex items-center">
+                <Users className="mr-3" />
+                Staff Management
+              </span>
+              <span className="text-gray-400 text-xs">{isStaffOpen ? '−' : '+'}</span>
             </span>
-           
           </button>
 
-          {/* Dropdown items */}
           {isStaffOpen && (
             <ul className="ml-8 mt-2 space-y-1">
               <li>
-                <Link
-                  href="/dashboard/staff"
-                  className={linkClasses("/dashboard/staff", true)}
-                >
+                <Link href="/dashboard/staff" className={linkClasses('/dashboard/staff', true)}>
                   View Staff
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/dashboard/staff/add"
-                  className={linkClasses("/dashboard/staff/add", true)}
-                >
+                <Link href="/dashboard/staff/add" className={linkClasses('/dashboard/staff/add', true)}>
                   Add Staff
                 </Link>
               </li>
@@ -111,6 +174,40 @@ export default function BusinessSidebar({ isOpen }: BusinessSidebarProps) {
           )}
         </li>
       </ul>
+
+      {/* Divider */}
+      <div className="my-6 border-t border-gray-200"></div>
+
+      {/* 👤 Profile + Logout */}
+      <div className="space-y-2">
+        
+        <button
+          onClick={() => (window.location.href = '/dashboard/profile')}
+          className="flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition"
+        >
+          <User className="mr-3" size={18} />
+          Profile
+        </button>
+
+        <button
+          onClick={() => console.log('Logging out...')}
+          className="flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-orange-50 hover:text-red-600 transition"
+        >
+          <LogOut className="mr-3" size={18} />
+          Logout
+        </button>
+      </div>
+
+      {/* 🧩 Bottom Badge */}
+      <div className="absolute bottom-6 left-4 right-4  text-orange-600 flex items-center justify-center gap-2 font-semibold py-2 rounded-full">
+       
+        <div className="sm:block md:hidden  lg:hidden xl:hidden">
+         <Link href="/dashboard/tier" className="sm:block md:hidden lg:hidden xl:hidden">
+
+            <TierBadge tier="Gold" />
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

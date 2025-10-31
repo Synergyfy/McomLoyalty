@@ -10,6 +10,7 @@ import { useBusinessSignUp, useBusinessSignIn } from "@/services/business/hook";
 import { toast } from "sonner"; // or your toast lib (shadcn, react-hot-toast, etc.
 import { useRouter } from "next/navigation";
 import { BusinessSignUpDto } from "@/services/business/types";
+import Link from "next/link";
 
 export default function BusinessSignupPage() {
   const {
@@ -171,12 +172,12 @@ const onSubmit = async (data: BusinessSignUpDto) => {
 
         <p className="text-center text-sm text-gray-600">
           Already have an account?{" "}
-          <a
-            href="/login"
-            className="text-gray-500 hover:underline font-medium"
+          <Link
+            href="/business/login"
+            className="text-orange-500 hover:underline font-medium"
           >
             Log in
-          </a>
+          </Link>
         </p>
       </div>
     </div>

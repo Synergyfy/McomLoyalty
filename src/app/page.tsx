@@ -5,6 +5,7 @@ import Link from "next/link";
 import Head from "next/head";
 import { useEffect, useState, useRef } from "react";
 import { Menu, X } from "lucide-react";
+import Footer from "@/components/Footer";
 
 export default function Landing() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -59,11 +60,10 @@ export default function Landing() {
             </span>
           </Link>
           <div className="hidden md:flex gap-8 text-black font-medium">
-            <a href="#features">Features</a>
-            <a href="/pricing">Pricing</a>
-            <a href="#testimonials">Testimonials</a>
-            <a href="/contact">Contact</a>
-            <a href="/about">About</a>
+            <Link href="/features">Features</Link>
+            <Link href="/pricing">Pricing</Link>
+            <Link href="/deals">Deals</Link>
+            <Link href="/campaigns">Campaigns</Link>
           </div>
           <div className="hidden md:flex gap-3">
             <Link href="/login">
@@ -84,13 +84,12 @@ export default function Landing() {
 
         {menuOpen && (
           <div className="md:hidden bg-white border-t shadow-md px-6 py-4 flex flex-col gap-3 text-gray-700">
-            <a href="#features" onClick={() => setMenuOpen(false)}>Features</a>
-            <a href="/pricing" onClick={() => setMenuOpen(false)}>Pricing</a>
-            <a href="#testimonials" onClick={() => setMenuOpen(false)}>Testimonials</a>
-            <a href="/contact" onClick={() => setMenuOpen(false)}>Contact</a>
-            <a href="/about" onClick={() => setMenuOpen(false)}>About</a>
+            <Link href="/features">Features</Link>
+            <Link href="/pricing">Pricing</Link>
+            <Link href="/deals">Deals</Link>
+            <Link href="/campaigns">Campaigns</Link>
             <div className="border-t my-3"></div>
-            <Link href="/signup">
+            <Link href="/business/signup">
               <span className="text-orange-500 font-semibold">Get Started</span>
             </Link>
           </div>
@@ -112,7 +111,7 @@ export default function Landing() {
             Run QR-based reward programs, track performance, and delight customers — all in minutes.
           </p>
           <div className="flex justify-center gap-4">
-            <Link href="/signup">
+            <Link href="/business/signup">
               <span className="bg-white text-orange-600 font-semibold px-8 py-3 rounded-full hover:bg-orange-50 transition">
                 Get Started Free
               </span>
@@ -272,97 +271,91 @@ export default function Landing() {
 
 
    
-{/* 💬 Testimonials Continuous Carousel */}
-<section
-  id="testimonials"
-  className="py-28 bg-white text-center px-6 lg:px-10 overflow-hidden lg:min-h-[80vh]"
->
-  <h2 className="text-4xl lg:text-5xl font-bold text-orange-500 mb-16">
-    What Businesses Say
-  </h2>
+      {/* 💬 Testimonials Continuous Carousel */}
+      <section
+        id="testimonials"
+        className="py-28 bg-white text-center px-6 lg:px-10 overflow-hidden lg:min-h-[80vh]"
+      >
+        <h2 className="text-4xl lg:text-5xl font-bold text-orange-500 mb-16">
+          What Businesses Say
+        </h2>
 
-  <div className="relative  max-w-6xl mx-auto overflow-hidden  lg:min-h-[30vh] ">
-    <motion.div
-      className="flex gap-8 lg:min-h-[20vh]"
-      animate={{ x: ["0%", "80%"] }}
-      transition={{
-        x: {
-          repeat: Infinity,
-          repeatType: "loop",
-          duration: 30, // speed of movement
-          ease: "linear",
-        },
-      }}
-      onHoverStart={(e) => e.stopPropagation()}
-    >
-      {/* Duplicate testimonials array for seamless looping */}
-      {[...testimonials, ...testimonials].map((t, i) => (
-        <motion.blockquote
-          key={i}
-          className="min-w-[300px] md:min-w-[400px] lg:min-w-[500px] lg:min-h-[20vh] bg-orange-50 border border-orange-100 rounded-3xl p-8 lg:p-12 text-lg lg:text-2xl italic text-gray-700 shadow-sm flex-shrink-0"
-        >
-          “{t.quote}”
-          <footer className="mt-4 font-semibold text-orange-500 text-base lg:text-lg">
-            — {t.name}
-          </footer>
-        </motion.blockquote>
-      ))}
-    </motion.div>
-  </div>
-</section>
-
-
-
-
+        <div className="relative  max-w-6xl mx-auto overflow-hidden  lg:min-h-[30vh] ">
+          <motion.div
+            className="flex gap-8 lg:min-h-[20vh]"
+            animate={{ x: ["0%", "80%"] }}
+            transition={{
+              x: {
+                repeat: Infinity,
+                repeatType: "loop",
+                duration: 30, // speed of movement
+                ease: "linear",
+              },
+            }}
+            onHoverStart={(e) => e.stopPropagation()}
+          >
+            {/* Duplicate testimonials array for seamless looping */}
+            {[...testimonials, ...testimonials].map((t, i) => (
+              <motion.blockquote
+                key={i}
+                className="min-w-[300px] md:min-w-[400px] lg:min-w-[500px] lg:min-h-[20vh] bg-orange-50 border border-orange-100 rounded-3xl p-8 lg:p-12 text-lg lg:text-2xl italic text-gray-700 shadow-sm flex-shrink-0"
+              >
+                “{t.quote}”
+                <footer className="mt-4 font-semibold text-orange-500 text-base lg:text-lg">
+                  — {t.name}
+                </footer>
+              </motion.blockquote>
+            ))}
+          </motion.div>
+        </div>
+      </section>
       {/* 🚀 CTA */}
-<section className="relative py-28 lg:py-36 bg-gradient-to-br from-orange-600 via-orange-500 to-yellow-400 text-white overflow-hidden">
-  <div className="max-w-7xl mx-auto px-6 flex flex-col lg:flex-row items-center justify-between gap-16">
-    {/* Left: Text & CTA */}
-    <motion.div
-      initial={{ opacity: 0, x: -50 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.8 }}
-      className="flex-1 text-center lg:text-left"
-    >
-      <h2 className="text-4xl md:text-6xl font-extrabold leading-tight mb-8 drop-shadow-md">
-        Ready to <span className="text-white/90">Launch Your</span> <br />
-        <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-yellow-200">
-          Loyalty Program?
-        </span>
-      </h2>
+      <section className="relative py-28 lg:py-36 bg-gradient-to-br from-orange-600 via-orange-500 to-yellow-400 text-white overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col lg:flex-row items-center justify-between gap-16">
+          {/* Left: Text & CTA */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="flex-1 text-center lg:text-left"
+          >
+            <h2 className="text-4xl md:text-6xl font-extrabold leading-tight mb-8 drop-shadow-md">
+              Ready to <span className="text-white/90">Launch Your</span> <br />
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-yellow-200">
+                Loyalty Program?
+              </span>
+            </h2>
 
-      <p className="text-lg md:text-2xl text-white/90 mb-10 max-w-xl mx-auto lg:mx-0">
-        Join <span className="font-semibold text-white">1,000+ businesses</span> already rewarding
-        their customers with <span className="font-semibold text-white">Loyalty CardX</span>.
-      </p>
+            <p className="text-lg md:text-2xl text-white/90 mb-10 max-w-xl mx-auto lg:mx-0">
+              Join <span className="font-semibold text-white">1,000+ businesses</span> already rewarding
+              their customers with <span className="font-semibold text-white">Loyalty CardX</span>.
+            </p>
 
-      <Link href="/signup">
-        <span className="inline-block bg-white text-orange-600 font-extrabold text-lg md:text-xl px-12 py-5 rounded-full hover:bg-orange-50 hover:scale-105 transition-transform duration-300 shadow-lg animate-float">
-          Start Free Trial
-        </span>
-      </Link>
-    </motion.div>
+            <Link href="/business/signup">
+              <span className="inline-block bg-white text-orange-600 font-extrabold text-lg md:text-xl px-12 py-5 rounded-full hover:bg-orange-50 hover:scale-105 transition-transform duration-300 shadow-lg animate-float">
+                Start Trial
+              </span>
+            </Link>
+          </motion.div>
 
-    {/* Right: Visual / Animation */}
-    <motion.div
-      initial={{ opacity: 0, x: 50 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.8 }}
-      className="flex-1 flex justify-center lg:justify-end"
-    >
-      <img
-        src="https://images.unsplash.com/photo-1633265486064-086b219458ec?auto=format&fit=crop&w=900&q=80"
-        alt="Rewards Dashboard"
-        className="w-[300px] md:w-[400px] lg:w-[480px] rounded-3xl shadow-2xl border border-white/30 hover:scale-105 transition-transform duration-500"
-      />
-    </motion.div>
-  </div>
-</section>
+          {/* Right: Visual / Animation */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="flex-1 flex justify-center lg:justify-end"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1633265486064-086b219458ec?auto=format&fit=crop&w=900&q=80"
+              alt="Rewards Dashboard"
+              className="w-[300px] md:w-[400px] lg:w-[480px] rounded-3xl shadow-2xl border border-white/30 hover:scale-105 transition-transform duration-500"
+            />
+          </motion.div>
+        </div>
+      </section>
 
-
-     {/* 🌟 Footer */}
-
-
+      {/* 🧡 Footer */}
+      <Footer />
     </>
   );
 }
