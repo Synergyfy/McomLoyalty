@@ -9,6 +9,7 @@ import StepSetCampaignDetails from '@/components/dashboard/campaigns/StepSetCamp
 import StepConfigureEarnPoints from '@/components/dashboard/campaigns/StepConfigureEarnPoints';
 import StepConfigureRedeemPoints from '@/components/dashboard/campaigns/StepConfigureRedeemPoints';
 import StepConfigureContactUs from '@/components/dashboard/campaigns/StepConfigureContactUs';
+import StepConfigureFooter from '@/components/dashboard/campaigns/StepConfigureFooter';
 import StepAddDistributionChannels from '@/components/dashboard/campaigns/StepAddDistributionChannels';
 import StepCampaignScheduling from '@/components/dashboard/campaigns/StepCampaignScheduling';
 import StepReviewAndCreate from '@/components/dashboard/campaigns/StepReviewAndCreate';
@@ -16,7 +17,7 @@ import StepReviewAndCreate from '@/components/dashboard/campaigns/StepReviewAndC
 export default function CreateCampaignPage() {
   const [currentStep, setCurrentStep] = useState(1);
 
-  const totalSteps = 8; // Updated total steps
+  const totalSteps = 9; // Updated total steps
 
   const handleNext = () => {
     setCurrentStep((prev) => prev + 1);
@@ -39,10 +40,12 @@ export default function CreateCampaignPage() {
       case 5:
         return <StepConfigureContactUs onNext={handleNext} onBack={handleBack} />;
       case 6:
-        return <StepAddDistributionChannels onNext={handleNext} onBack={handleBack} />;
+        return <StepConfigureFooter onNext={handleNext} onBack={handleBack} />;
       case 7:
-        return <StepCampaignScheduling onNext={handleNext} onBack={handleBack} />;
+        return <StepAddDistributionChannels onNext={handleNext} onBack={handleBack} />;
       case 8:
+        return <StepCampaignScheduling onNext={handleNext} onBack={handleBack} />;
+      case 9:
         return <StepReviewAndCreate onBack={handleBack} />;
       default:
         return null;

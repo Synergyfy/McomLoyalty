@@ -40,6 +40,7 @@ interface CampaignFormData {
   contactText?: string;
   contactEmail?: string;
   contactPhone?: string;
+  footerText?: string;
 }
 
 interface CampaignFormContextType {
@@ -85,6 +86,7 @@ const defaultFormData: CampaignFormData = {
   contactText: '',
   contactEmail: '',
   contactPhone: '',
+  footerText: ''
 };
 
 const CampaignFormContext = createContext<CampaignFormContextType | undefined>(undefined);
