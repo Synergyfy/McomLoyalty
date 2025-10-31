@@ -3,6 +3,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Gift, Star } from 'lucide-react';
 import { Wallet } from '@/lib/mock-data/wallet'; // Import the Wallet interface
+import { mockCustomerData } from '@/lib/mock-data/customer';
+
 
 interface PointsBalanceCardProps {
   wallet: Wallet;
@@ -10,7 +12,7 @@ interface PointsBalanceCardProps {
 
 export function PointsBalanceCard({ wallet }: PointsBalanceCardProps) {
   return (
-    <Card className="shadow-xl rounded-2xl overflow-hidden bg-gradient-to-r from-orange-500 to-red-500 text-white">
+    <Card className="flex flex-row items-center justify-center shadow-xl rounded-2xl overflow-hidden bg-gradient-to-r from-orange-500 to-red-500 text-white ">
       <CardContent className="p-8 flex flex-col items-center justify-center text-center">
         <h2 className="text-lg font-semibold opacity-80 mb-2">Total Points Balance</h2>
         <div className="flex items-center mb-4">
@@ -38,6 +40,9 @@ export function PointsBalanceCard({ wallet }: PointsBalanceCardProps) {
           </div>
         </div>
       </CardContent>
+      <div className=" px-6 py-3 text-lg text-left italic opacity-90 w-30 flex ">
+        {mockCustomerData.customerBadge} Member
+        </div>
     </Card>
   );
 }
