@@ -4,20 +4,17 @@ import React, { useState } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { CampaignFormProvider } from '@/context/CampaignFormContext';
 
-import StepChooseCampaignType from '@/components/dashboard/campaigns/StepChooseCampaignType';
-import StepSetCampaignDetails from '@/components/dashboard/campaigns/StepSetCampaignDetails';
-import StepConfigureEarnPoints from '@/components/dashboard/campaigns/StepConfigureEarnPoints';
-import StepConfigureRedeemPoints from '@/components/dashboard/campaigns/StepConfigureRedeemPoints';
-import StepConfigureContactUs from '@/components/dashboard/campaigns/StepConfigureContactUs';
-import StepConfigureFooter from '@/components/dashboard/campaigns/StepConfigureFooter';
-import StepAddDistributionChannels from '@/components/dashboard/campaigns/StepAddDistributionChannels';
-import StepCampaignScheduling from '@/components/dashboard/campaigns/StepCampaignScheduling';
-import StepReviewAndCreate from '@/components/dashboard/campaigns/StepReviewAndCreate';
+import StepChooseCampaignType from '@/components/admin/campaigns/StepChooseCampaignType';
+import StepSetCampaignDetails from '@/components/admin/campaigns/StepSetCampaignDetails';
+import StepAddDistributionChannels from '@/components/admin/campaigns/StepAddDistributionChannels';
+import StepCampaignScheduling from '@/components/admin/campaigns/StepCampaignScheduling';
+import StepReviewAndCreate from '@/components/admin/campaigns/StepReviewAndCreate';
 
-export default function CreateCampaignPage() {
+
+export default function AdminCreateCampaignPage() {
   const [currentStep, setCurrentStep] = useState(1);
 
-  const totalSteps = 9; // Updated total steps
+  const totalSteps = 5; // Adjust based on actual steps
 
   const handleNext = () => {
     setCurrentStep((prev) => prev + 1);
@@ -34,18 +31,10 @@ export default function CreateCampaignPage() {
       case 2:
         return <StepSetCampaignDetails onNext={handleNext} onBack={handleBack} />;
       case 3:
-        return <StepConfigureEarnPoints onNext={handleNext} onBack={handleBack} />;
-      case 4:
-        return <StepConfigureRedeemPoints onNext={handleNext} onBack={handleBack} />;
-      case 5:
-        return <StepConfigureContactUs onNext={handleNext} onBack={handleBack} />;
-      case 6:
-        return <StepConfigureFooter onNext={handleNext} onBack={handleBack} />;
-      case 7:
         return <StepAddDistributionChannels onNext={handleNext} onBack={handleBack} />;
-      case 8:
+      case 4:
         return <StepCampaignScheduling onNext={handleNext} onBack={handleBack} />;
-      case 9:
+      case 5:
         return <StepReviewAndCreate onBack={handleBack} />;
       default:
         return null;

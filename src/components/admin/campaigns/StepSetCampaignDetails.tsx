@@ -55,10 +55,10 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
 
   useEffect(() => {
     if (itemName && !formData.campaignName) {
-      updateFormData({
-        campaignName: `${itemName} Campaign`,
+      updateFormData({ 
+        campaignName: `${itemName} Campaign`, 
         audienceType: ['wishlist_target'],
-        wishlistItemId: itemName
+        wishlistItemId: itemName 
       });
     }
   }, [searchParams, formData.campaignName, updateFormData, itemName]);

@@ -4,11 +4,11 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
-import { Calendar, Tag, Info, Gift, CheckCircle, Users } from "lucide-react";
+import { Calendar, Tag, Info, Gift, CheckCircle, Users, Trophy } from "lucide-react";
 import { JoinConfirmationDialog } from "@/components/customer/JoinConfirmationDialog";
 
 interface PageProps {
-  params: Promise<{ campaignId: string }>; // Changed to Promise
+  params: Promise<{ campaignId: string }>;
   searchParams?: { [key: string]: string | string[] | undefined };
 }
 
@@ -24,21 +24,41 @@ const mockCampaign = {
   startDate: '2025-06-01T00:00:00.000Z',
   endDate: '2025-08-31T23:59:59.000Z',
   category: 'Retail & Lifestyle',
-  campaignType: 'special_occasion', // Added from StepChooseCampaignType
-  rewardsAvailable: 500, // Added from StepSetCampaignDetails
-  audienceType: ['members', 'badge_level'], // Added from StepSetCampaignDetails
-  badgeLevel: 'GOLD', // Added from StepSetCampaignDetails
-  wishlistItemId: '', // Added from StepSetCampaignDetails (empty for this mock)
-  stopAfterClaims: 100, // Added from StepCampaignScheduling
-  reward: {
-    id: 'reward-summer-getaway',
-    title: 'Luxury Weekend Getaway for Two!',
-    description: 'Win an all-expenses-paid luxury weekend getaway to a destination of your choice. Includes flights, 5-star accommodation, and exclusive experiences. A truly unforgettable reward for our top earners!',
-    points_required: 10000,
-    value: '£2,500', // Monetary value for display
-    image: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80',
-    quantity: 5, // Limited quantity makes it more exclusive
-  },
+  campaignType: 'special_occasion',
+  rewardsAvailable: 500,
+  audienceType: ['members', 'badge_level'],
+  badgeLevel: 'GOLD',
+  wishlistItemId: '',
+  stopAfterClaims: 100,
+  rewards: [
+    {
+      id: 'reward-summer-getaway',
+      title: 'Luxury Weekend Getaway for Two!',
+      description: 'Win an all-expenses-paid luxury weekend getaway to a destination of your choice. Includes flights, 5-star accommodation, and exclusive experiences. A truly unforgettable reward for our top earners!',
+      points_required: 10000,
+      value: '£2,500',
+      image: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80',
+      quantity: 5,
+    },
+    {
+      id: 'reward-double-points',
+      title: 'Double Points on All Purchases',
+      description: 'Earn twice the loyalty points on every purchase you make throughout the campaign period. Accelerate your way to exclusive rewards and benefits!',
+      points_required: 0,
+      value: 'N/A',
+      image: 'https://images.unsplash.com/photo-1593642532400-2682810df593?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+      quantity: 0,
+    },
+    {
+      id: 'reward-flash-sale-access',
+      title: 'Exclusive Flash Sale Access',
+      description: 'Get early and exclusive access to our special flash sales, featuring deep discounts on popular products. Be the first to grab the best deals!',
+      points_required: 0,
+      value: 'N/A',
+      image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+      quantity: 0,
+    },
+  ],
   howToEarn: [
     'Earn 2x points on all purchases made in June.',
     'Earn 1.5x points on all purchases made in July.',
@@ -55,40 +75,25 @@ const mockCampaign = {
 };
 
 export default function CampaignDetailPage({}: PageProps) {
-  // const { data: campaign, isLoading } = useGetPublicCampaignDetails(campaignId); // Use destructured campaignId
-  const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false); // New state
-  const [joinedCampaignTitle, setJoinedCampaignTitle] = useState(''); // New state
+  const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
+  const [joinedCampaignTitle, setJoinedCampaignTitle] = useState('');
 
-  // Using mock data for now
   const campaign = mockCampaign;
   const isLoading = false;
 
   const handleJoin = () => {
-    // Temporarily bypass actual joinCampaign for modal testing
-    // joinCampaign(campaignId, { 
-    //   onSuccess: (data) => {
-    //     setJoinedCampaignTitle(campaign.title);
-    //     setIsJoinDialogOpen(true);
-    //   },
-    //   onError: (error) => {
-    //     console.error(`Error joining campaign: ${error.message}`);
-    //   },
-    // });
-
-    // Simulate success directly
     setJoinedCampaignTitle(campaign.title);
     setIsJoinDialogOpen(true);
   };
 
-
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="min-h-screen bg-gray-100 text-gray-900">
       {isLoading ? (
         <p className="text-center text-lg py-20">Loading campaign details...</p>
       ) : campaign ? (
         <div className="relative">
-          {/* Hero Section */}
-          <div className="relative h-[500px] md:h-[600px] lg:h-[700px] w-full overflow-hidden">
+          {/* Hero Section - Title and Headline */}
+          <div className="relative h-[400px] md:h-[500px] w-full overflow-hidden">
             <Image
               src={campaign.heroImageUrl}
               alt={campaign.title}
@@ -98,18 +103,6 @@ export default function CampaignDetailPage({}: PageProps) {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent flex items-end pb-16 px-4 md:px-8 lg:px-16">
               <div className="max-w-4xl mx-auto text-white text-center">
-                <div className="flex items-center justify-center mb-4">
-                  {campaign.businessLogoUrl && (
-                    <Image
-                      src={campaign.businessLogoUrl}
-                      alt={campaign.businessName + ' Logo'}
-                      width={60}
-                      height={60}
-                      className="rounded-full mr-4 border-2 border-white shadow-lg"
-                    />
-                  )}
-                  <p className="text-xl font-semibold">{campaign.businessName}</p>
-                </div>
                 <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-4 drop-shadow-lg">
                   {campaign.title}
                 </h1>
@@ -127,8 +120,8 @@ export default function CampaignDetailPage({}: PageProps) {
           </div>
 
           {/* Main Content */}
-          <div className="container mx-auto py-12 px-4 md:px-8 lg:px-16 -mt-20 relative z-10">
-            <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl p-8 md:p-12 space-y-10">
+          <div className="container mx-auto py-12 px-4 md:px-8 lg:px-16 relative z-10">
+            <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl p-8 md:p-12 space-y-10 -mt-20">
               {/* Campaign Description */}
               <section>
                 <h2 className="text-3xl font-bold text-gray-800 mb-4">About This Campaign</h2>
@@ -210,31 +203,37 @@ export default function CampaignDetailPage({}: PageProps) {
                 </div>
               </section>
 
-              {/* Reward Details */}
-              <section>
-                <h2 className="text-3xl font-bold text-gray-800 mb-4">Your Exclusive Reward</h2>
-                <Card className="overflow-hidden shadow-lg border-2 border-orange-100">
-                  <div className="relative h-60 w-full">
-                    <Image
-                      src={campaign.reward.image}
-                      alt={campaign.reward.title}
-                      layout="fill"
-                      objectFit="cover"
-                    />
+              {/* Multiple Rewards Display */}
+              {campaign.rewards && campaign.rewards.length > 0 && (
+                <section>
+                  <h2 className="text-3xl font-bold text-gray-800 mb-6">Rewards in this Campaign</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {campaign.rewards.map((rewardItem, index) => (
+                      <Card key={index} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200">
+                        <div className="relative h-48 w-full">
+                          <Image
+                            src={rewardItem.image}
+                            alt={rewardItem.title}
+                            layout="fill"
+                            objectFit="cover"
+                          />
+                        </div>
+                        <CardContent className="p-4">
+                          <h3 className="text-xl font-bold text-gray-800 mb-2">{rewardItem.title}</h3>
+                          <p className="text-gray-600 text-sm mb-3 line-clamp-3">{rewardItem.description}</p>
+                          <div className="flex justify-between items-center text-md font-semibold text-gray-700">
+                            <p className="flex items-center"><Trophy className="w-4 h-4 mr-2 text-blue-500" /> {rewardItem.points_required > 0 ? `${rewardItem.points_required} Points` : 'No Points Req.'}</p>
+                            {rewardItem.value && <p>{rewardItem.value}</p>}
+                          </div>
+                          {rewardItem.quantity > 0 && (
+                            <p className="text-xs text-gray-500 mt-2">Limited: {rewardItem.quantity} available</p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
-                  <CardContent className="p-6 bg-orange-50">
-                    <h3 className="text-2xl font-bold text-orange-800 mb-2">{campaign.reward.title}</h3>
-                    <p className="text-gray-700 mb-4">{campaign.reward.description}</p>
-                    <div className="flex justify-between items-center text-lg font-semibold text-gray-800">
-                      <p className="flex items-center"><Gift className="w-5 h-5 mr-2 text-orange-600" /> Points Required: {campaign.reward.points_required}</p>
-                      {campaign.reward.value && <p>Value: {campaign.reward.value}</p>}
-                    </div>
-                    {campaign.reward.quantity && campaign.reward.quantity > 0 && (
-                      <p className="text-sm text-gray-600 mt-2">Limited to {campaign.reward.quantity} rewards.</p>
-                    )}
-                  </CardContent>
-                </Card>
-              </section>
+                </section>
+              )}
 
               {/* How to Earn */}
               {campaign.howToEarn && campaign.howToEarn.length > 0 && (
@@ -266,7 +265,7 @@ export default function CampaignDetailPage({}: PageProps) {
           </div>
 
           {/* Sticky Join Button */}
-          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg p-4 z-20">
+          <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg p-4 z-20">
             <div className="max-w-4xl mx-auto flex justify-center">
               <Button
                 onClick={handleJoin}

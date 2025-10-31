@@ -7,7 +7,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ClaimableCampaignsTicker } from '@/components/customer/ClaimableCampaignsTicker';
 
 // Mock data for prototype - consistent with campaign builder preview
 const mockCampaigns = [
@@ -30,7 +29,7 @@ const mockCampaigns = [
     rewardsAvailable: 50,
     ctaButtonText: 'Refer & Earn',
     imageUrl: 'https://images.unsplash.com/photo-1529592691919-7a6aa481f520?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    logoUrl: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?q=80&w=2572&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    logoUrl: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     status: 'active',
   },
   {
@@ -46,7 +45,7 @@ const mockCampaigns = [
   },
 ];
 
-export default function CampaignsListPage() {
+export default function AdminCampaignsPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredCampaigns = useMemo(() => {
@@ -62,10 +61,10 @@ export default function CampaignsListPage() {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">My Campaigns</h1>
-            <p className="text-gray-600">Manage and create your loyalty campaigns.</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Manage Campaigns</h1>
+            <p className="text-gray-600">Manage and create loyalty campaigns for the platform.</p>
           </div>
-          <Link href="/dashboard/campaigns/create">
+          <Link href="/admin/campaigns/create">
             <Button>Create New Campaign</Button>
           </Link>
         </div>
@@ -78,8 +77,6 @@ export default function CampaignsListPage() {
             className="w-full max-w-sm"
           />
         </div>
-
-        <ClaimableCampaignsTicker />
 
         {filteredCampaigns.length === 0 ? (
           <div className="text-center py-12">
