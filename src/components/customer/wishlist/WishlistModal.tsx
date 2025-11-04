@@ -32,6 +32,7 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
 
   // Step 1 state
   const [wishlistFor, setWishlistFor] = useState<'myself' | 'friend' | 'family' | ''>(itemToEdit ? 'myself' : '');
+  const [myEmail, setMyEmail] = useState('');
   const [friendName, setFriendName] = useState('');
   const [relationship, setRelationship] = useState('');
   const [customRelationship, setCustomRelationship] = useState('');
@@ -69,6 +70,7 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
         setTargetDate(undefined);
         setStep(1);
         setWishlistFor('');
+        setMyEmail('');
         setFriendName('');
         setRelationship('');
         setCustomRelationship('');
@@ -82,17 +84,14 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
 
   const handleWishlistForChange = (value: 'myself' | 'friend' | 'family') => {
     setWishlistFor(value);
-    if (value === 'myself') {
-      setStep(2);
-    } else {
-      setFriendName('');
-      setRelationship('');
-      setCustomRelationship('');
-      setNotify('');
-      setContactMethods({ email: false, phone: false });
-      setFriendEmail('');
-      setFriendPhone('');
-    }
+    setMyEmail('');
+    setFriendName('');
+    setRelationship('');
+    setCustomRelationship('');
+    setNotify('');
+    setContactMethods({ email: false, phone: false });
+    setFriendEmail('');
+    setFriendPhone('');
   };
 
   const handleRelationshipChange = (value: string) => {
@@ -108,6 +107,14 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
 
   const handleContactMethodChange = (method: 'email' | 'phone') => {
     setContactMethods(prev => ({ ...prev, [method]: !prev[method] }));
+  };
+
+  const handleConfirmMyEmail = () => {
+    if (!myEmail.includes('@')) {
+      alert('Please enter a valid email.');
+      return;
+    }
+    setStep(2);
   };
 
   const handleConfirmContact = () => {
@@ -164,10 +171,54 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
         </div>
 
         <AnimatePresence>
+          {wishlistFor === 'myself' && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-4 overflow-hidden">
+              <div className="space-y-2">
+                <Label htmlFor="myEmail">Your Email</Label>
+                <Input id="myEmail" type="email" value={myEmail} onChange={(e) => setMyEmail(e.target.value)} placeholder="you@example.com" />
+              </div>
+              <Button onClick={handleConfirmMyEmail} className="w-full">Continue</Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
           {wishlistFor === 'friend' && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-2 overflow-hidden">
-              <Label htmlFor="friendName">Friend&apos;s Name</Label>
-              <Input id="friendName" value={friendName} onChange={(e) => setFriendName(e.target.value)} placeholder="Enter friend&apos;s name" />
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-4 overflow-hidden">
+              <div className="space-y-2">
+                <Label htmlFor="friendName">Friend's Name</Label>
+                <Input id="friendName" value={friendName} onChange={(e) => setFriendName(e.target.value)} placeholder="Enter friend&apos;s name" />
+              </div>
+              <div className="space-y-2">
+                <Label>Enter:</Label>
+                <div className="flex space-x-4 py-2">
+                  <div className="flex items-center space-x-2"><Checkbox id="contact-email" checked={contactMethods.email} onCheckedChange={() => handleContactMethodChange('email')} /><Label htmlFor="contact-email">Email</Label></div>
+                  <div className="flex items-center space-x-2"><Checkbox id="contact-phone" checked={contactMethods.phone} onCheckedChange={() => handleContactMethodChange('phone')} /><Label htmlFor="contact-phone">Phone</Label></div>
+                </div>
+              </div>
+              <AnimatePresence>
+                {contactMethods.email && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-2 overflow-hidden">
+                    <Label htmlFor="friendEmail">Friend's Email</Label>
+                    <Input id="friendEmail" type="email" value={friendEmail} onChange={(e) => setFriendEmail(e.target.value)} placeholder="friend@example.com" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <AnimatePresence>
+                {contactMethods.phone && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-2 overflow-hidden">
+                    <Label htmlFor="friendPhone">Friend's Phone</Label>
+                    <Input id="friendPhone" type="tel" value={friendPhone} onChange={(e) => setFriendPhone(e.target.value)} placeholder="+1234567890" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <AnimatePresence>
+                {(contactMethods.email || contactMethods.phone) && (
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pt-2">
+                    <Button onClick={handleConfirmContact} className="w-full">Confirm</Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
         </AnimatePresence>
@@ -191,73 +242,51 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
                   </SelectContent>
                 </Select>
               </div>
+              <AnimatePresence>
+                {relationship === 'other' && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-2 overflow-hidden">
+                    <Label htmlFor="customRelationship">Please specify</Label>
+                    <Input id="customRelationship" value={customRelationship} onChange={(e) => setCustomRelationship(e.target.value)} placeholder="e.g., Cousin, Uncle" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              {((relationship !== '' && relationship !== 'other') || (relationship === 'other' && customRelationship !== '')) && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-4 overflow-hidden">
+                  <div className="space-y-2">
+                    <Label>Enter:</Label>
+                    <div className="flex space-x-4 py-2">
+                      <div className="flex items-center space-x-2"><Checkbox id="contact-email" checked={contactMethods.email} onCheckedChange={() => handleContactMethodChange('email')} /><Label htmlFor="contact-email">Email</Label></div>
+                      <div className="flex items-center space-x-2"><Checkbox id="contact-phone" checked={contactMethods.phone} onCheckedChange={() => handleContactMethodChange('phone')} /><Label htmlFor="contact-phone">Phone</Label></div>
+                    </div>
+                  </div>
+                  <AnimatePresence>
+                    {contactMethods.email && (
+                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-2 overflow-hidden">
+                        <Label htmlFor="friendEmail">Family Member's Email</Label>
+                        <Input id="friendEmail" type="email" value={friendEmail} onChange={(e) => setFriendEmail(e.target.value)} placeholder="relative@example.com" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  <AnimatePresence>
+                    {contactMethods.phone && (
+                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-2 overflow-hidden">
+                        <Label htmlFor="friendPhone">Family Member's Phone</Label>
+                        <Input id="friendPhone" type="tel" value={friendPhone} onChange={(e) => setFriendPhone(e.target.value)} placeholder="+1234567890" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  <AnimatePresence>
+                    {(contactMethods.email || contactMethods.phone) && (
+                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pt-2">
+                        <Button onClick={handleConfirmContact} className="w-full">Confirm</Button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
-
-        <AnimatePresence>
-          {relationship === 'other' && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-2 overflow-hidden">
-              <Label htmlFor="customRelationship">Please specify</Label>
-              <Input id="customRelationship" value={customRelationship} onChange={(e) => setCustomRelationship(e.target.value)} placeholder="e.g., Cousin, Uncle" />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {(wishlistFor === 'friend' || (wishlistFor === 'family' && (relationship !== '' && relationship !== 'other')) || (wishlistFor === 'family' && relationship === 'other' && customRelationship !== '')) && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-4 overflow-hidden">
-              <div className="space-y-2">
-                <Label>Do you want to let them know?</Label>
-                <RadioGroup onValueChange={handleNotifyChange} value={notify} className="flex space-x-4 py-2">
-                  <div className="flex items-center space-x-2"><RadioGroupItem value="yes" id="notify-yes" /><Label htmlFor="notify-yes">Yes</Label></div>
-                  <div className="flex items-center space-x-2"><RadioGroupItem value="no" id="notify-no" /><Label htmlFor="notify-no">No</Label></div>
-                </RadioGroup>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {notify && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-4 overflow-hidden">
-              <div className="space-y-2">
-                <Label>How should we notify them?</Label>
-                <div className="flex space-x-4 py-2">
-                  <div className="flex items-center space-x-2"><Checkbox id="contact-email" checked={contactMethods.email} onCheckedChange={() => handleContactMethodChange('email')} /><Label htmlFor="contact-email">Email</Label></div>
-                  <div className="flex items-center space-x-2"><Checkbox id="contact-phone" checked={contactMethods.phone} onCheckedChange={() => handleContactMethodChange('phone')} /><Label htmlFor="contact-phone">Phone</Label></div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {contactMethods.email && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-2 overflow-hidden">
-              <Label htmlFor="friendEmail">Email</Label>
-              <Input id="friendEmail" type="email" value={friendEmail} onChange={(e) => setFriendEmail(e.target.value)} placeholder="relative@example.com" />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {contactMethods.phone && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-2 overflow-hidden">
-              <Label htmlFor="friendPhone">Phone</Label>
-              <Input id="friendPhone" type="tel" value={friendPhone} onChange={(e) => setFriendPhone(e.target.value)} placeholder="+1234567890" />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {(contactMethods.email || contactMethods.phone) && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pt-2">
-              <Button onClick={handleConfirmContact} className="w-full">Confirm</Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
       </motion.div>
       <DialogFooter>
         <Button variant="outline" onClick={onClose}>Cancel</Button>
