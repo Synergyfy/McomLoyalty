@@ -126,6 +126,32 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
     setContactMethods(prev => ({ ...prev, [method]: !prev[method] }));
   };
 
+  const handleSeasonChange = (value: string) => {
+    setSeason(value);
+    const currentYear = new Date().getFullYear();
+    let newTargetDate: Date | undefined;
+
+    switch (value) {
+      case 'Spring':
+        newTargetDate = new Date(currentYear, 2, 1); // March 1st
+        break;
+      case 'Summer':
+        newTargetDate = new Date(currentYear, 5, 1); // June 1st
+        break;
+      case 'Autumn':
+        newTargetDate = new Date(currentYear, 8, 1); // September 1st
+        break;
+      case 'Winter':
+        newTargetDate = new Date(currentYear, 11, 1); // December 1st
+        break;
+      case 'None':
+      default:
+        newTargetDate = undefined;
+        break;
+    }
+    setTargetDate(newTargetDate);
+  };
+
   const handleConfirmMyEmail = () => {
     if (!myEmail.includes('@')) {
       alert('Please enter a valid email.');
@@ -399,7 +425,7 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
         </div>
         <div className="space-y-2">
           <Label htmlFor="season">Season</Label>
-          <Select onValueChange={setSeason} value={season}>
+          <Select onValueChange={handleSeasonChange} value={season}>
             <SelectTrigger>
               <SelectValue placeholder="Select a season" />
             </SelectTrigger>
