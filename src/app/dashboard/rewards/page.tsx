@@ -127,7 +127,7 @@ const typeLabels: { [key: string]: string } = {
 
 // Mock user data
 const currentUser = {
-  plan: 'co-branded', // 'starter', 'co-branded', 'white-label'
+  plan: 'starter', // 'starter', 'co-branded', 'white-label'
 };
 
 export default function BusinessRewardsPage() {
