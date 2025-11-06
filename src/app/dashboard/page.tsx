@@ -6,11 +6,21 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend} from
 import { Users, Gift, Trophy, Percent, Megaphone, Flame, Star, ArrowDown, ArrowUp } from "lucide-react";
 import { mockBusinessData } from "../data";
 import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-
+const timeRangeOptions = [
+  { value: "7d", label: "Last 7 Days" },
+  { value: "30d", label: "Last 30 Days" },
+  { value: "3m", label: "Last 3 Months" },
+  { value: "6m", label: "Last 6 Months" },
+  { value: "1y", label: "Last Year" },
+];
 
 export default function BusinessDashboard() {
   const [data] = useState(mockBusinessData);
+  const [timeRange, setTimeRange] = useState("30d");
+
+  const selectedTimeRangeLabel = timeRangeOptions.find(option => option.value === timeRange)?.label;
 
   return (
     <div className="min-h-screen bg-white p-8">
@@ -33,14 +43,25 @@ export default function BusinessDashboard() {
 
       {/* === Chart Section === */}
       <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Points Earned vs Redeemed (Last 7 Days)</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Performance ({selectedTimeRangeLabel})</CardTitle>
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select time range" />
+            </SelectTrigger>
+            <SelectContent>
+              {timeRangeOptions.map(option => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </CardHeader>
         <CardContent>
-           <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data.weeklyTrend}>
-              <XAxis dataKey="week" stroke="#888" />
+            <BarChart data={data.performanceData[timeRange]}>
+              <XAxis dataKey="name" stroke="#888" />
               <YAxis stroke="#888" />
               <Tooltip
                 contentStyle={{
@@ -55,7 +76,6 @@ export default function BusinessDashboard() {
               <Bar dataKey="redeemed" name="Points Redeemed" fill="#fbbf24" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </CardContent>
         </CardContent>
       </Card>
 
