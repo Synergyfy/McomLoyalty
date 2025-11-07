@@ -2,16 +2,16 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-interface CampaignFormData {
+export interface CampaignFormData {
   campaignType: string;
   campaignName: string;
-  rewardId: string;
+  rewardIds: string[];
   startDate: Date | undefined;
   endDate: Date | undefined;
   rewardsAvailable: number | string;
   audienceType: string[];
-  badgeLevel?: string;
-  wishlistItemId?: string;
+  badgeLevels?: string[];
+  wishlistItemIds?: string[];
   campaignMessage: string;
   imageUrl: string;
   logoUrl: string;
@@ -32,6 +32,17 @@ interface CampaignFormData {
   ctaBgColor: string;
   bgColorTextColor: string;
   ctaTextColor: string;
+  earnTitle?: string;
+  earnText?: string;
+  redeemTitle?: string;
+  redeemText?: string;
+  contactTitle?: string;
+  contactText?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  footerText?: string;
+  howToEarn: string[];
+  termsAndConditions: string[];
 }
 
 interface CampaignFormContextType {
@@ -43,12 +54,13 @@ interface CampaignFormContextType {
 const defaultFormData: CampaignFormData = {
   campaignType: '',
   campaignName: '',
-  rewardId: '',
+  rewardIds: [],
   startDate: undefined,
   endDate: undefined,
   rewardsAvailable: 0,
   audienceType: [],
-  wishlistItemId: '',
+  badgeLevels: [],
+  wishlistItemIds: [],
   campaignMessage: '',
   imageUrl: '',
   logoUrl: '',
@@ -63,12 +75,23 @@ const defaultFormData: CampaignFormData = {
     startDate: undefined,
     stopAfterClaims: 0,
     pauseOnRewardEmpty: false,
-    autoSwitchToPoints: false,
+    autoSwitchToPoints: true,
   },
   bgColor: '#FFFFFF',
   ctaBgColor: '#000000',
   bgColorTextColor: '#000000',
   ctaTextColor: '#FFFFFF',
+  earnTitle: '',
+  earnText: '',
+  redeemTitle: '',
+  redeemText: '',
+  contactTitle: '',
+  contactText: '',
+  contactEmail: '',
+  contactPhone: '',
+  footerText: '',
+  howToEarn: [],
+  termsAndConditions: [],
 };
 
 const CampaignFormContext = createContext<CampaignFormContextType | undefined>(undefined);
