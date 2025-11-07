@@ -1,7 +1,14 @@
 "use client";
-import Head from "next/head";
+
 import { useState } from "react";
 import { PlusCircle, MinusCircle, HelpCircle } from "lucide-react";
+import type { Metadata } from "next";
+
+const metadata: Metadata = {
+  title: "FAQ — Loyalty CardX",
+  description:
+    "Frequently Asked Questions about Loyalty CardX – learn how to start campaigns, earn points, and redeem rewards.",
+};
 
 const faqs = [
   {
@@ -51,14 +58,6 @@ export default function FAQ() {
 
   return (
     <>
-      <Head>
-        <title>FAQ — Loyalty CardX</title>
-        <meta
-          name="description"
-          content="Frequently Asked Questions about Loyalty CardX – learn how to start campaigns, earn points, and redeem rewards."
-        />
-      </Head>
-
       <main className="min-h-screen bg-white text-gray-800">
         {/* Hero */}
         <section className="relative bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 py-24 text-center text-white">
@@ -121,11 +120,6 @@ export default function FAQ() {
             </a>
           </div>
         </section>
-
-        {/* Footer */}
-        <footer className="bg-white py-8 border-t border-gray-200 text-center text-gray-500">
-          © {new Date().getFullYear()} Loyalty CardX. All rights reserved.
-        </footer>
       </main>
     </>
   );

@@ -5,6 +5,7 @@ import { Inter } from "next/font/google";
 import { Providers } from '@/components/providers';
 import Link from "next/link";
 import Footer from "@/components/Footer";
+import { Toaster } from "sonner";
 
 
 
@@ -24,6 +25,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} overflow-x-hidden`}>
         <Providers>
+          <Toaster position="top-right" richColors />
+
           {children}
         </Providers>
       </body>
