@@ -1,17 +1,16 @@
 // pages/contact.js
-import Head from "next/head";
 import { Mail, Phone, MapPin, Send, MessageCircle } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Contact Us",
+  description:
+    "Get in touch with Loyalty CardX for support, partnership, or press inquiries.",
+};
 
 export default function Contact() {
   return (
     <>
-      <Head>
-        <title>Contact Us — Loyalty CardX</title>
-        <meta
-          name="description"
-          content="Get in touch with Loyalty CardX for support, partnership, or press inquiries."
-        />
-      </Head>
 
       <main className="min-h-screen bg-white text-gray-800 flex flex-col">
         {/* Hero Section */}
@@ -155,10 +154,6 @@ export default function Contact() {
           <MessageCircle size={24} />
         </a>
 
-        {/* Footer */}
-        <footer className="bg-white py-8 border-t border-gray-200 text-center text-gray-500">
-          © {new Date().getFullYear()} Loyalty CardX. All rights reserved.
-        </footer>
       </main>
     </>
   );
