@@ -2,69 +2,362 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useGetSectors } from '@/services/sectors/hook';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import Image from 'next/image';
-import { Plus } from 'lucide-react';
-import CreateSectorDialog from '@/components/admin/sectors/CreateSectorDialog';
+import { PlusCircle, Edit, Trash, GripVertical } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import SectorDialog from '@/components/admin/sectors/SectorDialog';
+import CategoryDialog from '@/components/admin/sectors/CategoryDialog';
+import SubCategoryDialog from '@/components/admin/sectors/SubCategoryDialog';
 
+// --- Mock Data ---
+const initialSectors = [
+  {
+    id: 'sec-1',
+    name: 'Food & Dining',
+    description: 'Restaurants, cafes, and more.',
+    icon: '🍔',
+    color: '#FFC107',
+    categories: [
+      {
+        id: 'cat-1-1',
+        name: 'Restaurants',
+        description: 'Places to eat.',
+        icon: '🍽️',
+        subCategories: [
+          { id: 'sub-1-1-1', name: 'Fine Dining', description: 'Elegant dining experiences.' },
+          { id: 'sub-1-1-2', name: 'Fast Food', description: 'Quick and easy meals.' },
+        ],
+      },
+      {
+        id: 'cat-1-2',
+        name: 'Cafes',
+        description: 'Coffee and snacks.',
+        icon: '☕',
+        subCategories: [],
+      },
+    ],
+  },
+  {
+    id: 'sec-2',
+    name: 'Fashion & Beauty',
+    description: 'Clothing, accessories, and cosmetics.',
+    icon: '👗',
+    color: '#E91E63',
+    categories: [
+      {
+        id: 'cat-2-1',
+        name: 'Clothing',
+        description: 'Apparel for all occasions.',
+        icon: '👕',
+        subCategories: [
+          { id: 'sub-2-1-1', name: 'Women\'s Wear', description: '' },
+          { id: 'sub-2-1-2', name: 'Men\'s Wear', description: '' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'sec-3',
+    name: 'Health & Wellness',
+    description: 'Gyms, spas, and healthcare.',
+    icon: '❤️',
+    color: '#4CAF50',
+    categories: [],
+  },
+];
+
+// --- Reusable Item Card ---
+const ItemCard = ({ item, onSelect, onEdit, onDelete, isSelected }) => (
+  <Card
+    className={`mb-2 cursor-pointer transition-all ${isSelected ? 'border-primary shadow-lg' : 'hover:shadow-md'}`}
+    onClick={onSelect}
+  >
+    <CardContent className="p-3 flex items-center justify-between">
+      <div className="flex items-center">
+        <GripVertical className="h-5 w-5 text-muted-foreground mr-2" />
+        <span className="font-semibold">{item.name}</span>
+      </div>
+      <div className="flex items-center space-x-2">
+        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); onEdit(item); }}>
+          <Edit className="h-4 w-4" />
+        </Button>
+        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); onDelete(item); }}>
+          <Trash className="h-4 w-4 text-destructive" />
+        </Button>
+      </div>
+    </CardContent>
+  </Card>
+);
+
+// --- Main Page Component ---
 export default function SectorsPage() {
-  const { data: sectors, isLoading: isLoadingSectors } = useGetSectors();
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [sectors, setSectors] = useState(initialSectors);
+  const [selectedSector, setSelectedSector] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
+  const [dialogState, setDialogState] = useState({
+    type: null, // 'sector', 'category', 'subCategory'
+    isOpen: false,
+    data: null, // data for editing
+  });
+
+  const openDialog = (type, data = null) => {
+    setDialogState({ type, isOpen: true, data });
+  };
+
+  const closeDialog = () => {
+    setDialogState({ type: null, isOpen: false, data: null });
+  };
+
+  const handleSelectSector = (sector) => {
+    setSelectedSector(sector);
+    setSelectedCategory(null);
+  };
+
+  const handleSelectCategory = (category) => {
+    setSelectedCategory(category);
+  };
+
+  const handleDelete = (type, id) => {
+    if (!confirm(`Are you sure you want to delete this ${type}?`)) return;
+
+    if (type === 'sector') {
+      setSectors(sectors.filter(s => s.id !== id));
+      if (selectedSector?.id === id) {
+        setSelectedSector(null);
+        setSelectedCategory(null);
+      }
+    } else if (type === 'category') {
+      const newSectors = sectors.map(s => {
+        if (s.id === selectedSector.id) {
+          return { ...s, categories: s.categories.filter(c => c.id !== id) };
+        }
+        return s;
+      });
+      setSectors(newSectors);
+      setSelectedSector(newSectors.find(s => s.id === selectedSector.id));
+      if (selectedCategory?.id === id) {
+        setSelectedCategory(null);
+      }
+    } else if (type === 'subCategory') {
+        const newSectors = sectors.map(s => {
+            if (s.id === selectedSector.id) {
+                const newCategories = s.categories.map(c => {
+                    if (c.id === selectedCategory.id) {
+                        return { ...c, subCategories: c.subCategories.filter(sc => sc.id !== id) };
+                    }
+                    return c;
+                });
+                return { ...s, categories: newCategories };
+            }
+            return s;
+        });
+        setSectors(newSectors);
+        setSelectedSector(newSectors.find(s => s.id === selectedSector.id));
+        setSelectedCategory(newSectors.find(s => s.id === selectedSector.id).categories.find(c => c.id === selectedCategory.id));
+    }
+  };
+
+  const handleSubmit = (type, data) => {
+    if (data.id) { // Editing
+      if (type === 'sector') {
+        const newSectors = sectors.map(s => s.id === data.id ? { ...s, ...data } : s);
+        setSectors(newSectors);
+        if(selectedSector?.id === data.id) setSelectedSector(newSectors.find(s => s.id === data.id));
+      } else if (type === 'category') {
+        const newSectors = sectors.map(s => {
+            if (s.id === selectedSector.id) {
+                const newCategories = s.categories.map(c => c.id === data.id ? { ...c, ...data } : c);
+                return { ...s, categories: newCategories };
+            }
+            return s;
+        });
+        setSectors(newSectors);
+        setSelectedSector(newSectors.find(s => s.id === selectedSector.id));
+        if(selectedCategory?.id === data.id) setSelectedCategory(newSectors.find(s => s.id === selectedSector.id).categories.find(c => c.id === data.id));
+      } else if (type === 'subCategory') {
+        const newSectors = sectors.map(s => {
+            if (s.id === selectedSector.id) {
+                const newCategories = s.categories.map(c => {
+                    if (c.id === selectedCategory.id) {
+                        const newSubCategories = c.subCategories.map(sc => sc.id === data.id ? { ...sc, ...data } : sc);
+                        return { ...c, subCategories: newSubCategories };
+                    }
+                    return c;
+                });
+                return { ...s, categories: newCategories };
+            }
+            return s;
+        });
+        setSectors(newSectors);
+        setSelectedSector(newSectors.find(s => s.id === selectedSector.id));
+        setSelectedCategory(newSectors.find(s => s.id === selectedSector.id).categories.find(c => c.id === selectedCategory.id));
+      }
+    } else { // Creating
+        const newItem = { ...data, id: `${type}-${Date.now()}` };
+        if (type === 'sector') {
+            setSectors([...sectors, { ...newItem, categories: [] }]);
+        } else if (type === 'category') {
+            const newSectors = sectors.map(s => {
+                if (s.id === selectedSector.id) {
+                    return { ...s, categories: [...s.categories, { ...newItem, subCategories: [] }] };
+                }
+                return s;
+            });
+            setSectors(newSectors);
+            setSelectedSector(newSectors.find(s => s.id === selectedSector.id));
+        } else if (type === 'subCategory') {
+            const newSectors = sectors.map(s => {
+                if (s.id === selectedSector.id) {
+                    const newCategories = s.categories.map(c => {
+                        if (c.id === selectedCategory.id) {
+                            return { ...c, subCategories: [...c.subCategories, newItem] };
+                        }
+                        return c;
+                    });
+                    return { ...s, categories: newCategories };
+                }
+                return s;
+            });
+            setSectors(newSectors);
+            setSelectedSector(newSectors.find(s => s.id === selectedSector.id));
+            setSelectedCategory(newSectors.find(s => s.id === selectedSector.id).categories.find(c => c.id === selectedCategory.id));
+        }
+    }
+    closeDialog();
+  };
+
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Manage Sectors</h1>
-        <p className="text-muted-foreground">Create and manage sectors for your platform.</p>
+    <div className="space-y-6 p-4 md:p-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Sectors & Categories</h1>
+          <p className="text-muted-foreground">
+            Organize your business ecosystem by managing sectors, categories, and sub-categories.
+          </p>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All Sectors</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoadingSectors ? (
-            <p>Loading sectors...</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Image</TableHead>
-                  <TableHead>Name</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sectors && sectors.map((sector) => (
-                  <TableRow key={sector.id}>
-                    <TableCell>
-                      <div className="relative h-10 w-10">
-                        <Image
-                          src={sector.imageUrl}
-                          alt={sector.name}
-                          layout="fill"
-                          className="rounded-full object-cover"
-                        />
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium">{sector.name}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* --- Sectors Column --- */}
+        <Card className="lg:col-span-1">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Sectors</CardTitle>
+            <Button size="sm" onClick={() => openDialog('sector')}> 
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Sector
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {sectors.map((sector) => (
+              <ItemCard
+                key={sector.id}
+                item={sector}
+                onSelect={() => handleSelectSector(sector)}
+                onEdit={() => openDialog('sector', sector)}
+                onDelete={() => handleDelete('sector', sector.id)}
+                isSelected={selectedSector?.id === sector.id}
+              />
+            ))}
+          </CardContent>
+        </Card>
 
-      <CreateSectorDialog isOpen={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)} />
+        {/* --- Categories Column --- */}
+        <Card className="lg:col-span-1">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Categories</CardTitle>
+              {selectedSector && <CardDescription>For {selectedSector.name}</CardDescription>}
+            </div>
+            <Button size="sm" disabled={!selectedSector} onClick={() => openDialog('category')}> 
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Category
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {selectedSector ? (
+              selectedSector.categories.length > 0 ? (
+                selectedSector.categories.map((cat) => (
+                  <ItemCard
+                    key={cat.id}
+                    item={cat}
+                    onSelect={() => handleSelectCategory(cat)}
+                    onEdit={() => openDialog('category', cat)}
+                    onDelete={() => handleDelete('category', cat.id)}
+                    isSelected={selectedCategory?.id === cat.id}
+                  />
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">No categories found for this sector.</p>
+              )
+            ) : (
+              <p className="text-sm text-muted-foreground">Select a sector to see its categories.</p>
+            )}
+          </CardContent>
+        </Card>
 
-      <Button
-        onClick={() => setIsCreateDialogOpen(true)}
-        className="fixed bottom-8 right-8 h-16 w-16 rounded-full shadow-lg"
-      >
-        <Plus className="h-8 w-8" />
-      </Button>
+        {/* --- Sub-Categories Column --- */}
+        <Card className="lg:col-span-1">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Sub-Categories</CardTitle>
+              {selectedCategory && <CardDescription>For {selectedCategory.name}</CardDescription>}
+            </div>
+            <Button size="sm" disabled={!selectedCategory} onClick={() => openDialog('subCategory')}> 
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Sub-Category
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {selectedCategory ? (
+              selectedCategory.subCategories.length > 0 ? (
+                selectedCategory.subCategories.map((sub) => (
+                  <ItemCard
+                    key={sub.id}
+                    item={sub}
+                    onSelect={() => {}}
+                    onEdit={() => openDialog('subCategory', sub)}
+                    onDelete={() => handleDelete('subCategory', sub.id)}
+                    isSelected={false}
+                  />
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">No sub-categories found.</p>
+              )
+            ) : (
+              <p className="text-sm text-muted-foreground">Select a category to see its sub-categories.</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Dialogs */}
+      <SectorDialog
+        isOpen={dialogState.type === 'sector' && dialogState.isOpen}
+        onClose={closeDialog}
+        onSubmit={(data) => handleSubmit('sector', data)}
+        sector={dialogState.data}
+      />
+      <CategoryDialog
+        isOpen={dialogState.type === 'category' && dialogState.isOpen}
+        onClose={closeDialog}
+        onSubmit={(data) => handleSubmit('category', data)}
+        category={dialogState.data}
+        sectorName={selectedSector?.name}
+      />
+      <SubCategoryDialog
+        isOpen={dialogState.type === 'subCategory' && dialogState.isOpen}
+        onClose={closeDialog}
+        onSubmit={(data) => handleSubmit('subCategory', data)}
+        subCategory={dialogState.data}
+        categoryName={selectedCategory?.name}
+      />
     </div>
   );
 }
