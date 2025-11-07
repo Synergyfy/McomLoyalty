@@ -2,13 +2,14 @@
 
 import React, { useState } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
-import { QrCode, Nfc, ScanLine, PoundSterling, Users, PlusCircle, Video, Megaphone, Download, Link, Pencil, Trash2, MoreVertical } from 'lucide-react';
+import { QrCode, Nfc, ScanLine, PoundSterling, Users, PlusCircle, Video, Megaphone, Download, Link as LinkIcon, Pencil, Trash2, MoreVertical, Power, Replace, Eye, BarChart2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { DateRange } from 'react-day-picker';
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
+import { useRouter } from 'next/navigation';
 
 // --- Mock Data ---
 
@@ -27,6 +28,13 @@ const qrPlaquesData = [
   { id: 'Plaque-004', partner: 'Gym', status: 'For Sale', scans: 0, redemptions: 0 },
   { id: 'Plaque-005', partner: 'Coffee House', status: 'Active', scans: 200, redemptions: 50 },
 ];
+
+const nfcCardsData = [
+    { id: 'NFC-001', type: 'Business', status: 'Active', tapCount: 542, linkedPage: '/profile' },
+    { id: 'NFC-002', type: 'Staff', status: 'Active', tapCount: 123, linkedPage: '/staff/john-doe' },
+    { id: 'NFC-003', type: 'Premium', status: 'Inactive', tapCount: 0, linkedPage: null },
+    { id: 'NFC-004', type: 'Business', status: 'Active', tapCount: 890, linkedPage: '/profile' },
+  ];
 
 const chartData = [
     { name: 'Mon', scans: 400, redemptions: 240 },
@@ -159,7 +167,7 @@ const QRPlaquesTab = () => {
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuItem><Download className="mr-2 h-4 w-4" /> Download Artwork</DropdownMenuItem>
-                                            <DropdownMenuItem><Link className="mr-2 h-4 w-4" /> Assign to Partner</DropdownMenuItem>
+                                            <DropdownMenuItem><LinkIcon className="mr-2 h-4 w-4" /> Assign to Partner</DropdownMenuItem>
                                             <DropdownMenuItem><Pencil className="mr-2 h-4 w-4" /> Mark for Sale</DropdownMenuItem>
                                             <DropdownMenuItem><Trash2 className="mr-2 h-4 w-4" /> Deactivate</DropdownMenuItem>
                                         </DropdownMenuContent>
@@ -190,6 +198,71 @@ const QRPlaquesTab = () => {
     );
 };
 
+const NFCCardsTab = () => {
+    const [date, setDate] = useState<DateRange | undefined>({
+        from: new Date(),
+        to: new Date(),
+      })
+    const router = useRouter();
+    return (
+        <div className="space-y-6">
+            <div className="flex justify-end">
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Order Extra Cards
+                </Button>
+            </div>
+            <div className="bg-white p-4 rounded-lg shadow">
+                <table className="w-full">
+                    <thead className="text-left text-sm font-semibold text-gray-600 border-b">
+                        <tr>
+                            <th className="p-4">Card ID</th>
+                            <th className="p-4">Type</th>
+                            <th className="p-4">Status</th>
+                            <th className="p-4">Tap Count</th>
+                            <th className="p-4">Linked Page</th>
+                            <th className="p-4 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {nfcCardsData.map((card) => (
+                            <tr key={card.id} className="border-b hover:bg-gray-50">
+                                <td className="p-4 font-medium">{card.id}</td>
+                                <td className="p-4">{card.type}</td>
+                                <td className="p-4">
+                                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                                        card.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                    }`}>
+                                        {card.status}
+                                    </span>
+                                </td>
+                                <td className="p-4">{card.tapCount}</td>
+                                <td className="p-4">
+                                    {card.linkedPage ? <a href={card.linkedPage} className="text-orange-600 hover:underline">View Page</a> : 'N/A'}
+                                </td>
+                                <td className="p-4 text-center">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                                <MoreVertical className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem><Power className="mr-2 h-4 w-4" /> Activate / Deactivate</DropdownMenuItem>
+                                            <DropdownMenuItem><Replace className="mr-2 h-4 w-4" /> Request Replacement</DropdownMenuItem>
+                                            <DropdownMenuItem onSelect={() => router.push('/dashboard/profile')}><Eye className="mr-2 h-4 w-4" /> View Linked Page</DropdownMenuItem>
+                                            <DropdownMenuItem><BarChart2 className="mr-2 h-4 w-4" /> Track Scans/Taps</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+};
+
 
 export default function MyAssetsPage() {
     return (
@@ -203,12 +276,18 @@ export default function MyAssetsPage() {
                     <Tabs.Trigger value="qr-plaques" className="data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:text-orange-500 text-gray-500 px-4 py-2">
                         QR Plaques
                     </Tabs.Trigger>
+                    <Tabs.Trigger value="nfc-cards" className="data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:text-orange-500 text-gray-500 px-4 py-2">
+                        NFC Cards
+                    </Tabs.Trigger>
                 </Tabs.List>
                 <Tabs.Content value="overview" className="pt-6">
                     <OverviewTab />
                 </Tabs.Content>
                 <Tabs.Content value="qr-plaques" className="pt-6">
                     <QRPlaquesTab />
+                </Tabs.Content>
+                <Tabs.Content value="nfc-cards" className="pt-6">
+                    <NFCCardsTab />
                 </Tabs.Content>
             </Tabs.Root>
         </div>
