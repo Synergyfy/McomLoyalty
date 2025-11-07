@@ -1,17 +1,16 @@
 // pages/terms.js
-import Head from "next/head";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Terms & Conditions — Loyalty CardX",
+  description:
+    "Read the Terms & Conditions for using Loyalty CardX platform.",
+};
 
 export default function Terms() {
   return (
     <>
-      <Head>
-        <title>Terms & Conditions — Loyalty CardX</title>
-        <meta
-          name="description"
-          content="Read the Terms & Conditions for using Loyalty CardX platform."
-        />
-      </Head>
-
+      
       <main className="min-h-screen bg-white text-gray-800">
         {/* Hero section */}
         <section className="bg-white py-16 text-center">
@@ -85,11 +84,6 @@ export default function Terms() {
             </div>
           </div>
         </section>
-
-        {/* Footer */}
-        <footer className="bg-white py-6 border-t border-gray-200 text-center text-gray-500">
-          © {new Date().getFullYear()} Loyalty CardX. All rights reserved.
-        </footer>
       </main>
     </>
   );

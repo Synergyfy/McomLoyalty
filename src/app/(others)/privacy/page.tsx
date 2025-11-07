@@ -1,31 +1,30 @@
 // pages/privacy.js
-import Head from "next/head";
 import { ShieldCheck } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy — Loyalty CardX",
+  description:
+    "Learn how Loyalty CardX collects, uses, and protects your data.",
+};
 
 export default function Privacy() {
   return (
     <>
-      <Head>
-        <title>Privacy Policy — Loyalty CardX</title>
-        <meta
-          name="description"
-          content="Learn how Loyalty CardX collects, uses, and protects your data."
-        />
-      </Head>
 
       <main className="min-h-screen bg-white text-gray-800">
         {/* Hero section */}
       
 
-<section className="bg-white py-16 text-center">
-  <div className="max-w-3xl mx-auto px-6">
-    <ShieldCheck className="w-12 h-12 mx-auto text-orange-500 mb-4" />
-    <h1 className="text-4xl font-bold text-orange-500 mb-4">Privacy Policy</h1>
-    <p className="text-gray-700 text-lg">
-      Your privacy is important to us. This policy explains how we collect, use, and protect your information on Loyalty CardX.
-    </p>
-  </div>
-</section>
+        <section className="bg-white py-16 text-center">
+          <div className="max-w-3xl mx-auto px-6">
+            <ShieldCheck className="w-12 h-12 mx-auto text-orange-500 mb-4" />
+            <h1 className="text-4xl font-bold text-orange-500 mb-4">Privacy Policy</h1>
+            <p className="text-gray-700 text-lg">
+              Your privacy is important to us. This policy explains how we collect, use, and protect your information on Loyalty CardX.
+            </p>
+          </div>
+        </section>
 
 
         {/* Content section */}
@@ -103,10 +102,6 @@ export default function Privacy() {
           </div>
         </section>
 
-        {/* Footer */}
-        <footer className="bg-white py-6 border-t border-gray-200 text-center text-gray-500">
-          © {new Date().getFullYear()} Loyalty CardX. All rights reserved.
-        </footer>
       </main>
     </>
   );
