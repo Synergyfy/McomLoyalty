@@ -12,6 +12,8 @@ import {
   DialogFooter,
   DialogDescription,
 } from '@/components/ui/dialog';
+import { CloudinaryUpload } from '@/components/ui/cloudinary-upload';
+import Image from 'next/image';
 
 interface CategoryDialogProps {
   isOpen: boolean;
@@ -78,13 +80,22 @@ export default function CategoryDialog({ isOpen, onClose, onSubmit, category, se
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <label htmlFor="icon" className="text-right">Icon</label>
-            <Input
-              id="icon"
-              value={icon}
-              onChange={(e) => setIcon(e.target.value)}
-              className="col-span-3"
-              placeholder="e.g., 🍽️"
-            />
+            <div className="col-span-3">
+              <CloudinaryUpload onFileSelect={(file, previewUrl) => setIcon(previewUrl || '')} />
+              {icon && (
+                <div className="mt-4">
+                  <p className="text-sm font-medium">Image Preview:</p>
+                  <div className="relative h-24 w-24 rounded-md overflow-hidden">
+                    <Image
+                      src={icon}
+                      alt="Uploaded category icon"
+                      layout="fill"
+                      objectFit="cover"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <DialogFooter>

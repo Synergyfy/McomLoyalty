@@ -13,6 +13,8 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { ChromePicker } from 'react-color';
+import { CloudinaryUpload } from '@/components/ui/cloudinary-upload';
+import Image from 'next/image';
 
 // Note: You might need to install react-color: npm install react-color @types/react-color
 
@@ -87,13 +89,22 @@ export default function SectorDialog({ isOpen, onClose, onSubmit, sector }: Sect
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <label htmlFor="icon" className="text-right">Icon</label>
-            <Input
-              id="icon"
-              value={icon}
-              onChange={(e) => setIcon(e.target.value)}
-              className="col-span-3"
-              placeholder="e.g., 🍔"
-            />
+            <div className="col-span-3">
+              <CloudinaryUpload onFileSelect={(file, previewUrl) => setIcon(previewUrl || '')} />
+              {icon && (
+                <div className="mt-4">
+                  <p className="text-sm font-medium">Image Preview:</p>
+                  <div className="relative h-24 w-24 rounded-md overflow-hidden">
+                    <Image
+                      src={icon}
+                      alt="Uploaded sector icon"
+                      layout="fill"
+                      objectFit="cover"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           <div className="grid grid-cols-4 items-start gap-4">
             <label className="text-right pt-2">Color</label>
