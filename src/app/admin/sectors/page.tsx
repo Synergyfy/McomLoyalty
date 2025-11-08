@@ -13,6 +13,7 @@ import {
 import SectorDialog from '@/components/admin/sectors/SectorDialog';
 import CategoryDialog from '@/components/admin/sectors/CategoryDialog';
 import SubCategoryDialog from '@/components/admin/sectors/SubCategoryDialog';
+import { DeleteConfirmationDialog } from '@/components/admin/sectors/DeleteConfirmationDialog';
 import Image from 'next/image';
 
 // --- Type Definitions ---
@@ -56,6 +57,12 @@ type DialogState = {
   isOpen: boolean;
   data: Item | null;
 };
+
+type DeleteTarget = {
+  type: DialogType;
+  id: string;
+  name: string;
+}
 
 
 // --- Mock Data ---
@@ -152,6 +159,7 @@ export default function SectorsPage() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     (sectors[0] && sectors[0].categories[0]) || null
   );
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 
 
   const [dialogState, setDialogState] = useState<DialogState>({
@@ -177,8 +185,14 @@ export default function SectorsPage() {
     setSelectedCategory(category);
   };
 
-  const handleDelete = (type: DialogType, id: string) => {
-    if (!confirm(`Are you sure you want to delete this ${type}?`)) return;
+  const handleDeleteRequest = (type: DialogType, item: Item) => {
+    setDeleteTarget({ type, id: item.id, name: item.name });
+  };
+
+  const executeDelete = () => {
+    if (!deleteTarget) return;
+
+    const { type, id } = deleteTarget;
 
     if (type === 'sector') {
       setSectors(sectors.filter(s => s.id !== id));
@@ -220,6 +234,7 @@ export default function SectorsPage() {
             setSelectedCategory(updatedCategory || null);
         }
     }
+    setDeleteTarget(null); // Close dialog after deletion
   };
 
   const handleSubmit = (type: DialogType, data: Partial<Item> & { name: string }) => {
@@ -336,7 +351,7 @@ export default function SectorsPage() {
                 item={sector}
                 onSelect={() => handleSelectSector(sector)}
                 onEdit={(item) => openDialog('sector', item as Sector)}
-                onDelete={(item) => handleDelete('sector', item.id)}
+                onDelete={(item) => handleDeleteRequest('sector', item)}
                 isSelected={selectedSector?.id === sector.id}
               />
             ))}
@@ -364,7 +379,7 @@ export default function SectorsPage() {
                     item={cat}
                     onSelect={() => handleSelectCategory(cat)}
                     onEdit={(item) => openDialog('category', item as Category)}
-                    onDelete={(item) => handleDelete('category', item.id)}
+                    onDelete={(item) => handleDeleteRequest('category', item)}
                     isSelected={selectedCategory?.id === cat.id}
                   />
                 ))
@@ -398,7 +413,7 @@ export default function SectorsPage() {
                     item={sub}
                     onSelect={() => {}}
                     onEdit={(item) => openDialog('subCategory', item as SubCategory)}
-                    onDelete={(item) => handleDelete('subCategory', item.id)}
+                    onDelete={(item) => handleDeleteRequest('subCategory', item)}
                     isSelected={false}
                   />
                 ))
@@ -432,6 +447,13 @@ export default function SectorsPage() {
         onSubmit={(data) => handleSubmit('subCategory', data)}
         subCategory={dialogState.data as SubCategory | null}
         categoryName={selectedCategory?.name}
+      />
+      <DeleteConfirmationDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={executeDelete}
+        itemName={deleteTarget?.name || ''}
+        itemType={deleteTarget?.type || ''}
       />
     </div>
   );
