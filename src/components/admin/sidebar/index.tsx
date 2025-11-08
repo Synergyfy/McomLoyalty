@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Award, Briefcase, History, Megaphone, Lightbulb, Users, ChevronDown, SlidersHorizontal } from 'lucide-react'; // Import SlidersHorizontal
+import { LayoutDashboard, Award, Briefcase, History, Megaphone, Lightbulb, Users, ChevronDown, SlidersHorizontal } from 'lucide-react'; // Import Award for Tier & Badge
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -92,11 +92,17 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
             Points Log
           </Link>
         </li>
-        {/* New Matching Points Settings Link */}
         <li>
           <Link href="/admin/matching-points" className={linkClasses("/admin/matching-points")}>
             <SlidersHorizontal className="mr-3" />
             Matching Points Settings
+          </Link>
+        </li>
+        {/* New Tier & Badge Control Link */}
+        <li>
+          <Link href="/admin/tier-badge-control" className={linkClasses("/admin/tier-badge-control")}>
+            <Award className="mr-3" /> {/* Using Award icon for Tiers & Badges */}
+            Tier & Badge Control
           </Link>
         </li>
         <li>
