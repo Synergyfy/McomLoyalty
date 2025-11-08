@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Award, Briefcase, History, Megaphone, Lightbulb, Users, ChevronDown, SlidersHorizontal } from 'lucide-react'; // Import Award for Tier & Badge
+import { LayoutDashboard, Award, Briefcase, History, Megaphone, Lightbulb, Users, ChevronDown, SlidersHorizontal, Tag, Handshake, Bell } from 'lucide-react'; // Import Bell for Notifications Control
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -98,11 +98,29 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
             Matching Points Settings
           </Link>
         </li>
-        {/* New Tier & Badge Control Link */}
         <li>
           <Link href="/admin/tier-badge-control" className={linkClasses("/admin/tier-badge-control")}>
-            <Award className="mr-3" /> {/* Using Award icon for Tiers & Badges */}
+            <Award className="mr-3" />
             Tier & Badge Control
+          </Link>
+        </li>
+        <li>
+          <Link href="/admin/deals-management" className={linkClasses("/admin/deals-management")}>
+            <Tag className="mr-3" />
+            Deals Management
+          </Link>
+        </li>
+        <li>
+          <Link href="/admin/partner-management" className={linkClasses("/admin/partner-management")}>
+            <Handshake className="mr-3" />
+            Partner Management
+          </Link>
+        </li>
+        {/* New Notifications Control Link */}
+        <li>
+          <Link href="/admin/notifications-control" className={linkClasses("/admin/notifications-control")}>
+            <Bell className="mr-3" />
+            Notifications Control
           </Link>
         </li>
         <li>

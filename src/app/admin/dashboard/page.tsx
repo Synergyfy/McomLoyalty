@@ -23,15 +23,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 
-// Mock Data based on task.md
-const summaryStats = {
-  totalBusinesses: 42,
-  activeCampaigns: 12,
-  totalConsumers: 1256,
-  totalRewardsClaimed: 834,
-  totalMatchingPointsIssued: 75000,
-};
+import { CampaignSummaryCard } from '@/components/admin/dashboard/reports/CampaignSummaryCard';
+import { TopBusinessesTable } from '@/components/admin/dashboard/reports/TopBusinessesTable';
+import { PopularRewardsTable } from '@/components/admin/dashboard/reports/PopularRewardsTable';
+import { PointsDistributionChart } from '@/components/admin/dashboard/reports/PointsDistributionChart';
+import { ConsumerGrowthChart } from '@/components/admin/dashboard/reports/ConsumerGrowthChart';
+import { BusinessTierPieChart } from '@/components/admin/dashboard/reports/BusinessTierPieChart';
+import { ConversionRetentionMetrics } from '@/components/admin/dashboard/reports/ConversionRetentionMetrics';
 
+// Mock Data based on task.md
 const businessTierBreakdown = {
   starter: 20,
   active: 15,
@@ -79,58 +79,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Top Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Businesses</CardTitle>
-            <Building className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summaryStats.totalBusinesses}</div>
-            <p className="text-xs text-muted-foreground">+2 since last month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Campaigns</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summaryStats.activeCampaigns}</div>
-            <p className="text-xs text-muted-foreground">+5 this week</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Consumers</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summaryStats.totalConsumers}</div>
-            <p className="text-xs text-muted-foreground">+150 since last month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Rewards Claimed</CardTitle>
-            <Gift className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summaryStats.totalRewardsClaimed}</div>
-            <p className="text-xs text-muted-foreground">+20% this month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Matching Points Issued</CardTitle>
-            <Award className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summaryStats.totalMatchingPointsIssued.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Total points issued</p>
-          </CardContent>
-        </Card>
-      </div>
+      <CampaignSummaryCard />
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Quick Actions */}
@@ -203,6 +152,36 @@ export default function AdminDashboard() {
             ))}
           </CardContent>
         </Card>
+      </div>
+
+      {/* Top Performing Businesses */}
+      <div className="grid gap-6 md:grid-cols-1">
+        <TopBusinessesTable />
+      </div>
+
+      {/* Most Popular Rewards */}
+      <div className="grid gap-6 md:grid-cols-1">
+        <PopularRewardsTable />
+      </div>
+
+      {/* Points Distributed (Standard vs Matching) */}
+      <div className="grid gap-6 md:grid-cols-1">
+        <PointsDistributionChart />
+      </div>
+
+      {/* Consumer Growth and Activity */}
+      <div className="grid gap-6 md:grid-cols-1">
+        <ConsumerGrowthChart />
+      </div>
+
+      {/* Business Tier Distribution */}
+      <div className="grid gap-6 md:grid-cols-1">
+        <BusinessTierPieChart />
+      </div>
+
+      {/* Conversion and Retention Reports */}
+      <div className="grid gap-6 md:grid-cols-1">
+        <ConversionRetentionMetrics />
       </div>
     </div>
   );
