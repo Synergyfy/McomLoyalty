@@ -157,18 +157,21 @@ export default function CreateRewardWizardModal({ isOpen, onClose, mode = 'creat
       source: rewardSource,
       audience,
     });
-    setShowCampaignPrompt(true);
+    // First, close the main wizard dialog
+    onClose();
+    // Then, show the success prompt. A timeout ensures the first dialog has time to close.
+    setTimeout(() => {
+      setShowCampaignPrompt(true);
+    }, 150);
   };
 
   const handleCampaignYes = () => {
     setShowCampaignPrompt(false);
-    onClose();
     router.push('/dashboard/campaigns/create');
   };
 
   const handleCampaignNo = () => {
     setShowCampaignPrompt(false);
-    onClose();
   };
 
   const progressValue = (step / totalSteps) * 100;
