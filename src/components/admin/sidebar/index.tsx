@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Award, Briefcase, History, Megaphone, Lightbulb, Users, ChevronDown, SlidersHorizontal, Tag, Handshake, Bell, BarChart } from 'lucide-react'; // Import BarChart for Reporting & Analytics
+import { LayoutDashboard, Award, Briefcase, History, Megaphone, Lightbulb, Users, ChevronDown, SlidersHorizontal, Tag, Handshake, Bell, BarChart, Landmark } from 'lucide-react'; // Import Landmark for Financials
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -122,11 +122,17 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
             Notifications Control
           </Link>
         </li>
-        {/* New Reporting & Analytics Link */}
         <li>
           <Link href="/admin/reporting-analytics" className={linkClasses("/admin/reporting-analytics")}>
             <BarChart className="mr-3" />
             Reporting & Analytics
+          </Link>
+        </li>
+        {/* New Financials Link */}
+        <li>
+          <Link href="/admin/financials" className={linkClasses("/admin/financials")}>
+            <Landmark className="mr-3" />
+            Financials
           </Link>
         </li>
         <li>
