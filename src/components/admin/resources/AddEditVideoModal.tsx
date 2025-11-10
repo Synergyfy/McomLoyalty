@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TrainingVideo } from '@/lib/mock-data/resources';
 import { FeedbackDialog } from '@/components/ui/feedback-dialog';
 
@@ -125,7 +126,18 @@ export function AddEditVideoModal({
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="targetAudience" className="text-right">Target Audience</Label>
-            <Input id="targetAudience" value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} placeholder="e.g., All Businesses" className="col-span-3" />
+            <Select value={targetAudience} onValueChange={setTargetAudience}>
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Select target audience" />
+              </SelectTrigger>
+              <SelectContent className="z-[10000]">
+                <SelectItem value="All Users">All Users</SelectItem>
+                <SelectItem value="Business Owners">Business Owners</SelectItem>
+                <SelectItem value="Customers">Consumers</SelectItem>
+                
+                {/* Add more options as needed */}
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <DialogFooter>

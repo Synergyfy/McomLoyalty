@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
@@ -10,10 +10,9 @@ import {
   Users,
   Handshake,
   SlidersHorizontal,
-  Tag,
   Bell,
   Shield,
-  Megaphone,
+  ArrowRight,
 } from 'lucide-react';
 import { initialSectors } from '@/lib/mock-data/sectors';
 import { mockBusinessUsers, mockConsumerUsers } from '@/lib/mock-data/users';
@@ -32,134 +31,118 @@ export default function AdminControlSummaryPage() {
     campaigns: mockCampaigns.length,
   };
 
+  const controlAreas = [
+    {
+      icon: <Briefcase className="h-8 w-8 text-orange-500" />,
+      title: 'Sectors & Categories',
+      description: 'Define and organize business sectors.',
+      count: `${summaryData.sectors} Sectors`,
+      link: '/admin/sectors',
+      linkText: 'Manage Sectors',
+    },
+    {
+      icon: <Award className="h-8 w-8 text-blue-500" />,
+      title: 'Rewards & Campaigns',
+      description: 'Create and oversee all rewards and campaigns.',
+      count: `${summaryData.campaigns} Campaigns`,
+      links: [
+        { href: '/admin/rewards', text: 'Manage Rewards', variant: 'outline' as const },
+        { href: '/admin/campaigns', text: 'Manage Campaigns' },
+      ],
+    },
+    {
+      icon: <Users className="h-8 w-8 text-green-500" />,
+      title: 'User Management',
+      description: 'Control and monitor all platform users.',
+      count: `${summaryData.users} Total Users`,
+      link: '/admin/users',
+      linkText: 'Manage Users',
+    },
+    {
+      icon: <Handshake className="h-8 w-8 text-purple-500" />,
+      title: 'Partner Management',
+      description: 'Oversee co-branded and white-label partners.',
+      count: `${summaryData.partners} Partners`,
+      link: '/admin/partner-management',
+      linkText: 'Manage Partners',
+    },
+    {
+      icon: <SlidersHorizontal className="h-8 w-8 text-red-500" />,
+      title: 'Points & Deals',
+      description: 'Manage matching points and business deals.',
+      count: `${summaryData.deals} Active Deals`,
+      links: [
+        { href: '/admin/matching-points', text: 'Manage Points', variant: 'outline' as const },
+        { href: '/admin/deals-management', text: 'Manage Deals' },
+      ],
+    },
+    {
+      icon: <Bell className="h-8 w-8 text-yellow-500" />,
+      title: 'Communication',
+      description: 'Manage announcements and notifications.',
+      count: `${summaryData.notifications} Templates & Announcements`,
+      link: '/admin/notifications-control',
+      linkText: 'Manage Notifications',
+    },
+    {
+      icon: <Shield className="h-8 w-8 text-gray-500" />,
+      title: 'Security & Compliance',
+      description: 'Ensure platform integrity and accountability.',
+      count: 'Audit Logs & RBAC',
+      link: '/admin/security',
+      linkText: 'View Security',
+      disabled: true,
+    },
+  ];
+
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Admin Control Summary</h1>
-        <p className="text-muted-foreground">A high-level overview and quick access to all major management areas.</p>
-      </div>
+    <div className="min-h-screen bg-gray-50/50">
+      <main className="container mx-auto px-4 py-8 md:px-6 md:py-12">
+        <header className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900">Admin Control Summary</h1>
+          <p className="mt-3 text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
+            A high-level overview and quick access to all major management areas.
+          </p>
+        </header>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Sectors & Categories Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Briefcase className="h-5 w-5" /> Sectors & Categories
-            </CardTitle>
-            <CardDescription>Define and organize business sectors.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{summaryData.sectors} Sectors</p>
-            <Link href="/admin/sectors" passHref>
-              <Button className="mt-4 w-full">Manage Sectors</Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        {/* Rewards & Campaigns Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="h-5 w-5" /> Rewards & Campaigns
-            </CardTitle>
-            <CardDescription>Create and oversee all rewards and campaigns.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{summaryData.campaigns} Campaigns</p>
-            <div className="flex gap-4 mt-4">
-              <Link href="/admin/rewards" passHref className="flex-1">
-                <Button variant="outline" className="w-full">Manage Rewards</Button>
-              </Link>
-              <Link href="/admin/campaigns/list" passHref className="flex-1">
-                <Button className="w-full">Manage Campaigns</Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* User Management Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" /> User Management
-            </CardTitle>
-            <CardDescription>Control and monitor all platform users.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{summaryData.users} Total Users</p>
-            <Link href="/admin/users" passHref>
-              <Button className="mt-4 w-full">Manage Users</Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        {/* Partner Management Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Handshake className="h-5 w-5" /> Partner Management
-            </CardTitle>
-            <CardDescription>Oversee co-branded and white-label partners.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{summaryData.partners} Partners</p>
-            <Link href="/admin/partner-management" passHref>
-              <Button className="mt-4 w-full">Manage Partners</Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        {/* Points & Deals Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <SlidersHorizontal className="h-5 w-5" /> Points & Deals
-            </CardTitle>
-            <CardDescription>Manage matching points and business deals.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{summaryData.deals} Active Deals</p>
-            <div className="flex gap-4 mt-4">
-              <Link href="/admin/matching-points" passHref className="flex-1">
-                <Button variant="outline" className="w-full">Manage Points</Button>
-              </Link>
-              <Link href="/admin/deals-management" passHref className="flex-1">
-                <Button className="w-full">Manage Deals</Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Communication Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="h-5 w-5" /> Communication
-            </CardTitle>
-            <CardDescription>Manage announcements and notifications.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{summaryData.notifications} Templates & Announcements</p>
-            <Link href="/admin/notifications-control" passHref>
-              <Button className="mt-4 w-full">Manage Notifications</Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        {/* Security & Compliance Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" /> Security & Compliance
-            </CardTitle>
-            <CardDescription>Ensure platform integrity and accountability.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">View audit trails and manage compliance settings.</p>
-            <Button className="mt-4 w-full" disabled>View Logs (Future)</Button>
-          </CardContent>
-        </Card>
-      </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {controlAreas.map((area) => (
+            <Card key={area.title} className="flex flex-col hover:shadow-xl transition-shadow duration-300 group">
+              <CardHeader className="flex flex-row items-start gap-4 space-y-0 pb-4">
+                <div className="bg-gray-100 p-3 rounded-lg mt-1">{area.icon}</div>
+                <div className="flex-1">
+                  <CardTitle className="text-lg font-semibold">{area.title}</CardTitle>
+                  <CardDescription>{area.description}</CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <div className="text-3xl font-bold text-gray-800">{area.count}</div>
+              </CardContent>
+              <CardFooter className="pt-4">
+                {area.links ? (
+                  <div className="grid grid-cols-2 gap-4 w-full">
+                    {area.links.map((link) => (
+                      <Link key={link.href} href={link.href} passHref>
+                        <Button variant={link.variant || 'default'} className="w-full text-sm group-hover:bg-orange-500 group-hover:text-white transition-colors">
+                          {link.text}
+                          <ArrowRight className="ml-2 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </Button>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <Link href={area.link || '#'} passHref className="w-full">
+                    <Button className="w-full text-sm group-hover:bg-orange-500 group-hover:text-white transition-colors" disabled={area.disabled}>
+                      {area.linkText}
+                      <ArrowRight className="ml-2 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </Button>
+                  </Link>
+                )}
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      </main>
     </div>
   );
 }

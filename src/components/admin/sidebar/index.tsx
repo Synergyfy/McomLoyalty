@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Award, Briefcase, History, Megaphone, Lightbulb, Users, ChevronDown, SlidersHorizontal, Tag, Handshake, Bell, BarChart, ListChecks, Landmark, Book } from 'lucide-react'; // Import Book for Resources
+import { LayoutDashboard, Award, Briefcase, History, Megaphone, Lightbulb, Users, ChevronDown, SlidersHorizontal, Tag, Handshake, Bell, BarChart, ListChecks, Landmark, Book, Shield } from 'lucide-react'; // Import Book for Resources
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -122,6 +122,13 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
             Notifications Control
           </Link>
         </li>
+        {/* New Security Link */}
+        <li>
+          <Link href="/admin/security" className={linkClasses("/admin/security")}>
+            <Shield className="mr-3" />
+            Security
+          </Link>
+        </li>
         {/* New Financials Link */}
         <li>
           <Link href="/admin/financials" className={linkClasses("/admin/financials")}>
@@ -148,12 +155,7 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
             Resources
           </Link>
         </li>
-        <li>
-          <Link href="/admin/summary" className={linkClasses("/admin/summary")}>
-            <ListChecks className="mr-3" />
-            Control Summary
-          </Link>
-        </li>
+       
       </ul>
     </div>
   );
