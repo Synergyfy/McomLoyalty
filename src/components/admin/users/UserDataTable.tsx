@@ -50,7 +50,13 @@ export function UserDataTable<TData extends BusinessUser | ConsumerUser, TValue>
 
   // State for Confirmation Dialog
   const [showConfirmationDialog, setShowConfirmationDialog] = React.useState(false);
-  const [confirmationDialogProps, setConfirmationDialogProps] = React.useState({
+  const [confirmationDialogProps, setConfirmationDialogProps] = React.useState<{
+    title: string;
+    description: string;
+    onConfirm: () => void;
+    confirmText?: string;
+    cancelText?: string;
+  }>({
     title: '',
     description: '',
     onConfirm: () => {},

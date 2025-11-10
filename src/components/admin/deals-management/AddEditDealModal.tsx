@@ -15,8 +15,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Deal } from '@/lib/mock-data/deals';
+import { Deal, DealCategory } from '@/lib/mock-data/deals'; // Import DealCategory
 import { initialSectors } from '@/lib/mock-data/sectors';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { format } from 'date-fns';
 // import { FeedbackDialog } from '@/components/ui/feedback-dialog'; // Remove FeedbackDialog import
 
 interface AddEditDealModalProps {
@@ -42,18 +45,12 @@ export function AddEditDealModal({
   const [visibilityRules, setVisibilityRules] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
   const [submittedByBusinessId, setSubmittedByBusinessId] = useState('');
-
-  // Remove local FeedbackDialog state and handlers
-  // const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
-  // const [feedbackDialogProps, setFeedbackDialogProps] = useState({
-  //   title: '',
-  //   description: '',
-  //   actionText: 'OK',
-  // });
-  // const handleShowFeedback = (title: string, description: React.ReactNode, actionText?: string) => {
-  //   setFeedbackDialogProps({ title, description, actionText: actionText || 'OK' });
-  //   setShowFeedbackDialog(true);
-  // };
+  const [businessName, setBusinessName] = useState(''); // New
+  const [value, setValue] = useState(''); // New
+  const [startDate, setStartDate] = useState<Date | null>(null); // New
+  const [endDate, setEndDate] = useState<Date | null>(null); // New
+  const [terms, setTerms] = useState(''); // New
+  const [category, setCategory] = useState<DealCategory>('Food & Drink'); // New
 
   useEffect(() => {
     if (initialData) {
@@ -65,6 +62,12 @@ export function AddEditDealModal({
       setVisibilityRules(initialData.visibilityRules || '');
       setIsFeatured(initialData.isFeatured);
       setSubmittedByBusinessId(initialData.submittedByBusinessId || '');
+      setBusinessName(initialData.businessName || ''); // New
+      setValue(initialData.value || ''); // New
+      setStartDate(initialData.startDate || null); // New
+      setEndDate(initialData.endDate || null); // New
+      setTerms(initialData.terms || ''); // New
+      setCategory(initialData.category || 'Food & Drink'); // New
     } else {
       // Reset form for new entry
       setTitle('');
@@ -75,6 +78,12 @@ export function AddEditDealModal({
       setVisibilityRules('');
       setIsFeatured(false);
       setSubmittedByBusinessId('');
+      setBusinessName(''); // New
+      setValue(''); // New
+      setStartDate(null); // New
+      setEndDate(null); // New
+      setTerms(''); // New
+      setCategory('Food & Drink'); // New
     }
   }, [initialData]);
 
@@ -93,6 +102,25 @@ export function AddEditDealModal({
     if (!sectorId.trim()) {
       errors.push('Sector is required.');
     }
+    if (!businessName.trim()) {
+      errors.push('Business Name is required.');
+    }
+    if (!value.trim()) {
+      errors.push('Value is required.');
+    }
+    if (!startDate) {
+      errors.push('Start Date is required.');
+    }
+    if (!endDate) {
+      errors.push('End Date is required.');
+    }
+    if (startDate && endDate && startDate > endDate) {
+      errors.push('Start Date cannot be after End Date.');
+    }
+    if (!terms.trim()) {
+      errors.push('Terms and Conditions are required.');
+    }
+    // Category is a select, so it should always have a value if initialized correctly.
 
     if (errors.length > 0) {
       onShowFeedback( // Use prop for feedback
@@ -116,6 +144,12 @@ export function AddEditDealModal({
       visibilityRules,
       isFeatured,
       submittedByBusinessId: submittedByBusinessId || undefined,
+      businessName, // New
+      value, // New
+      startDate: startDate!, // New, asserted as non-null after validation
+      endDate: endDate!, // New, asserted as non-null after validation
+      terms, // New
+      category, // New
       createdAt: initialData?.createdAt || new Date(),
       updatedAt: new Date(),
     };
@@ -185,6 +219,55 @@ export function AddEditDealModal({
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="submittedBy" className="text-right">Submitted By (Business ID)</Label>
             <Input id="submittedBy" value={submittedByBusinessId} onChange={(e) => setSubmittedByBusinessId(e.target.value)} placeholder="Optional" className="col-span-3" />
+          </div>
+          {/* New fields */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="businessName" className="text-right">Business Name</Label>
+            <Input id="businessName" value={businessName} onChange={(e) => setBusinessName(e.target.value)} className="col-span-3" />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="value" className="text-right">Value</Label>
+            <Input id="value" value={value} onChange={(e) => setValue(e.target.value)} className="col-span-3" />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="startDate" className="text-right">Start Date</Label>
+            <DatePicker
+              selected={startDate}
+              onChange={(date: Date | null) => setStartDate(date)}
+              dateFormat="Pp"
+              showTimeSelect
+              className="col-span-3 w-full border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="endDate" className="text-right">End Date</Label>
+            <DatePicker
+              selected={endDate}
+              onChange={(date: Date | null) => setEndDate(date)}
+              dateFormat="Pp"
+              showTimeSelect
+              className="col-span-3 w-full border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="terms" className="text-right">Terms</Label>
+            <Textarea id="terms" value={terms} onChange={(e) => setTerms(e.target.value)} className="col-span-3" />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="category" className="text-right">Category</Label>
+            <Select value={category} onValueChange={(value: DealCategory) => setCategory(value)}>
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent className="z-[10000]">
+                <SelectItem value="Food & Drink">Food & Drink</SelectItem>
+                <SelectItem value="Retail">Retail</SelectItem>
+                <SelectItem value="Health & Wellness">Health & Wellness</SelectItem>
+                <SelectItem value="Electronics">Electronics</SelectItem>
+                <SelectItem value="Services">Services</SelectItem>
+                <SelectItem value="Travel">Travel</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <DialogFooter>

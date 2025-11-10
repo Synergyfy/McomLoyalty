@@ -21,9 +21,13 @@ export default function PartnerManagementPage() {
 
   // State for Feedback Dialog
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
-  const [feedbackDialogProps, setFeedbackDialogProps] = useState({
+  const [feedbackDialogProps, setFeedbackDialogProps] = useState<{
+    title: string;
+    description: React.ReactNode;
+    actionText: string;
+  }>({
     title: '',
-    description: '' as React.ReactNode,
+    description: '',
     actionText: 'OK',
   });
 

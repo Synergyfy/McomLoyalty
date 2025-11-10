@@ -23,7 +23,11 @@ export default function TierBadgeControlPage() {
 
   // State for Feedback Dialog
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
-  const [feedbackDialogProps, setFeedbackDialogProps] = useState<FeedbackDialogProps>({
+  const [feedbackDialogProps, setFeedbackDialogProps] = useState<{
+    title: string;
+    description: React.ReactNode;
+    actionText: string;
+  }>({
     title: '',
     description: '',
     actionText: 'OK',

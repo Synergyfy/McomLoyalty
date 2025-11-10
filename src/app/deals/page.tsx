@@ -17,7 +17,7 @@ export default function DealsPage() {
   }, []);
 
   const filteredDeals = useMemo(() => {
-    const activeDeals = mockDeals.filter(deal => deal.status === 'Active' || deal.status === 'Scheduled');
+    const activeDeals = mockDeals.filter(deal => deal.status === 'active');
 
     return activeDeals.filter(deal => {
       const matchesSearch = deal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||

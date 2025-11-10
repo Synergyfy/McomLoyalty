@@ -18,6 +18,7 @@ interface BusinessPerformance {
   name: string;
   redemptions: number;
   pointsIssued: number;
+  [key: string]: string | number | boolean; // Add index signature
 }
 
 export function TopBusinessesTable() {

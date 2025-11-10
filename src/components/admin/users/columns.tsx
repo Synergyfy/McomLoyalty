@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { BusinessUser, ConsumerUser } from '@/lib/mock-data/users';
 
 // Define types for the action handlers
-type ActionHandlers = {
+export type ActionHandlers = {
   onOpenConfirmationDialog: (
     title: string,
     description: string,

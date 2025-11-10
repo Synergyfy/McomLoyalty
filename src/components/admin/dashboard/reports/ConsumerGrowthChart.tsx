@@ -11,6 +11,7 @@ interface ConsumerData {
   month: string;
   newRegistrations: number;
   activityCount: number;
+  [key: string]: string | number | boolean; // Add index signature
 }
 
 export function ConsumerGrowthChart() {

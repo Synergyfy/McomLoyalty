@@ -17,6 +17,7 @@ import { exportToCsv } from "@/lib/utils";
 interface PopularReward {
   title: string;
   redemptionCount: number;
+  [key: string]: string | number | boolean; // Add index signature
 }
 
 export function PopularRewardsTable() {

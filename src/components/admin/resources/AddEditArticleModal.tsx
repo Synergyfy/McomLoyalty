@@ -37,7 +37,11 @@ export function AddEditArticleModal({
 
   // State for Feedback Dialog (local to modal for validation errors)
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
-  const [feedbackDialogProps, setFeedbackDialogProps] = useState({
+  const [feedbackDialogProps, setFeedbackDialogProps] = useState<{
+    title: string;
+    description: React.ReactNode;
+    actionText: string;
+  }>({
     title: '',
     description: '',
     actionText: 'OK',
