@@ -1,21 +1,20 @@
 // pages/about.js
-import Head from "next/head";
-import { CheckCircle, Rocket, Globe2, Heart } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from "react";
+import { Rocket, Heart, Globe2 } from "lucide-react";
+import Image from "next/image";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "About",
+  description:
+    "Discover the story behind Loyalty CardX — empowering local businesses with smart, simple loyalty programs.",
+};
 
 export default function About() {
   return (
     <>
-      <Head>
-        <title>About Loyalty CardX</title>
-        <meta
-          name="description"
-          content="Discover the story behind Loyalty CardX — empowering local businesses with smart, simple loyalty programs."
-        />
-      </Head>
 
-      <main className="min-h-screen bg-white text-gray-800">
+      <main className="">
         {/* Hero Section */}
         <section className="relative bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 text-white py-24 text-center overflow-hidden">
           <div className="max-w-3xl mx-auto px-6 relative z-10">
@@ -135,10 +134,12 @@ export default function About() {
                 key={idx}
                 className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition"
               >
-                <img
+                <Image
                   src={member.image}
                   alt={member.name}
                   className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
+                  width={96}
+                  height={96}
                 />
                 <h3 className="text-xl font-semibold text-gray-800">
                   {member.name}
@@ -167,11 +168,6 @@ export default function About() {
             </a>
           </div>
         </section>
-
-        {/* Footer */}
-        <footer className="bg-white py-8 border-t border-gray-200 text-center text-gray-500">
-          © {new Date().getFullYear()} Loyalty CardX. All rights reserved.
-        </footer>
       </main>
     </>
   );
