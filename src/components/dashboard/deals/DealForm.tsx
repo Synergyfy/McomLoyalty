@@ -177,29 +177,7 @@ export default function DealForm() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Select onValueChange={(value) => setValue("category", value as Deal['category'], { shouldValidate: true })}>
-                      <SelectTrigger id="category">
-                          <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                          <SelectItem value="Food & Drink">Food & Drink</SelectItem>
-                          <SelectItem value="Retail">Retail</SelectItem>
-                          <SelectItem value="Services">Services</SelectItem>
-                          <SelectItem value="Entertainment">Entertainment</SelectItem>
-                          <SelectItem value="Travel">Travel</SelectItem>
-                      </SelectContent>
-                  </Select>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Select the category that best fits your deal.</p>
-                </TooltipContent>
-              </Tooltip>
-              {errors.category && <p className="text-red-500 text-sm">{errors.category.message}</p>}
-            </div>
+           
 
             <div className="space-y-2">
               <Label htmlFor="terms">Terms & Conditions</Label>
