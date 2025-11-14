@@ -1,27 +1,40 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Award, ChevronLeft, ChevronRight } from 'lucide-react';
 import { mockClaimableCampaigns } from '@/app/mock-data';
 import Link from 'next/link';
 
-export const ClaimableCampaignsTicker = () => {
+interface ClaimableCampaignsTickerProps {
+  claimedCampaignIds: string[];
+}
+
+export const ClaimableCampaignsTicker = ({ claimedCampaignIds }: ClaimableCampaignsTickerProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [claimedCampaigns, setClaimedCampaigns] = useState<string[]>([]);
+
+  const availableCampaigns = useMemo(() => {
+    return mockClaimableCampaigns.filter(
+      (campaign) => !claimedCampaignIds.includes(campaign.id)
+    );
+  }, [claimedCampaignIds]);
 
   const handleNext = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % mockClaimableCampaigns.length);
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % availableCampaigns.length);
   };
 
   const handlePrev = () => {
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + mockClaimableCampaigns.length) % mockClaimableCampaigns.length);
+    setCurrentIndex((prevIndex) => (prevIndex - 1 + availableCampaigns.length) % availableCampaigns.length);
   };
 
+  if (availableCampaigns.length === 0) {
+    return null; // Don't render the ticker if no campaigns are available
+  }
+
   const visibleCampaigns = [
-    mockClaimableCampaigns[currentIndex],
-    mockClaimableCampaigns[(currentIndex + 1) % mockClaimableCampaigns.length]
-  ];
+    availableCampaigns[currentIndex],
+    availableCampaigns[(currentIndex + 1) % availableCampaigns.length]
+  ].filter(Boolean); // Filter out undefined if there's only one campaign
 
   return (
     <>
@@ -46,11 +59,10 @@ export const ClaimableCampaignsTicker = () => {
                                             <Button
                                                 size="sm"
                                                 asChild
-                                                disabled={claimedCampaigns.includes(campaign.id)}
                                                 className="bg-orange-600 hover:bg-orange-700 text-white ml-4 flex-shrink-0"
                                             >
                                                 <Link href={`/dashboard/campaigns/preview/${campaign.id}`}>
-                                                    {claimedCampaigns.includes(campaign.id) ? 'Claimed' : 'Claim'}
+                                                    Claim
                                                 </Link>
                                             </Button>
                                         </div>
@@ -58,22 +70,26 @@ export const ClaimableCampaignsTicker = () => {
                                 ))}
                             </div>
                         </div>
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={handlePrev}
-                            className="absolute top-1/2 -translate-y-1/2 left-[-1rem] bg-white/80 backdrop-blur-sm rounded-full shadow-md"
-                        >
-                            <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={handleNext}
-                            className="absolute top-1/2 -translate-y-1/2 right-[-1rem] bg-white/80 backdrop-blur-sm rounded-full shadow-md"
-                        >
-                            <ChevronRight className="h-4 w-4" />
-                        </Button>
+                        {availableCampaigns.length > 2 && ( // Only show navigation if more than 2 campaigns
+                          <>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={handlePrev}
+                                className="absolute top-1/2 -translate-y-1/2 left-[-1rem] bg-white/80 backdrop-blur-sm rounded-full shadow-md"
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={handleNext}
+                                className="absolute top-1/2 -translate-y-1/2 right-[-1rem] bg-white/80 backdrop-blur-sm rounded-full shadow-md"
+                            >
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
                     </div>
                 </div>
             </div>

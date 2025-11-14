@@ -61,12 +61,14 @@ export default function CampaignsListPage() {
   const [copiedCampaignId, setCopiedCampaignId] = useState<string | null>(null);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [claimedCampaignIdsFromTicker, setClaimedCampaignIdsFromTicker] = useState<string[]>([]);
 
   useEffect(() => {
     const newlyClaimedCampaign = localStorage.getItem('newlyClaimedCampaign');
     if (newlyClaimedCampaign) {
       const campaign = JSON.parse(newlyClaimedCampaign);
       setCampaigns(prev => [campaign, ...prev]);
+      setClaimedCampaignIdsFromTicker(prev => [...prev, campaign.id]); // Add claimed campaign ID to state
       localStorage.removeItem('newlyClaimedCampaign');
     }
   }, []);
@@ -153,7 +155,7 @@ export default function CampaignsListPage() {
             />
           </div>
 
-          <ClaimableCampaignsTicker />
+          <ClaimableCampaignsTicker claimedCampaignIds={claimedCampaignIdsFromTicker} />
 
           {filteredCampaigns.length === 0 ? (
             <div className="text-center py-12">
