@@ -415,7 +415,7 @@ export default function BusinessOnboardingWizard() {
                       <Button
                         type="submit"
                         disabled={isPending || !agreedToTerms}
-                        className="bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 w-full"
+                        className="bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400"
                       >
                         {isPending && <LoadingSpinner />}
                         Submit  
