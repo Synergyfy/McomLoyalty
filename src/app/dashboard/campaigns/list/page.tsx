@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -61,6 +61,15 @@ export default function CampaignsListPage() {
   const [copiedCampaignId, setCopiedCampaignId] = useState<string | null>(null);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+
+  useEffect(() => {
+    const newlyClaimedCampaign = localStorage.getItem('newlyClaimedCampaign');
+    if (newlyClaimedCampaign) {
+      const campaign = JSON.parse(newlyClaimedCampaign);
+      setCampaigns(prev => [campaign, ...prev]);
+      localStorage.removeItem('newlyClaimedCampaign');
+    }
+  }, []);
 
   const handleCopyLink = (campaignId: string) => {
     const campaignUrl = `${window.location.origin}/campaigns/${campaignId}`;

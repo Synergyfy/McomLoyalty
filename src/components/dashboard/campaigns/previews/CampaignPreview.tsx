@@ -38,6 +38,18 @@ export default function CampaignPreview({ campaign }: CampaignPreviewProps) {
   const router = useRouter();
 
   const handleClaim = () => {
+    const newCampaign = {
+        id: campaign.id,
+        campaignName: campaign.title,
+        campaignMessage: campaign.description || '',
+        reward: { id: 'claimed-reward', title: `${campaign.pointsCost} points` },
+        rewardsAvailable: 0,
+        ctaButtonText: 'View Campaign',
+        imageUrl: campaign.heroImageUrl || '',
+        logoUrl: '',
+        status: 'active' as const,
+    };
+    localStorage.setItem('newlyClaimedCampaign', JSON.stringify(newCampaign));
     toast.success(`Campaign "${campaign.title}" has been successfully claimed!`);
     router.push('/dashboard/campaigns/list');
   };
