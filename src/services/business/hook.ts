@@ -1,5 +1,6 @@
 import api, { setBearerToken } from '../api';
-import {  Business,  BusinessLoginDto,  BusinessLoginResponse,  Sector, BusinessSignUpDto, CreateBusinessDto} from './types';
+import {  Business,  BusinessLoginDto,  BusinessLoginResponse, BusinessSignUpDto, CreateBusinessDto} from './types';
+import { SectorResponse } from '@/services/sectors/types';
 import Cookies from 'js-cookie';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
@@ -8,8 +9,11 @@ const BUSINESS_QUERY_KEY = 'business';
 
 // Business Sign-up
 
-const businessSignUp = async (signUpData: BusinessSignUpDto): Promise<Business> => {
-  const { data } = await api.post<Business>('/business/signup', signUpData);
+const businessSignUp = async (signUpData: BusinessSignUpDto): Promise<string> => {
+  const dataToSend = { ...signUpData, referralCode: signUpData.inviteCode };
+  // Remove inviteCode if it's not needed on the backend or if referralCode replaces it
+  delete dataToSend.inviteCode; 
+  const { data } = await api.post<string>('/business/signup', dataToSend);
 
   return data;
 };
@@ -27,8 +31,8 @@ export const useBusinessSignUp = () => {
 
 
 // Business onboard
-const businessOnboard = async (onboardData: CreateBusinessDto): Promise<Business> => {
-  const { data } = await api.post<Business>('/business/onboarding', onboardData);
+const businessOnboard = async (onboardData: CreateBusinessDto): Promise<string> => {
+  const { data } = await api.post<string>('/business/onboarding', onboardData);
   return data;
 };
 
@@ -46,8 +50,8 @@ export const useBusinessOnboard = () => {
 }
 
 // Get Sectors
-const getSectors = async (): Promise<Sector[]> => {
-  const { data } = await api.get<Sector[]>('/sectors');
+const getSectors = async (): Promise<SectorResponse[]> => {
+  const { data } = await api.get<SectorResponse[]>('/sectors');
   return data;
 };
 
@@ -57,6 +61,9 @@ export const useGetSectors = () => {
     queryFn: getSectors,
   });
 };
+
+
+
 
 // Business Login
 const businessSignIn = async (loginData: BusinessLoginDto): Promise<BusinessLoginResponse> => {
