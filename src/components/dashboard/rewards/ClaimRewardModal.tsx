@@ -8,7 +8,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { templateRewards } from '@/lib/mock-data/template-rewards';
-import { Reward } from '@/app/dashboard/rewards/page';
+import { Reward } from '@/services/business-reward/types';
 
 interface ClaimRewardModalProps {
   isOpen: boolean;
@@ -42,28 +42,24 @@ export default function ClaimRewardModal({
                     {reward.image && (
                       <Image
                         src={reward.image}
-                        alt={reward.name}
+                        alt={reward.title}
                         layout="fill"
                         objectFit="cover"
                       />
                     )}
                   </div>
-                  <CardTitle className="text-lg">{reward.name}</CardTitle>
+                  <CardTitle className="text-lg">{reward.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="flex-grow">
                   <p className="text-sm text-gray-600 mb-3 h-20 overflow-hidden">{reward.description}</p>
                   <div className="space-y-1 text-xs">
-                    <div className="flex justify-between">
-                      <span className="font-medium">Type:</span>
-                      <span>{reward.type}</span>
-                    </div>
                     <div className="flex justify-between">
                       <span className="font-medium">Value:</span>
                       <span>£{reward.value}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">Points:</span>
-                      <span>{reward.pointsRequired}</span>
+                      <span>{reward.points_required}</span>
                     </div>
                   </div>
                 </CardContent>
