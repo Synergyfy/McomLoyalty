@@ -22,6 +22,7 @@ const userData = {
   initials: 'BO',
   points: 1250,
   badge: 'Partner',
+  tier: 'Bronze',
   notifications: 3,
 };
 
@@ -53,6 +54,7 @@ export default function BusinessHeader({ onMenuClick }: BusinessHeaderProps) {
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-blue-500" />
             <Badge variant="secondary">{userData.badge}</Badge>
+            <Badge variant="secondary">{userData.tier}</Badge>
           </div>
         </div>
 
