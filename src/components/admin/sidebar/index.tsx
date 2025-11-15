@@ -28,15 +28,18 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
   return (
     <div
       className={`
-        fixed top-0 left-0 h-full w-64 bg-white text-gray-800 p-4 z-40 shadow-lg
+        fixed top-0 left-0 h-full w-64 bg-white text-gray-800 z-40 shadow-lg
         transform transition-transform duration-300 ease-in-out
         md:translate-x-0
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        flex flex-col
       `}
     >
-      <h2 className="text-2xl font-bold mb-6 text-orange-600">Admin Panel</h2>
+      <div className="p-4 pb-6">
+        <h2 className="text-2xl font-bold text-orange-600">Admin Panel</h2>
+      </div>
 
-      <ul className="space-y-2">
+      <ul className="space-y-2 px-4 pb-4 overflow-y-auto flex-1">
         <li>
           <Link href="/admin/dashboard" className={linkClasses("/admin/dashboard")}>
             <LayoutDashboard className="mr-3" />
