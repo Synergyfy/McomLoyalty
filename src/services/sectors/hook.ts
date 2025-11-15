@@ -107,3 +107,118 @@ export const useCreateSubCategory = () => {
     },
   });
 };
+
+// Update Sector
+const updateSector = async ({
+  id,
+  ...sectorData
+}: CreateSectorRequest & { id: string }): Promise<SectorResponse> => {
+  const { data } = await api.patch<SectorResponse>(`/sectors/${id}`, sectorData);
+  return data;
+};
+
+export const useUpdateSector = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateSector,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [SECTORS_QUERY_KEY] });
+    },
+  });
+};
+
+// Update Category
+const updateCategory = async ({
+  id,
+  ...categoryData
+}: CreateCategoryRequest & { id: string }): Promise<CategoryResponse> => {
+  const { data } = await api.patch<CategoryResponse>(`/categories/${id}`, categoryData);
+  return data;
+};
+
+export const useUpdateCategory = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateCategory,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [CATEGORIES_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [SECTORS_QUERY_KEY] });
+    },
+  });
+};
+
+// Update SubCategory
+const updateSubCategory = async ({
+  id,
+  ...subCategoryData
+}: CreateSubCategoryRequest & { id: string }): Promise<SubCategoryResponse> => {
+  const { data } = await api.patch<SubCategoryResponse>(`/subcategories/${id}`, subCategoryData);
+  return data;
+};
+
+export const useUpdateSubCategory = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateSubCategory,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [SUBCATEGORIES_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [CATEGORIES_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [SECTORS_QUERY_KEY] });
+    },
+  });
+};
+
+// Delete Sector
+const deleteSector = async (id: string): Promise<void> => {
+  await api.delete(`/sectors/${id}`);
+};
+
+export const useDeleteSector = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteSector,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [SECTORS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [CATEGORIES_QUERY_KEY] });
+    },
+  });
+};
+
+// Delete Category
+const deleteCategory = async (id: string): Promise<void> => {
+  await api.delete(`/categories/${id}`);
+};
+
+export const useDeleteCategory = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteCategory,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [CATEGORIES_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [SECTORS_QUERY_KEY] });
+    },
+  });
+};
+
+// Delete SubCategory
+const deleteSubCategory = async (id: string): Promise<void> => {
+  await api.delete(`/subcategories/${id}`);
+};
+
+export const useDeleteSubCategory = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteSubCategory,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [SUBCATEGORIES_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [CATEGORIES_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [SECTORS_QUERY_KEY] });
+    },
+  });
+};
