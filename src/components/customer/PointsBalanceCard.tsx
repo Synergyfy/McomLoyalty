@@ -6,7 +6,7 @@ import { Wallet } from '@/lib/mock-data/wallet'; // Import the Wallet interface
 import { mockCustomerData } from '@/lib/mock-data/customer';
 import { motion } from "framer-motion";
 import { Progress } from '../ui/progress';
-import { DEMO_POINTS, DEMO_POINTS_TRANSACTIONS } from '@/app/(customer)/data/customerDemoData';
+import { mockWallet } from '@/lib/mock-data/wallet';
 
 
 interface PointsBalanceCardProps {
@@ -15,12 +15,13 @@ interface PointsBalanceCardProps {
 
 export function PointsBalanceCard({ wallet }: PointsBalanceCardProps) {
 
-  const { totalPoints, matchingPoints, expiryDate } = DEMO_POINTS;
+  const { totalPoints, matchingPoints } = mockWallet;
+  const expiryDate = "2025-12-31";
 
   const utilization = useMemo(() => {
-      const spent = DEMO_POINTS_TRANSACTIONS.filter((t) => t.points < 0)
+      const spent = mockWallet.transactions.filter((t) => t.points < 0)
         .reduce((acc, t) => acc + Math.abs(t.points), 0);
-      const earned = DEMO_POINTS_TRANSACTIONS.filter((t) => t.points > 0)
+      const earned = mockWallet.transactions.filter((t) => t.points > 0)
         .reduce((acc, t) => acc + t.points, 0);
       return Math.min((spent / earned) * 100, 100);
     }, []);

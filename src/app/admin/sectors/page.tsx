@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Edit, Trash, GripVertical } from 'lucide-react';
+import { PlusCircle, Edit, Trash, GripVertical, Loader2 } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -15,7 +15,48 @@ import CategoryDialog from '@/components/admin/sectors/CategoryDialog';
 import SubCategoryDialog from '@/components/admin/sectors/SubCategoryDialog';
 import { DeleteConfirmationDialog } from '@/components/admin/sectors/DeleteConfirmationDialog';
 import Image from 'next/image';
-import { initialSectors, type Sector, type Category, type SubCategory } from '@/lib/mock-data/sectors';
+import { 
+  useCreateSector, 
+  useCreateCategory, 
+  useCreateSubCategory, 
+  useUpdateSector,
+  useUpdateCategory,
+  useUpdateSubCategory,
+  useDeleteSector,
+  useDeleteCategory,
+  useDeleteSubCategory,
+  useGetSectors, 
+  useGetCategories 
+} from '@/services/sectors/hook';
+import { SectorResponse, CategoryResponse } from '@/services/sectors/types';
+import toast from 'react-hot-toast';
+import { AxiosError } from 'axios';
+
+function isAxiosError(error: unknown): error is AxiosError {
+  return (error as AxiosError).isAxiosError !== undefined;
+}
+
+
+// Transform API types to match page structure
+type Sector = {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+  categories: Category[];
+};
+
+type Category = {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+  subCategories: SubCategory[];
+};
+
+type SubCategory = {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+};
 
 // --- Type Definitions ---
 type Item = Sector | Category | SubCategory;
@@ -43,44 +84,107 @@ type DeleteTarget = {
 }
 
 // --- Reusable Item Card ---
-const ItemCard: React.FC<ItemCardProps> = ({ item, onSelect, onEdit, onDelete, isSelected }) => (
-  <Card
-    className={`mb-2 cursor-pointer transition-all ${isSelected ? 'border-primary shadow-lg' : 'hover:shadow-md'}`}
-    onClick={onSelect}
-  >
-    <CardContent className="p-3 flex items-center justify-between">
-      <div className="flex items-center">
-        <GripVertical className="h-5 w-5 text-muted-foreground mr-2" />
-        {'icon' in item && item.icon && (item.icon.startsWith('http') || item.icon.startsWith('blob:')) ? (
-            <div className="relative h-8 w-8 mr-2 rounded-md overflow-hidden">
-                <Image src={item.icon} alt={item.name} layout="fill" objectFit="cover" />
+const ItemCard: React.FC<ItemCardProps> = ({ item, onSelect, onEdit, onDelete, isSelected }) => {
+  // Check for imageUrl or icon (for backward compatibility with mock data)
+  const imageUrl = 
+    ('imageUrl' in item && item.imageUrl && typeof item.imageUrl === 'string' ? item.imageUrl : null) ||
+    ('icon' in item && typeof item.icon === 'string' ? item.icon : null) ||
+    null;
+  const displayImage = imageUrl && (imageUrl.startsWith('http') || imageUrl.startsWith('blob:') || imageUrl.startsWith('data:'));
+  
+  return (
+    <Card
+      className={`mb-2 cursor-pointer transition-all ${isSelected ? 'border-primary shadow-lg' : 'hover:shadow-md'}`}
+      onClick={onSelect}
+    >
+      <CardContent className="p-3 flex items-center justify-between">
+        <div className="flex items-center">
+          <GripVertical className="h-5 w-5 text-muted-foreground mr-2" />
+          {displayImage && imageUrl ? (
+            <div className="relative h-8 w-8 mr-2 rounded-md overflow-hidden bg-muted">
+              <Image src={imageUrl} alt={item.name} layout="fill" objectFit="cover" />
             </div>
-        ) : (
-            'icon' in item && <span className="mr-2">{item.icon}</span>
-        )}
-        <span className="font-semibold">{item.name}</span>
-      </div>
-      <div className="flex items-center space-x-2">
-        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); onEdit(item); }}>
-          <Edit className="h-4 w-4" />
-        </Button>
-        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); onDelete(item); }}>
-          <Trash className="h-4 w-4 text-destructive" />
-        </Button>
-      </div>
-    </CardContent>
-  </Card>
-);
+          ) : null}
+          <span className="font-semibold">{item.name}</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); onEdit(item); }}>
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); onDelete(item); }}>
+            <Trash className="h-4 w-4 text-destructive" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 // --- Main Page Component ---
 export default function SectorsPage() {
-  const [sectors, setSectors] = useState<Sector[]>(initialSectors);
-  const [selectedSector, setSelectedSector] = useState<Sector | null>(sectors[0] || null);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    (sectors[0] && sectors[0].categories[0]) || null
-  );
+  // Fetch data from API
+  const { data: sectorsData, isLoading: isLoadingSectors, error: sectorsError } = useGetSectors();
+  const { data: categoriesData, isLoading: isLoadingCategories } = useGetCategories();
+
+  // Hooks for creating sectors, categories, and subcategories
+  const createSectorMutation = useCreateSector();
+  const createCategoryMutation = useCreateCategory();
+  const createSubCategoryMutation = useCreateSubCategory();
+
+  // Hooks for updating sectors, categories, and subcategories
+  const updateSectorMutation = useUpdateSector();
+  const updateCategoryMutation = useUpdateCategory();
+  const updateSubCategoryMutation = useUpdateSubCategory();
+
+  // Hooks for deleting sectors, categories, and subcategories
+  const deleteSectorMutation = useDeleteSector();
+  const deleteCategoryMutation = useDeleteCategory();
+  const deleteSubCategoryMutation = useDeleteSubCategory();
+
+  // Merge sectors and categories data to include subcategories
+  const sectors = useMemo(() => {
+    if (!sectorsData || !categoriesData) return [];
+
+    // Create a map of category ID to category with subcategories
+    const categoryMap = new Map<string, CategoryResponse>();
+    categoriesData.forEach(cat => {
+      categoryMap.set(cat.id, cat);
+    });
+
+    // Merge sectors with their categories' subcategories
+    return sectorsData.map(sector => ({
+      id: sector.id,
+      name: sector.name,
+      imageUrl: sector.imageUrl,
+      categories: sector.categories.map(cat => {
+        const categoryWithSubs = categoryMap.get(cat.id);
+        return {
+          id: cat.id,
+          name: cat.name,
+          imageUrl: cat.imageUrl,
+          subCategories: categoryWithSubs?.subCategories.map(sub => ({
+            id: sub.id,
+            name: sub.name,
+            imageUrl: sub.imageUrl,
+          })) || [],
+        };
+      }),
+    }));
+  }, [sectorsData, categoriesData]);
+
+  const [selectedSector, setSelectedSector] = useState<Sector | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 
+  // Set initial selections when data loads
+  useEffect(() => {
+    if (sectors.length > 0 && !selectedSector) {
+      setSelectedSector(sectors[0]);
+      if (sectors[0].categories.length > 0) {
+        setSelectedCategory(sectors[0].categories[0]);
+      }
+    }
+  }, [sectors, selectedSector]);
 
   const [dialogState, setDialogState] = useState<DialogState>({
     type: null,
@@ -109,139 +213,151 @@ export default function SectorsPage() {
     setDeleteTarget({ type, id: item.id, name: item.name });
   };
 
-  const executeDelete = () => {
+  const executeDelete = async () => {
     if (!deleteTarget) return;
 
-    const { type, id } = deleteTarget;
+    try {
+      const { type, id } = deleteTarget;
 
-    if (type === 'sector') {
-      setSectors(sectors.filter(s => s.id !== id));
-      if (selectedSector?.id === id) {
-        setSelectedSector(null);
-        setSelectedCategory(null);
-      }
-    } else if (type === 'category' && selectedSector) {
-      const newSectors = sectors.map(s => {
-        if (s.id === selectedSector.id) {
-          return { ...s, categories: s.categories.filter(c => c.id !== id) };
-        }
-        return s;
-      });
-      setSectors(newSectors);
-      const updatedSector = newSectors.find(s => s.id === selectedSector.id);
-      setSelectedSector(updatedSector || null);
-      if (selectedCategory?.id === id) {
-        setSelectedCategory(null);
-      }
-    } else if (type === 'subCategory' && selectedSector && selectedCategory) {
-        const newSectors = sectors.map(s => {
-            if (s.id === selectedSector.id) {
-                const newCategories = s.categories.map(c => {
-                    if (c.id === selectedCategory.id) {
-                        return { ...c, subCategories: c.subCategories.filter(sc => sc.id !== id) };
-                    }
-                    return c;
-                });
-                return { ...s, categories: newCategories };
-            }
-            return s;
-        });
-        setSectors(newSectors);
-        const updatedSector = newSectors.find(s => s.id === selectedSector.id);
-        setSelectedSector(updatedSector || null);
-        if (updatedSector) {
-            const updatedCategory = updatedSector.categories.find(c => c.id === selectedCategory.id);
-            setSelectedCategory(updatedCategory || null);
-        }
-    }
-    setDeleteTarget(null); // Close dialog after deletion
-  };
-
-  const handleSubmit = (type: DialogType, data: Partial<Item> & { name: string }) => {
-    if (data.id) { // Editing
       if (type === 'sector') {
-        const newSectors = sectors.map(s => s.id === data.id ? { ...s, ...data } as Sector : s);
-        setSectors(newSectors);
-        if(selectedSector?.id === data.id) {
-            const updatedSector = newSectors.find(s => s.id === data.id);
-            setSelectedSector(updatedSector || null);
+        await deleteSectorMutation.mutateAsync(id);
+        toast.success('Sector deleted successfully');
+        
+        // Clear selections if deleted sector was selected
+        if (selectedSector?.id === id) {
+          setSelectedSector(null);
+          setSelectedCategory(null);
         }
-      } else if (type === 'category' && selectedSector) {
-        const newSectors = sectors.map(s => {
-            if (s.id === selectedSector.id) {
-                const newCategories = s.categories.map(c => c.id === data.id ? { ...c, ...data } as Category : c);
-                return { ...s, categories: newCategories };
-            }
-            return s;
-        });
-        setSectors(newSectors);
-        const updatedSector = newSectors.find(s => s.id === selectedSector.id);
-        setSelectedSector(updatedSector || null);
-        if(selectedCategory?.id === data.id && updatedSector) {
-            const updatedCategory = updatedSector.categories.find(c => c.id === data.id);
-            setSelectedCategory(updatedCategory || null);
+      } else if (type === 'category') {
+        await deleteCategoryMutation.mutateAsync(id);
+        toast.success('Category deleted successfully');
+        
+        // Clear category selection if deleted category was selected
+        if (selectedCategory?.id === id) {
+          setSelectedCategory(null);
         }
-      } else if (type === 'subCategory' && selectedSector && selectedCategory) {
-        const newSectors = sectors.map(s => {
-            if (s.id === selectedSector.id) {
-                const newCategories = s.categories.map(c => {
-                    if (c.id === selectedCategory.id) {
-                        const newSubCategories = c.subCategories.map(sc => sc.id === data.id ? { ...sc, ...data } as SubCategory : sc);
-                        return { ...c, subCategories: newSubCategories };
-                    }
-                    return c;
-                });
-                return { ...s, categories: newCategories };
-            }
-            return s;
-        });
-        setSectors(newSectors);
-        const updatedSector = newSectors.find(s => s.id === selectedSector.id);
-        setSelectedSector(updatedSector || null);
-        if (updatedSector) {
-            const updatedCategory = updatedSector.categories.find(c => c.id === selectedCategory.id);
-            setSelectedCategory(updatedCategory || null);
-        }
+      } else if (type === 'subCategory') {
+        await deleteSubCategoryMutation.mutateAsync(id);
+        toast.success('Sub-category deleted successfully');
       }
-    } else { // Creating
-        const newItem = { ...data, id: `${type}-${Date.now()}` };
-        if (type === 'sector') {
-            setSectors([...sectors, { ...newItem, categories: [] } as Sector]);
-        } else if (type === 'category' && selectedSector) {
-            const newSectors = sectors.map(s => {
-                if (s.id === selectedSector.id) {
-                    return { ...s, categories: [...s.categories, { ...newItem, subCategories: [] } as Category] };
-                }
-                return s;
-            });
-            setSectors(newSectors);
-            const updatedSector = newSectors.find(s => s.id === selectedSector.id);
-            setSelectedSector(updatedSector || null);
-        } else if (type === 'subCategory' && selectedSector && selectedCategory) {
-            const newSectors = sectors.map(s => {
-                if (s.id === selectedSector.id) {
-                    const newCategories = s.categories.map(c => {
-                        if (c.id === selectedCategory.id) {
-                            return { ...c, subCategories: [...c.subCategories, newItem as SubCategory] };
-                        }
-                        return c;
-                    });
-                    return { ...s, categories: newCategories };
-                }
-                return s;
-            });
-            setSectors(newSectors);
-            const updatedSector = newSectors.find(s => s.id === selectedSector.id);
-            setSelectedSector(updatedSector || null);
-            if (updatedSector) {
-                const updatedCategory = updatedSector.categories.find(c => c.id === selectedCategory.id);
-                setSelectedCategory(updatedCategory || null);
-            }
-        }
+
+      setDeleteTarget(null);
+    } catch (error: unknown) {
+      let errorMessage = 'Failed to delete item';
+      if (isAxiosError(error)) {
+        errorMessage = (error.response?.data as { message: string })?.message || error.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
+      // Don't close the dialog on error so user can retry
     }
-    closeDialog();
   };
 
+  const handleSubmit = async (type: DialogType, data: Partial<Item> & { name: string; imageUrl?: string; sectorId?: string; categoryId?: string }) => {
+    try {
+      if (type === 'sector') {
+        if (!data.name || !data.imageUrl) {
+          toast.error('Name and image are required');
+          return;
+        }
+
+        if (data.id) {
+          // Editing sector
+          await updateSectorMutation.mutateAsync({
+            id: data.id,
+            name: data.name,
+            imageUrl: data.imageUrl,
+          });
+          toast.success('Sector updated successfully');
+        } else {
+          // Creating sector
+          await createSectorMutation.mutateAsync({
+            name: data.name,
+            imageUrl: data.imageUrl,
+          });
+          toast.success('Sector created successfully');
+        }
+        closeDialog();
+      } else if (type === 'category') {
+        const sectorId = data.sectorId || selectedSector?.id;
+        if (!data.name || !data.imageUrl || !sectorId) {
+          toast.error('Name, image, and sector selection are required');
+          return;
+        }
+
+        if (data.id) {
+          // Editing category
+          await updateCategoryMutation.mutateAsync({
+            id: data.id,
+            name: data.name,
+            imageUrl: data.imageUrl,
+            sectorId,
+          });
+          toast.success('Category updated successfully');
+        } else {
+          // Creating category
+          await createCategoryMutation.mutateAsync({
+            name: data.name,
+            imageUrl: data.imageUrl,
+            sectorId,
+          });
+          toast.success('Category created successfully');
+        }
+        closeDialog();
+      } else if (type === 'subCategory') {
+        const categoryId = data.categoryId || selectedCategory?.id;
+        if (!data.name || !data.imageUrl || !categoryId) {
+          toast.error('Name, image, and category selection are required');
+          return;
+        }
+
+        if (data.id) {
+          // Editing subcategory
+          await updateSubCategoryMutation.mutateAsync({
+            id: data.id,
+            name: data.name,
+            imageUrl: data.imageUrl,
+            categoryId,
+          });
+          toast.success('Sub-category updated successfully');
+        } else {
+          // Creating subcategory
+          await createSubCategoryMutation.mutateAsync({
+            name: data.name,
+            imageUrl: data.imageUrl,
+            categoryId,
+          });
+          toast.success('Sub-category created successfully');
+        }
+        closeDialog();
+      }
+    } catch (error: unknown) {
+      let errorMessage = `Failed to ${data.id ? 'update' : 'create'} item`;
+      if (isAxiosError(error)) {
+        errorMessage = (error.response?.data as { message: string })?.message || error.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
+    }
+  };
+
+
+  const isLoading = isLoadingSectors || isLoadingCategories;
+
+  if (sectorsError) {
+    return (
+      <div className="space-y-6 p-4 md:p-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <p className="text-destructive mb-4">Failed to load sectors data</p>
+            <Button onClick={() => window.location.reload()}>Retry</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 p-4 md:p-8">
@@ -254,7 +370,12 @@ export default function SectorsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {isLoading ? (
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* --- Sectors Column --- */}
         <Card className="lg:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between">
@@ -345,28 +466,108 @@ export default function SectorsPage() {
             )}
           </CardContent>
         </Card>
-      </div>
+        </div>
+      )}
 
       {/* Dialogs */} 
       <SectorDialog
         isOpen={dialogState.type === 'sector' && dialogState.isOpen}
         onClose={closeDialog}
         onSubmit={(data) => handleSubmit('sector', data)}
-        sector={dialogState.data as Sector | null}
+        sector={dialogState.data ? (() => {
+          const imgUrl = ('imageUrl' in dialogState.data && dialogState.data.imageUrl && typeof dialogState.data.imageUrl === 'string') 
+            ? dialogState.data.imageUrl 
+            : (('icon' in dialogState.data && typeof dialogState.data.icon === 'string') ? dialogState.data.icon : '');
+          return {
+            id: dialogState.data.id,
+            name: dialogState.data.name,
+            imageUrl: imgUrl || '',
+          };
+        })() : null}
       />
       <CategoryDialog
         isOpen={dialogState.type === 'category' && dialogState.isOpen}
         onClose={closeDialog}
         onSubmit={(data) => handleSubmit('category', data)}
-        category={dialogState.data as Category | null}
+        category={dialogState.data ? (() => {
+          const imgUrl = ('imageUrl' in dialogState.data && dialogState.data.imageUrl && typeof dialogState.data.imageUrl === 'string') 
+            ? dialogState.data.imageUrl 
+            : (('icon' in dialogState.data && typeof dialogState.data.icon === 'string') ? dialogState.data.icon : '');
+          
+          // Find sectorId from sectors data if not in dialogState.data
+          let sectorId = ('sectorId' in dialogState.data && typeof dialogState.data.sectorId === 'string') 
+            ? dialogState.data.sectorId 
+            : undefined;
+          
+          if (!sectorId && dialogState.data.id) {
+            // Find which sector contains this category
+            const foundSector = sectors.find(s => 
+              s.categories.some(c => c.id === dialogState.data?.id)
+            );
+            sectorId = foundSector?.id;
+          }
+          
+          return {
+            id: dialogState.data.id,
+            name: dialogState.data.name,
+            imageUrl: imgUrl || '',
+            sectorId,
+          };
+        })() : null}
         sectorName={selectedSector?.name}
+        sectorId={selectedSector?.id || (dialogState.data && dialogState.type === 'category' ? (() => {
+          const foundSector = sectors.find(s => 
+            s.categories.some(c => c.id === dialogState.data?.id)
+          );
+          return foundSector?.id;
+        })() : undefined)}
       />
       <SubCategoryDialog
         isOpen={dialogState.type === 'subCategory' && dialogState.isOpen}
         onClose={closeDialog}
         onSubmit={(data) => handleSubmit('subCategory', data)}
-        subCategory={dialogState.data as SubCategory | null}
+        subCategory={dialogState.data ? (() => {
+          const imgUrl = ('imageUrl' in dialogState.data && dialogState.data.imageUrl && typeof dialogState.data.imageUrl === 'string') 
+            ? dialogState.data.imageUrl 
+            : '';
+          
+          // Find categoryId from sectors data if not in dialogState.data
+          let categoryId = ('categoryId' in dialogState.data && typeof dialogState.data.categoryId === 'string') 
+            ? dialogState.data.categoryId 
+            : undefined;
+          
+          if (!categoryId && dialogState.data.id) {
+            // Find which category contains this subcategory
+            for (const sector of sectors) {
+              const foundCategory = sector.categories.find(c => 
+                c.subCategories.some(sc => sc.id === dialogState.data?.id)
+              );
+              if (foundCategory) {
+                categoryId = foundCategory.id;
+                break;
+              }
+            }
+          }
+          
+          return {
+            id: dialogState.data.id,
+            name: dialogState.data.name,
+            imageUrl: imgUrl || '',
+            categoryId,
+          };
+        })() : null}
         categoryName={selectedCategory?.name}
+        categoryId={selectedCategory?.id || (dialogState.data && dialogState.type === 'subCategory' ? (() => {
+          for (const sector of sectors) {
+            const foundCategory = sector.categories.find(c => 
+              c.subCategories.some(sc => sc.id === dialogState.data?.id)
+            );
+            if (foundCategory) {
+              return foundCategory.id;
+            }
+          }
+          return undefined;
+        })() : undefined)}
       />
       <DeleteConfirmationDialog
         isOpen={!!deleteTarget}
