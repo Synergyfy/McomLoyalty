@@ -84,8 +84,12 @@ export default function SubCategoryDialog({ isOpen, onClose, onSubmit, subCatego
       setIsUploading(true);
       try {
         finalImageUrl = await uploadImageToCloudinary(imageFile);
-      } catch (error: any) {
-        toast.error(error.message || 'Failed to upload image');
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          toast.error(error.message || 'Failed to upload image');
+        } else {
+          toast.error('Failed to upload image');
+        }
         setIsUploading(false);
         return;
       }

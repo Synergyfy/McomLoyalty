@@ -30,6 +30,12 @@ import {
 } from '@/services/sectors/hook';
 import { SectorResponse, CategoryResponse } from '@/services/sectors/types';
 import toast from 'react-hot-toast';
+import { AxiosError } from 'axios';
+
+function isAxiosError(error: unknown): error is AxiosError {
+  return (error as AxiosError).isAxiosError !== undefined;
+}
+
 
 // Transform API types to match page structure
 type Sector = {
@@ -236,8 +242,13 @@ export default function SectorsPage() {
       }
 
       setDeleteTarget(null);
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete item';
+    } catch (error: unknown) {
+      let errorMessage = 'Failed to delete item';
+      if (isAxiosError(error)) {
+        errorMessage = (error.response?.data as { message: string })?.message || error.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       toast.error(errorMessage);
       // Don't close the dialog on error so user can retry
     }
@@ -321,8 +332,13 @@ export default function SectorsPage() {
         }
         closeDialog();
       }
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || `Failed to ${data.id ? 'update' : 'create'} item`;
+    } catch (error: unknown) {
+      let errorMessage = `Failed to ${data.id ? 'update' : 'create'} item`;
+      if (isAxiosError(error)) {
+        errorMessage = (error.response?.data as { message: string })?.message || error.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       toast.error(errorMessage);
     }
   };
