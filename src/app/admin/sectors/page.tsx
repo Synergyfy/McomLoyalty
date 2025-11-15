@@ -15,9 +15,27 @@ import CategoryDialog from '@/components/admin/sectors/CategoryDialog';
 import SubCategoryDialog from '@/components/admin/sectors/SubCategoryDialog';
 import { DeleteConfirmationDialog } from '@/components/admin/sectors/DeleteConfirmationDialog';
 import Image from 'next/image';
-import { useCreateSector, useCreateCategory, useCreateSubCategory, useGetSectors, useGetCategories } from '@/services/sectors/hook';
+import { 
+  useCreateSector, 
+  useCreateCategory, 
+  useCreateSubCategory, 
+  useUpdateSector,
+  useUpdateCategory,
+  useUpdateSubCategory,
+  useDeleteSector,
+  useDeleteCategory,
+  useDeleteSubCategory,
+  useGetSectors, 
+  useGetCategories 
+} from '@/services/sectors/hook';
 import { SectorResponse, CategoryResponse } from '@/services/sectors/types';
 import toast from 'react-hot-toast';
+import { AxiosError } from 'axios';
+
+function isAxiosError(error: unknown): error is AxiosError {
+  return (error as AxiosError).isAxiosError !== undefined;
+}
+
 
 // Transform API types to match page structure
 type Sector = {
@@ -113,6 +131,16 @@ export default function SectorsPage() {
   const createCategoryMutation = useCreateCategory();
   const createSubCategoryMutation = useCreateSubCategory();
 
+  // Hooks for updating sectors, categories, and subcategories
+  const updateSectorMutation = useUpdateSector();
+  const updateCategoryMutation = useUpdateCategory();
+  const updateSubCategoryMutation = useUpdateSubCategory();
+
+  // Hooks for deleting sectors, categories, and subcategories
+  const deleteSectorMutation = useDeleteSector();
+  const deleteCategoryMutation = useDeleteCategory();
+  const deleteSubCategoryMutation = useDeleteSubCategory();
+
   // Merge sectors and categories data to include subcategories
   const sectors = useMemo(() => {
     if (!sectorsData || !categoriesData) return [];
@@ -185,61 +213,132 @@ export default function SectorsPage() {
     setDeleteTarget({ type, id: item.id, name: item.name });
   };
 
-  const executeDelete = () => {
+  const executeDelete = async () => {
     if (!deleteTarget) return;
-    // TODO: Implement delete functionality when endpoints are available
-    toast.error('Delete functionality not yet implemented');
-    setDeleteTarget(null);
+
+    try {
+      const { type, id } = deleteTarget;
+
+      if (type === 'sector') {
+        await deleteSectorMutation.mutateAsync(id);
+        toast.success('Sector deleted successfully');
+        
+        // Clear selections if deleted sector was selected
+        if (selectedSector?.id === id) {
+          setSelectedSector(null);
+          setSelectedCategory(null);
+        }
+      } else if (type === 'category') {
+        await deleteCategoryMutation.mutateAsync(id);
+        toast.success('Category deleted successfully');
+        
+        // Clear category selection if deleted category was selected
+        if (selectedCategory?.id === id) {
+          setSelectedCategory(null);
+        }
+      } else if (type === 'subCategory') {
+        await deleteSubCategoryMutation.mutateAsync(id);
+        toast.success('Sub-category deleted successfully');
+      }
+
+      setDeleteTarget(null);
+    } catch (error: unknown) {
+      let errorMessage = 'Failed to delete item';
+      if (isAxiosError(error)) {
+        errorMessage = (error.response?.data as { message: string })?.message || error.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
+      // Don't close the dialog on error so user can retry
+    }
   };
 
   const handleSubmit = async (type: DialogType, data: Partial<Item> & { name: string; imageUrl?: string; sectorId?: string; categoryId?: string }) => {
-    if (data.id) { 
-      // Editing - TODO: Implement edit functionality when endpoints are available
-      toast.error('Edit functionality not yet implemented');
-      closeDialog();
-      return;
-    }
-
-    // Creating new items
     try {
       if (type === 'sector') {
         if (!data.name || !data.imageUrl) {
           toast.error('Name and image are required');
           return;
         }
-        await createSectorMutation.mutateAsync({
-          name: data.name,
-          imageUrl: data.imageUrl,
-        });
-        toast.success('Sector created successfully');
+
+        if (data.id) {
+          // Editing sector
+          await updateSectorMutation.mutateAsync({
+            id: data.id,
+            name: data.name,
+            imageUrl: data.imageUrl,
+          });
+          toast.success('Sector updated successfully');
+        } else {
+          // Creating sector
+          await createSectorMutation.mutateAsync({
+            name: data.name,
+            imageUrl: data.imageUrl,
+          });
+          toast.success('Sector created successfully');
+        }
         closeDialog();
-      } else if (type === 'category' && selectedSector) {
-        if (!data.name || !data.imageUrl || !selectedSector.id) {
+      } else if (type === 'category') {
+        const sectorId = data.sectorId || selectedSector?.id;
+        if (!data.name || !data.imageUrl || !sectorId) {
           toast.error('Name, image, and sector selection are required');
           return;
         }
-        await createCategoryMutation.mutateAsync({
-          name: data.name,
-          imageUrl: data.imageUrl,
-          sectorId: selectedSector.id,
-        });
-        toast.success('Category created successfully');
+
+        if (data.id) {
+          // Editing category
+          await updateCategoryMutation.mutateAsync({
+            id: data.id,
+            name: data.name,
+            imageUrl: data.imageUrl,
+            sectorId,
+          });
+          toast.success('Category updated successfully');
+        } else {
+          // Creating category
+          await createCategoryMutation.mutateAsync({
+            name: data.name,
+            imageUrl: data.imageUrl,
+            sectorId,
+          });
+          toast.success('Category created successfully');
+        }
         closeDialog();
-      } else if (type === 'subCategory' && selectedCategory) {
-        if (!data.name || !data.imageUrl || !selectedCategory.id) {
+      } else if (type === 'subCategory') {
+        const categoryId = data.categoryId || selectedCategory?.id;
+        if (!data.name || !data.imageUrl || !categoryId) {
           toast.error('Name, image, and category selection are required');
           return;
         }
-        await createSubCategoryMutation.mutateAsync({
-          name: data.name,
-          imageUrl: data.imageUrl,
-          categoryId: selectedCategory.id,
-        });
-        toast.success('Sub-category created successfully');
+
+        if (data.id) {
+          // Editing subcategory
+          await updateSubCategoryMutation.mutateAsync({
+            id: data.id,
+            name: data.name,
+            imageUrl: data.imageUrl,
+            categoryId,
+          });
+          toast.success('Sub-category updated successfully');
+        } else {
+          // Creating subcategory
+          await createSubCategoryMutation.mutateAsync({
+            name: data.name,
+            imageUrl: data.imageUrl,
+            categoryId,
+          });
+          toast.success('Sub-category created successfully');
+        }
         closeDialog();
       }
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create item';
+    } catch (error: unknown) {
+      let errorMessage = `Failed to ${data.id ? 'update' : 'create'} item`;
+      if (isAxiosError(error)) {
+        errorMessage = (error.response?.data as { message: string })?.message || error.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       toast.error(errorMessage);
     }
   };
@@ -394,15 +493,34 @@ export default function SectorsPage() {
           const imgUrl = ('imageUrl' in dialogState.data && dialogState.data.imageUrl && typeof dialogState.data.imageUrl === 'string') 
             ? dialogState.data.imageUrl 
             : (('icon' in dialogState.data && typeof dialogState.data.icon === 'string') ? dialogState.data.icon : '');
+          
+          // Find sectorId from sectors data if not in dialogState.data
+          let sectorId = ('sectorId' in dialogState.data && typeof dialogState.data.sectorId === 'string') 
+            ? dialogState.data.sectorId 
+            : undefined;
+          
+          if (!sectorId && dialogState.data.id) {
+            // Find which sector contains this category
+            const foundSector = sectors.find(s => 
+              s.categories.some(c => c.id === dialogState.data?.id)
+            );
+            sectorId = foundSector?.id;
+          }
+          
           return {
             id: dialogState.data.id,
             name: dialogState.data.name,
             imageUrl: imgUrl || '',
-            sectorId: ('sectorId' in dialogState.data && typeof dialogState.data.sectorId === 'string') ? dialogState.data.sectorId : undefined,
+            sectorId,
           };
         })() : null}
         sectorName={selectedSector?.name}
-        sectorId={selectedSector?.id}
+        sectorId={selectedSector?.id || (dialogState.data && dialogState.type === 'category' ? (() => {
+          const foundSector = sectors.find(s => 
+            s.categories.some(c => c.id === dialogState.data?.id)
+          );
+          return foundSector?.id;
+        })() : undefined)}
       />
       <SubCategoryDialog
         isOpen={dialogState.type === 'subCategory' && dialogState.isOpen}
@@ -412,15 +530,44 @@ export default function SectorsPage() {
           const imgUrl = ('imageUrl' in dialogState.data && dialogState.data.imageUrl && typeof dialogState.data.imageUrl === 'string') 
             ? dialogState.data.imageUrl 
             : '';
+          
+          // Find categoryId from sectors data if not in dialogState.data
+          let categoryId = ('categoryId' in dialogState.data && typeof dialogState.data.categoryId === 'string') 
+            ? dialogState.data.categoryId 
+            : undefined;
+          
+          if (!categoryId && dialogState.data.id) {
+            // Find which category contains this subcategory
+            for (const sector of sectors) {
+              const foundCategory = sector.categories.find(c => 
+                c.subCategories.some(sc => sc.id === dialogState.data?.id)
+              );
+              if (foundCategory) {
+                categoryId = foundCategory.id;
+                break;
+              }
+            }
+          }
+          
           return {
             id: dialogState.data.id,
             name: dialogState.data.name,
             imageUrl: imgUrl || '',
-            categoryId: ('categoryId' in dialogState.data && typeof dialogState.data.categoryId === 'string') ? dialogState.data.categoryId : undefined,
+            categoryId,
           };
         })() : null}
         categoryName={selectedCategory?.name}
-        categoryId={selectedCategory?.id}
+        categoryId={selectedCategory?.id || (dialogState.data && dialogState.type === 'subCategory' ? (() => {
+          for (const sector of sectors) {
+            const foundCategory = sector.categories.find(c => 
+              c.subCategories.some(sc => sc.id === dialogState.data?.id)
+            );
+            if (foundCategory) {
+              return foundCategory.id;
+            }
+          }
+          return undefined;
+        })() : undefined)}
       />
       <DeleteConfirmationDialog
         isOpen={!!deleteTarget}
