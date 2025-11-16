@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Building2, User, ArrowLeft } from "lucide-react";
-import CustomerSignupPage from "@/components/forms/CustomerSignupForm";
-import BusinessSignupForm from "@/components/forms/BusinessSignupForm";
+import CustomerSignupPage from "@/components/Forms/CustomerSignupForm";
+import BusinessSignupForm from "@/components/Forms/BusinessSignupForm";
 import Link from "next/link";
 
 export default function SignupLayout() {
