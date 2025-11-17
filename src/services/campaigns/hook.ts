@@ -1,6 +1,10 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import api from '../api';
-import { CreateCampaignRequest, CampaignResponse } from './types';
+import {
+  CreateCampaignRequest,
+  CampaignResponse,
+  PaginatedCampaignsResponse,
+} from './types';
 
 const CAMPAIGNS_QUERY_KEY = 'campaigns';
 
@@ -18,5 +22,32 @@ export const useCreateCampaign = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [CAMPAIGNS_QUERY_KEY] });
     },
+  });
+};
+
+// Get All Campaigns By Business
+const getAllCampaignsByBusiness = async (
+  businessId: string,
+  page: number,
+  limit: number,
+): Promise<PaginatedCampaignsResponse> => {
+  const { data } = await api.get<PaginatedCampaignsResponse>(
+    `/campaigns/business/${businessId}`,
+    {
+      params: { page, limit },
+    },
+  );
+  return data;
+};
+
+export const useGetAllCampaignsByBusiness = (
+  businessId: string,
+  page: number,
+  limit: number,
+) => {
+  return useQuery({
+    queryKey: [CAMPAIGNS_QUERY_KEY, 'business', businessId, { page, limit }],
+    queryFn: () => getAllCampaignsByBusiness(businessId, page, limit),
+    enabled: !!businessId,
   });
 };
