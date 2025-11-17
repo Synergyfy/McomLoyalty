@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { FcGoogle } from "react-icons/fc";
-import { toast } from "sonner";
-import { useAuth } from "@/services/business/hook";
+import { toast } from "sonner"; // or your toast lib (shadcn, react-hot-toast, etc.)
+import { useBusinessSignIn } from "@/services/business/hook";
 import { useRouter } from "next/navigation";
 
 type LoginFormData = {
@@ -25,13 +25,22 @@ export default function BusinessLoginPage() {
   } = useForm<LoginFormData>({
     defaultValues: { rememberMe: false },
   });
-  const { mutate: login } = useAuth();
+  const { mutate: businessSignin } = useBusinessSignIn();
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+  const onboard = false
 
   const onSubmit = async (data: LoginFormData) => {
+
     try {
-      await login(data);
+      console.log("Logging in:", data);
+      businessSignin(data);
       toast.success("Login successful! Redirecting...");
+      if (!onboard) {
+        router.push("/business/onboard");
+      } else {
+        router.push("/business/dashboard");
+      }
     } catch (error) {
       console.error("Login error:", error);
       toast.error("Login failed. Please try again.");
@@ -40,6 +49,7 @@ export default function BusinessLoginPage() {
 
   const handleGoogleLogin = async () => {
     try {
+      // Example: await signIn("google");
       toast.info("Redirecting to Google...");
     } catch {
       toast.error("Failed to sign in with Google.");
@@ -56,6 +66,7 @@ export default function BusinessLoginPage() {
           Log in to manage your vouchers and rewards
         </p>
 
+        {/* Google Login */}
         <Button
           type="button"
           onClick={handleGoogleLogin}
@@ -72,6 +83,7 @@ export default function BusinessLoginPage() {
           <div className="flex-1 h-px bg-gray-300" />
         </div>
 
+        {/* Email Login Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
             <Label htmlFor="email">Email Address</Label>
@@ -112,6 +124,7 @@ export default function BusinessLoginPage() {
             )}
           </div>
 
+          {/* Remember me */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Switch id="rememberMe" />
