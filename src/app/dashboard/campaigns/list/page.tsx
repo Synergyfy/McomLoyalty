@@ -11,12 +11,12 @@ import { PlusCircle, Pencil } from 'lucide-react';
 import {
   useGetMyCampaigns,
   useGetAddedAdminCampaigns,
-  useGetUnaddedAdminCampaigns,
 } from '@/services/campaigns/hook';
 import { Campaign, PaginatedCampaignResponse } from '@/services/campaigns/types';
 import ClaimCampaignModal from '@/components/dashboard/campaigns/ClaimCampaignModal';
 import UpgradePlanModal from '@/components/dashboard/rewards/UpgradePlanModal';
 import { CampaignTemplate } from '@/lib/mock-data/template-campaigns';
+import { UnaddedCampaignsTicker } from '@/components/dashboard/campaigns/UnaddedCampaignsTicker';
 
 const CampaignCard = ({ campaign }: { campaign: Campaign }) => {
   const [copied, setCopied] = useState(false);
@@ -170,17 +170,19 @@ const PaginationControls = ({
 const CampaignSection = ({
   title,
   description,
-  data,
+  campaigns,
   isLoading,
   page,
   setPage,
+  paginationData,
 }: {
   title: string;
   description?: string;
-  data: PaginatedCampaignResponse | undefined;
+  campaigns: Campaign[];
   isLoading: boolean;
   page: number;
   setPage: (page: number) => void;
+  paginationData: PaginatedCampaignResponse | undefined;
 }) => {
   return (
     <div className="mb-12">
@@ -190,14 +192,14 @@ const CampaignSection = ({
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">Loading campaigns...</p>
         </div>
-      ) : data?.data && data.data.length > 0 ? (
+      ) : campaigns.length > 0 ? (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {data.data.map((campaign) => (
+            {campaigns.map((campaign) => (
               <CampaignCard key={campaign.id} campaign={campaign} />
             ))}
           </div>
-          <PaginationControls data={data} page={page} setPage={setPage} />
+          <PaginationControls data={paginationData} page={page} setPage={setPage} />
         </>
       ) : (
         <div className="text-center py-12">
@@ -217,7 +219,6 @@ export default function CampaignsListPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [myCampaignsPage, setMyCampaignsPage] = useState(1);
   const [addedCampaignsPage, setAddedCampaignsPage] = useState(1);
-  const [unaddedCampaignsPage, setUnaddedCampaignsPage] = useState(1);
 
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
@@ -226,8 +227,24 @@ export default function CampaignsListPage() {
     useGetMyCampaigns(myCampaignsPage);
   const { data: addedCampaignsData, isLoading: isLoadingAddedCampaigns } =
     useGetAddedAdminCampaigns(addedCampaignsPage);
-  const { data: unaddedCampaignsData, isLoading: isLoadingUnaddedCampaigns } =
-    useGetUnaddedAdminCampaigns(unaddedCampaignsPage);
+
+  const filterCampaigns = (campaigns: Campaign[] | undefined) => {
+    if (!campaigns) return [];
+    return campaigns.filter(
+      (campaign) =>
+        campaign.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        campaign.campaign_message.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
+
+  const filteredMyCampaigns = useMemo(
+    () => filterCampaigns(myCampaignsData?.data),
+    [searchTerm, myCampaignsData]
+  );
+  const filteredAddedCampaigns = useMemo(
+    () => filterCampaigns(addedCampaignsData?.data),
+    [searchTerm, addedCampaignsData]
+  );
 
   const handleCreateFromScratch = useCallback(() => {
     setIsClaimModalOpen(false);
@@ -267,30 +284,25 @@ export default function CampaignsListPage() {
             />
           </div>
 
-          <CampaignSection
-            title="Campaigns Ready to Claim!"
-            description="These are campaigns created by the admin that you can add to your list."
-            data={unaddedCampaignsData}
-            isLoading={isLoadingUnaddedCampaigns}
-            page={unaddedCampaignsPage}
-            setPage={setUnaddedCampaignsPage}
-          />
+          <UnaddedCampaignsTicker />
 
           <CampaignSection
             title="Campaigns Added from Admin"
             description="These are campaigns created by the admin that you have added."
-            data={addedCampaignsData}
+            campaigns={filteredAddedCampaigns}
             isLoading={isLoadingAddedCampaigns}
             page={addedCampaignsPage}
             setPage={setAddedCampaignsPage}
+            paginationData={addedCampaignsData}
           />
 
           <CampaignSection
             title="My Created Campaigns"
-            data={myCampaignsData}
+            campaigns={filteredMyCampaigns}
             isLoading={isLoadingMyCampaigns}
             page={myCampaignsPage}
             setPage={setMyCampaignsPage}
+            paginationData={myCampaignsData}
           />
         </div>
       </div>
