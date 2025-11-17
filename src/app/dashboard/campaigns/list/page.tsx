@@ -9,6 +9,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ClaimableCampaignsTicker } from '@/components/customer/ClaimableCampaignsTicker';
 import { PlusCircle, Pencil } from 'lucide-react';
+import { useGetAllCampaignsByBusiness } from '@/services/campaigns/hook';
 import ClaimCampaignModal from '@/components/dashboard/campaigns/ClaimCampaignModal';
 import UpgradePlanModal from '@/components/dashboard/rewards/UpgradePlanModal';
 import { CampaignTemplate } from '@/lib/mock-data/template-campaigns';
@@ -18,60 +19,22 @@ const currentUser = {
   plan: 'starter', // 'starter', 'co-branded', 'white-label'
 };
 
-// Mock data for prototype
-const mockCampaigns = [
-  {
-    id: '1',
-    campaignName: 'Summer Sale Spectacular',
-    campaignMessage: 'Get ready for our biggest sale of the season! Earn double points on all purchases.',
-    reward: { id: '1', title: 'Summer Voucher ($50)' },
-    rewardsAvailable: 100,
-    ctaButtonText: 'Claim Reward',
-    imageUrl: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    logoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=2564&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    status: 'active',
-  },
-  {
-    id: '2',
-    campaignName: 'Refer a Friend, Get $100',
-    campaignMessage: 'Invite your friends to join and you both get a $100 gift card on us!',
-    reward: { id: '2', title: 'Gift Card ($100)' },
-    rewardsAvailable: 50,
-    ctaButtonText: 'Refer & Earn',
-    imageUrl: 'https://images.unsplash.com/photo-1529592691919-7a6aa481f520?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    logoUrl: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?q=80&w=2572&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    status: 'active',
-  },
-  {
-    id: '3',
-    campaignName: 'Holiday Joy Campaign',
-    campaignMessage: 'Spread the holiday cheer with 20% off your next purchase.',
-    reward: { id: '3', title: 'Discount Coupon (20% off)' },
-    rewardsAvailable: 200,
-    ctaButtonText: 'Join Now',
-    imageUrl: 'https://images.unsplash.com/photo-1577985051167-5d8571a29a2e?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    logoUrl: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    status: 'expired',
-  },
-];
+const businessId = 'f9f2b2b2-b2b2-4b2b-b2b2-b2b2b2b2b2b2';
 
 export default function CampaignsListPage() {
-  const [campaigns, setCampaigns] = useState(mockCampaigns);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const { data: campaignsData, isLoading } = useGetAllCampaignsByBusiness(
+    businessId,
+    page,
+    limit,
+  );
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedCampaignId, setCopiedCampaignId] = useState<string | null>(null);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
-  const [claimedCampaignIdsFromTicker, setClaimedCampaignIdsFromTicker] = useState<string[]>([]);
-
-  useEffect(() => {
-    const newlyClaimedCampaign = localStorage.getItem('newlyClaimedCampaign');
-    if (newlyClaimedCampaign) {
-      const campaign = JSON.parse(newlyClaimedCampaign);
-      setCampaigns(prev => [campaign, ...prev]);
-      setClaimedCampaignIdsFromTicker(prev => [...prev, campaign.id]); // Add claimed campaign ID to state
-      localStorage.removeItem('newlyClaimedCampaign');
-    }
-  }, []);
+  const [claimedCampaignIdsFromTicker, setClaimedCampaignIdsFromTicker] =
+    useState<string[]>([]);
 
   const handleCopyLink = (campaignId: string) => {
     const campaignUrl = `${window.location.origin}/campaigns/${campaignId}`;
@@ -89,18 +52,7 @@ export default function CampaignsListPage() {
   const handleCreateFromScratch = useCallback(() => {
     setIsClaimModalOpen(false);
     if (currentUser.plan === 'white-label') {
-      const newCampaign = {
-        id: `biz-camp-${new Date().getTime()}`,
-        campaignName: 'New Blank Campaign',
-        campaignMessage: 'This campaign was created from scratch.',
-        reward: { id: 'new-reward', title: 'Custom Reward' },
-        rewardsAvailable: 100,
-        ctaButtonText: 'Learn More',
-        imageUrl: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&h=300&fit=crop',
-        logoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=2564&auto=format&fit=crop',
-        status: 'active' as const,
-      };
-      setCampaigns(prev => [newCampaign, ...prev]);
+      // TODO: Handle campaign creation
     } else {
       setIsUpgradeModalOpen(true);
     }
@@ -108,28 +60,20 @@ export default function CampaignsListPage() {
 
   const handleSelectTemplate = useCallback((template: CampaignTemplate) => {
     setIsClaimModalOpen(false);
-    const newCampaign = {
-      id: `biz-camp-${new Date().getTime()}`,
-      campaignName: template.title,
-      campaignMessage: template.description,
-      reward: { id: 'template-reward', title: 'Pre-defined Reward' },
-      rewardsAvailable: 150,
-      ctaButtonText: 'Claim Offer',
-      imageUrl: template.imageUrl,
-      logoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=2564&auto=format&fit=crop',
-      status: 'active' as const,
-    };
-    setCampaigns(prev => [newCampaign, ...prev]);
+    // TODO: Handle campaign creation from template
   }, []);
 
   const filteredCampaigns = useMemo(() => {
-    return campaigns.filter((campaign) => {
+    if (!campaignsData) return [];
+    return campaignsData.data.filter(campaign => {
       const matchesSearch =
-        campaign.campaignName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        campaign.campaignMessage.toLowerCase().includes(searchTerm.toLowerCase());
+        campaign.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        campaign.campaign_message
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
       return matchesSearch;
     });
-  }, [searchTerm, campaigns]);
+  }, [searchTerm, campaignsData]);
 
   return (
     <>
@@ -157,35 +101,46 @@ export default function CampaignsListPage() {
 
           <ClaimableCampaignsTicker claimedCampaignIds={claimedCampaignIdsFromTicker} />
 
-          {filteredCampaigns.length === 0 ? (
+          {isLoading ? (
             <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">No campaigns found. Create your first campaign!</p>
+              <p className="text-gray-500 text-lg">Loading campaigns...</p>
+            </div>
+          ) : filteredCampaigns.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">
+                No campaigns found. Create your first campaign!
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredCampaigns.map((campaign) => (
+              {filteredCampaigns.map(campaign => (
                 <Card
                   key={campaign.id}
                   className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 transform hover:-translate-y-1 transition-transform duration-300"
                 >
                   <div className="relative h-48 w-full overflow-hidden bg-gray-200">
-                    {campaign.imageUrl && (
-                      <Image src={campaign.imageUrl} alt={campaign.campaignName} layout="fill" objectFit="cover" />
+                    {campaign.banner_url && (
+                      <Image
+                        src={campaign.banner_url}
+                        alt={campaign.name}
+                        layout="fill"
+                        objectFit="cover"
+                      />
                     )}
                     <Badge
-                      variant={campaign.status === 'active' ? 'default' : 'secondary'}
+                      variant={!campaign.disabled ? 'default' : 'secondary'}
                       className="absolute top-3 right-3 text-sm px-3 py-1"
                     >
-                      {campaign.status === 'active' ? 'Active' : 'Expired'}
+                      {!campaign.disabled ? 'Active' : 'Expired'}
                     </Badge>
                   </div>
                   <div className="relative px-5">
                     <div className="absolute -top-12 left-1/2 -translate-x-1/2">
                       <div className="relative h-24 w-24 rounded-full overflow-hidden border-4 border-white bg-gray-300 shadow-md">
-                        {campaign.logoUrl ? (
+                        {campaign.business.logoUrl ? (
                           <Image
-                            src={campaign.logoUrl}
-                            alt={`${campaign.campaignName} Logo`}
+                            src={campaign.business.logoUrl}
+                            alt={`${campaign.name} Logo`}
                             layout="fill"
                             objectFit="cover"
                           />
@@ -198,19 +153,31 @@ export default function CampaignsListPage() {
                     </div>
                   </div>
                   <CardContent className="pt-16 p-5 text-center">
-                    <h5 className="font-extrabold text-xl text-gray-900 mb-2 truncate">{campaign.campaignName}</h5>
+                    <h5 className="font-extrabold text-xl text-gray-900 mb-2 truncate">
+                      {campaign.name}
+                    </h5>
                     <p className="text-gray-600 text-sm mb-4 h-10 overflow-hidden text-ellipsis">
-                      {campaign.campaignMessage}
+                      {campaign.campaign_message}
                     </p>
 
                     <div className="space-y-2 text-sm text-gray-800 my-5 border-t pt-4">
                       <div className="flex justify-between">
-                        <span className="font-medium text-gray-600">Reward:</span>
-                        <span className="font-semibold text-right">{campaign.reward.title}</span>
+                        <span className="font-medium text-gray-600">
+                          Reward:
+                        </span>
+                        <span className="font-semibold text-right">
+                          {campaign.rewards.length > 0
+                            ? campaign.rewards[0].name
+                            : 'N/A'}
+                        </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="font-medium text-gray-600">Available:</span>
-                        <span className="font-semibold text-right">{campaign.rewardsAvailable}</span>
+                        <span className="font-medium text-gray-600">
+                          Available:
+                        </span>
+                        <span className="font-semibold text-right">
+                          {campaign.quantity}
+                        </span>
                       </div>
                     </div>
 
@@ -274,6 +241,32 @@ export default function CampaignsListPage() {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          )}
+
+          {campaignsData && campaignsData.total > 0 && (
+            <div className="flex justify-center items-center space-x-4 mt-8">
+              <Button
+                onClick={() => setPage(page - 1)}
+                disabled={page <= 1}
+                variant="outline"
+              >
+                Previous
+              </Button>
+              <span className="text-gray-600">
+                Page {campaignsData.page} of{' '}
+                {Math.ceil(campaignsData.total / campaignsData.limit)}
+              </span>
+              <Button
+                onClick={() => setPage(page + 1)}
+                disabled={
+                  page >=
+                  Math.ceil(campaignsData.total / campaignsData.limit)
+                }
+                variant="outline"
+              >
+                Next
+              </Button>
             </div>
           )}
         </div>
