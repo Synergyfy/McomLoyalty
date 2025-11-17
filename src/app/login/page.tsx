@@ -25,14 +25,16 @@ export default function LoginPage() {
   } = useForm<LoginFormData>({
     defaultValues: { rememberMe: false },
   });
-  const { mutate: login } = useAuth();
+  const { mutateAsync: login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = async (data: LoginFormData) => {
     try {
       const { rememberMe, ...loginData } = data;
-      await login(loginData);
-      toast.success("Login successful! Redirecting...");
+      await login(loginData)
+        .then(() => {
+          toast.success("Login successful! Redirecting...");
+        });
     } catch (error) {
       console.error("Login error:", error);
       toast.error("Login failed. Please try again.");
