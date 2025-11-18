@@ -4,6 +4,7 @@ import {
   CreateCampaignRequest,
   CampaignResponse,
   PaginatedCampaignsResponse,
+  PublicCampaignResponse,
 } from './types';
 
 const CAMPAIGNS_QUERY_KEY = 'campaigns';
@@ -49,5 +50,20 @@ export const useGetAllCampaignsByBusiness = (
     queryKey: [CAMPAIGNS_QUERY_KEY, 'business', businessId, { page, limit }],
     queryFn: () => getAllCampaignsByBusiness(businessId, page, limit),
     enabled: !!businessId,
+  });
+};
+
+// Get All Public Campaigns
+const getPublicCampaigns = async (page: number, limit: number): Promise<PaginatedCampaignsResponse> => {
+  const { data } = await api.get<PaginatedCampaignsResponse>('/campaigns/all/public', {
+    params: { page, limit },
+  });
+  return data;
+};
+
+export const useGetPublicCampaigns = (page: number, limit: number) => {
+  return useQuery({
+    queryKey: [CAMPAIGNS_QUERY_KEY, 'public', { page, limit }],
+    queryFn: () => getPublicCampaigns(page, limit),
   });
 };

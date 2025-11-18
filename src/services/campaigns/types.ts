@@ -22,58 +22,49 @@ export interface CampaignResponse {
 }
 
 export enum CampaignType {
-  QR_CODE = 'QR_CODE',
-  LINK = 'LINK',
-  BOTH = 'BOTH',
+  QR_CODE = 'qr_code',
+  LINK = 'link',
+  BOTH = 'both',
 }
 
 export enum AudienceType {
-  ALL = 'ALL',
-  MEMBERS = 'MEMBERS',
+  ALL = 'all',
+  MEMBERS = 'members',
 }
 
-export interface Campaign {
+export interface PublicCampaignResponse {
   id: string;
-  created_at: Date;
-  updated_at: Date;
-  deleted_at: Date | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
   name: string;
-  campaign_type: CampaignType;
-  campaign_message: string;
-  start_date: Date;
-  end_date: Date;
+  campaignType: CampaignType;
+  campaignMessage: string;
+  startDate: string;
+  endDate: string;
   quantity: number;
-  audience_type: AudienceType;
+  audienceType: AudienceType;
+  bannerUrl: string;
+  logoUrl: string | null;
+  ctaText: string;
+  ctaBackgroundColor: string;
+  ctaTextColor: string;
   disabled: boolean;
-  banner_url: string;
-  cta_text: string;
-  cta_background_color: string;
-  cta_text_color: string;
-  text_color: string;
-  background_color: string;
-  total_points_earned: number;
-  total_points_redeemed: number;
-  business: Business; // Relation
-  rewards: Reward[]; // Relation
-}
-
-// Simplified representation of related entities
-export interface Business {
-  id: string;
-  name: string;
-  email: string;
-  logoUrl?: string;
-}
-
-export interface Reward {
-  id: string;
-  name: string;
-  description: string;
+  textColor: string;
+  backgroundColor: string;
+  signUpPoint: number | null;
+  totalPointsEarned: number;
+  totalPointsRedeemed: number;
+  rewardType: string; // Assuming string based on response
+  regularPointsThreshold: number | null;
+  matchingPointsThreshold: number | null;
+  totalMatchingPointsEarned: number;
+  matchingPointsDisabledByAdmin: boolean;
 }
 
 // The structure of the paginated response
 export interface PaginatedCampaignsResponse {
-  data: Campaign[];
+  data: PublicCampaignResponse[];
   total: number;
   page: number;
   limit: number;
