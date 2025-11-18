@@ -1,4 +1,4 @@
-import { Award, Medal, Trophy, Crown } from "lucide-react"
+import { Settings, Megaphone, Zap } from "lucide-react"
 import { Reveal } from "@/components/ui/reveal"
 import {
   Tooltip,
@@ -22,13 +22,12 @@ export default function BadgeExplanation() {
         </Reveal>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         <TooltipProvider>
           {[
-            { icon: Award, name: "Bronze", desc: "Entry-level visibility" },
-            { icon: Medal, name: "Silver", desc: "Growing reach" },
-            { icon: Trophy, name: "Gold", desc: "Established presence" },
-            { icon: Crown, name: "Platinum", desc: "Premium brand" },
+            { icon: Settings, name: "Done-For-You Setup", desc: "We configure your account and assets so you can launch fast." },
+            { icon: Megaphone, name: "Marketing Assets", desc: "Pre-made graphics, QR codes and scripts for posts and short videos." },
+            { icon: Zap, name: "Automation Support", desc: "Guidance and tools to automate repeatable workflows." },
           ].map((item, idx) => {
             const Icon = item.icon
             return (
@@ -46,7 +45,7 @@ export default function BadgeExplanation() {
                   <TooltipContent className="w-80">
                     <div className="grid gap-4">
                       <div className="space-y-2">
-                        <h4 className="font-medium leading-none">{item.name} Badge</h4>
+                        <h4 className="font-medium leading-none">{item.name}</h4>
                         <p className="text-sm text-muted-foreground">
                           {item.desc}
                         </p>

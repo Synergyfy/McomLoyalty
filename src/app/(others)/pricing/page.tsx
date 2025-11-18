@@ -10,6 +10,7 @@ import FAQ from "@/components/pricing/faq"
 import FooterCTA from "@/components/pricing/footer-cta"
 import ChatbotFab from "@/components/chatbot/ChatbotFab"
 import ChatbotPanel from "@/components/chatbot/ChatbotPanel"
+import ProductOwnerCTA from "@/components/pricing/product-owner-cta" // Import the new component
 
 export default function PricingPage() {
   const [billingCycle, setBillingCycle] = useState<"quarterly" | "annual">("quarterly")
@@ -51,6 +52,11 @@ export default function PricingPage() {
 
         <section className="slide-up px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-20">
           <ComparisonTable />
+        </section>
+        
+        {/* New ProductOwnerCTA component */}
+        <section className="slide-up px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-20">
+          <ProductOwnerCTA />
         </section>
 
         <section className="slide-up px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-20">

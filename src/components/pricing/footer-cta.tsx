@@ -1,6 +1,8 @@
 "use client"
 
 import { Reveal } from "@/components/ui/reveal"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 export default function FooterCTA() {
   return (
@@ -14,13 +16,12 @@ export default function FooterCTA() {
             Want to know more about our plans or have a specific question? Get in touch with our team.
           </p>
         </Reveal>
-        <div className="space-y-4">
-          <p className="text-xl text-foreground">
-            <strong>Email:</strong> <a href="mailto:contact@mcom.com" className="text-primary hover:underline">contact@mcom.com</a>
-          </p>
-          <p className="text-xl text-foreground">
-            <strong>Phone:</strong> <a href="tel:+1234567890" className="text-primary hover:underline">+1 (234) 567-890</a>
-          </p>
+        <div className="mt-8">
+          <Link href="/contact" passHref>
+            <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105">
+              Contact Sales
+            </Button>
+          </Link>
         </div>
       </div>
     </section>
