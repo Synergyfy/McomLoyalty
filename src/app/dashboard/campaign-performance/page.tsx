@@ -7,59 +7,57 @@ import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { BarChart3, Users, Trophy, Percent } from "lucide-react";
-import { useGetCampaignPerformance } from "@/services/analytics/hook";
-import { CampaignPerformanceData } from "@/services/analytics/types";
+import { useGetCampaignAnalytics } from "@/services/analytics/hook";
+import { CampaignAnalyticsDto } from "@/services/analytics/types";
 
 const PerformanceCard = ({
-  performance,
+  analytics,
 }: {
-  performance: CampaignPerformanceData;
+  analytics: CampaignAnalyticsDto;
 }) => {
   const router = useRouter();
-  const { campaign, totalParticipants, totalPointsAwarded, totalRewardsRedeemed, redemptionRate } = performance;
+  const { name, sector, status, total_participants, total_reward_redeemed, total_point_awarded, redemption_rate } = analytics;
 
   return (
     <motion.div whileHover={{ scale: 1.02 }} className="transition">
       <Card className="rounded-2xl shadow-md border border-gray-200">
         <CardHeader>
           <CardTitle className="flex justify-between items-center text-lg font-semibold text-gray-800">
-            {campaign.name}
+            {name}
             <span
               className={`text-xs px-2 py-1 rounded-full ${
-                new Date(campaign.end_date) > new Date()
+                status === "Active"
                   ? "bg-green-100 text-green-700"
                   : "bg-gray-200 text-gray-600"
               }`}
             >
-              {new Date(campaign.end_date) > new Date() ? "Active" : "Completed"}
+              {status}
             </span>
           </CardTitle>
-          <p className="text-sm text-gray-500">
-            Updated {new Date(campaign.updated_at).toLocaleDateString()}
-          </p>
+          <p className="text-sm text-gray-500">{sector}</p>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center text-sm text-gray-600 gap-2">
-            <Users size={16} /> <span>{totalParticipants} customers</span>
+            <Users size={16} /> <span>{total_participants} customers</span>
           </div>
           <div className="flex items-center text-sm text-gray-600 gap-2">
             <Trophy size={16} />{" "}
-            <span>{totalRewardsRedeemed} rewards redeemed</span>
+            <span>{total_reward_redeemed} rewards redeemed</span>
           </div>
           <div className="flex items-center text-sm text-gray-600 gap-2">
             <BarChart3 size={16} />{" "}
-            <span>{totalPointsAwarded.toLocaleString()} points awarded</span>
+            <span>{total_point_awarded.toLocaleString()} points awarded</span>
           </div>
           <div className="flex items-center text-sm text-gray-600 gap-2">
             <Percent size={16} />{" "}
-            <span>Redemption Rate: {redemptionRate.toFixed(2)}%</span>
+            <span>Redemption Rate: {redemption_rate.toFixed(2)}%</span>
           </div>
 
-          <Progress value={redemptionRate} className="h-2 mt-2" />
+          <Progress value={redemption_rate} className="h-2 mt-2" />
 
           <Button
             onClick={() =>
-              router.push(`/dashboard/campaigns/${campaign.id}/performance`)
+              router.push(`/dashboard/campaigns/${name}/performance`)
             }
             className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white"
           >
@@ -73,7 +71,7 @@ const PerformanceCard = ({
 
 export default function CampaignsPage() {
   const [page, setPage] = useState(1);
-  const { data: performanceData, isLoading } = useGetCampaignPerformance(page);
+  const { data: analyticsData, isLoading } = useGetCampaignAnalytics(page);
 
   return (
     <motion.div
@@ -90,13 +88,13 @@ export default function CampaignsPage() {
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">Loading campaign performance...</p>
           </div>
-        ) : performanceData?.data && performanceData.data.length > 0 ? (
+        ) : analyticsData?.data && analyticsData.data.length > 0 ? (
           <>
             <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-6">
-              {performanceData.data.map((performance) => (
+              {analyticsData.data.map((analytics) => (
                 <PerformanceCard
-                  key={performance.campaign.id}
-                  performance={performance}
+                  key={analytics.name}
+                  analytics={analytics}
                 />
               ))}
             </div>
@@ -109,15 +107,12 @@ export default function CampaignsPage() {
                 Previous
               </Button>
               <span className="text-gray-600">
-                Page {performanceData.page} of{" "}
-                {Math.ceil(performanceData.total / performanceData.limit)}
+                Page {analyticsData.page} of{" "}
+                {Math.ceil(analyticsData.total / analyticsData.limit)}
               </span>
               <Button
                 onClick={() => setPage(page + 1)}
-                disabled={
-                  page >=
-                  Math.ceil(performanceData.total / performanceData.limit)
-                }
+                disabled={!analyticsData.next_page}
                 variant="outline"
               >
                 Next

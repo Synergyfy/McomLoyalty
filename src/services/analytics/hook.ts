@@ -4,7 +4,7 @@ import {
   TopBusiness,
   SystemOverview,
   TopReward,
-  PaginatedCampaignPerformanceResponse,
+  PaginatedAnalyticsResponse,
 } from './types';
 
 const ANALYTICS_QUERY_KEY = 'analytics';
@@ -48,12 +48,12 @@ export const useTopRewards = () => {
   });
 };
 
-// Get Campaign Performance
-export const useGetCampaignPerformance = (page: number = 1, limit: number = 10) => {
-  return useQuery<PaginatedCampaignPerformanceResponse, Error>({
-    queryKey: [ANALYTICS_QUERY_KEY, 'campaign-performance', page, limit],
+// Get Campaign Analytics
+export const useGetCampaignAnalytics = (page: number = 1, limit: number = 10) => {
+  return useQuery<PaginatedAnalyticsResponse, Error>({
+    queryKey: [ANALYTICS_QUERY_KEY, 'campaign-analytics', page, limit],
     queryFn: async () => {
-      const response = await api.get('/business/campaigns/performance', {
+      const response = await api.get('/campaigns/analytics', {
         params: { page, limit },
       });
       return response.data;
