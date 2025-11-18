@@ -43,7 +43,7 @@ export interface Deal {
   termsAndConditions: string;
   status: 'pending' | 'approved' | 'declined';
   isActive: boolean;
-  category: {
+  category?: {
     id: string;
     name: string;
   };

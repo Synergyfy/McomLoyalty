@@ -63,7 +63,7 @@ export default function DealsTable({ deals }: DealsTableProps) {
             {deals.map(deal => (
               <TableRow key={deal.id}>
                 <TableCell className="font-medium">{deal.title}</TableCell>
-                <TableCell>{deal.category.name}</TableCell>
+                <TableCell>{deal.category?.name}</TableCell>
                 <TableCell>
                   <Badge variant={getStatusVariant(deal.status)}>
                     {deal.status}
