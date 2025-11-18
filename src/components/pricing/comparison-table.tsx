@@ -5,7 +5,7 @@ export default function ComparisonTable() {
   // Data-driven feature comparison ensured to match card bullets via shared content source.
   const features = listFeatureRows()
   const includedByTier = getComparisonMatrix()
-  const tiers = Object.keys(includedByTier)
+  const tiers = Object.keys(includedByTier).filter(tierName => tierName !== "Trial")
 
   return (
     <div className="w-full fade-in">
