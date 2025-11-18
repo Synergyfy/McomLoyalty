@@ -45,7 +45,7 @@ function ConfirmationContent() {
         <Link href="/" className="underline">
           Back to Pricing
         </Link>
-        <Link href="/" className="px-6 py-3 rounded-full bg-primary text-primary-foreground">
+        <Link href="/dashboard" className="px-6 py-3 rounded-full bg-primary text-primary-foreground">
           Go to Dashboard
         </Link>
       </div>
