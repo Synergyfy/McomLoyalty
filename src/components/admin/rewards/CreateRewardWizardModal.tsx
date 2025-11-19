@@ -58,6 +58,15 @@ export default function CreateRewardWizardModal({ isOpen, onClose, mode = 'creat
   const [rewardSource, setRewardSource] = useState('mcom');
   const [audience, setAudience] = useState('all_businesses');
 
+  // Effect to reset sector/category/subcategory when audience changes to 'all_businesses'
+  useEffect(() => {
+    if (audience === 'all_businesses') {
+      setSelectedSector('');
+      setSelectedCategory('');
+      setSelectedSubCategory('');
+    }
+  }, [audience]);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showCampaignPrompt, setShowCampaignPrompt] = useState(false);
 
@@ -229,7 +238,6 @@ export default function CreateRewardWizardModal({ isOpen, onClose, mode = 'creat
                   <SelectContent position="popper" className="z-[10000]">
                     <SelectItem value="all_businesses">All Businesses</SelectItem>
                     <SelectItem value="specific_sectors">Specific Sectors</SelectItem>
-                    <SelectItem value="specific_tiers">Specific Tiers</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -238,7 +246,11 @@ export default function CreateRewardWizardModal({ isOpen, onClose, mode = 'creat
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">Sector</label>
-                  <Select value={selectedSector} onValueChange={v => { setSelectedSector(v); setSelectedCategory(''); setSelectedSubCategory(''); }}>
+                  <Select
+                    value={selectedSector}
+                    onValueChange={v => { setSelectedSector(v); setSelectedCategory(''); setSelectedSubCategory(''); }}
+                    disabled={audience === 'all_businesses'}
+                  >
                     <SelectTrigger><SelectValue placeholder="Select Sector" /></SelectTrigger>
                     <SelectContent position="popper" className="z-[10000]">
                       {initialSectors.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
