@@ -25,6 +25,7 @@ export enum CampaignType {
   QR_CODE = 'qr_code',
   LINK = 'link',
   BOTH = 'both',
+  REFERRAL = 'referral',
 }
 
 export enum AudienceType {
@@ -32,46 +33,106 @@ export enum AudienceType {
   MEMBERS = 'members',
 }
 
-export interface PublicCampaignResponse {
+export interface Reward {
   id: string;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-  name: string;
-  campaignType: CampaignType;
-  campaignMessage: string;
-  startDate: string;
-  endDate: string;
+  title: string;
+  points_required: number;
+  value: number;
+  description: string;
+  image: string;
   quantity: number;
-  audienceType: AudienceType;
-  bannerUrl: string;
-  logoUrl: string | null;
-  ctaText: string;
-  ctaBackgroundColor: string;
-  ctaTextColor: string;
   disabled: boolean;
-  textColor: string;
-  backgroundColor: string;
-  signUpPoint: number | null;
-  totalPointsEarned: number;
-  totalPointsRedeemed: number;
-  rewardType: string; // Assuming string based on response
-  regularPointsThreshold: number | null;
-  matchingPointsThreshold: number | null;
-  totalMatchingPointsEarned: number;
-  matchingPointsDisabledByAdmin: boolean;
-  business: {
-    logoUrl: string;
-  };
-  rewards: {
-    name: string;
-  }[];
 }
 
-// The structure of the paginated response
+export interface PublicCampaignResponse {
+  id: string;
+  name: string;
+  campaign_type: string; // API returns string, but we can map to enum if needed
+  campaign_message: string;
+  start_date: string;
+  end_date: string;
+  quantity: number;
+  audience_type: string;
+  banner_url: string;
+  logo_url: string | null;
+  cta_text: string;
+  cta_background_color: string;
+  cta_text_color: string;
+  text_color: string;
+  background_color: string;
+  disabled: boolean;
+  rewards: Reward[];
+  uniqueCode?: string; // Present in my-created-campaigns example
+}
+
+export interface Business {
+  id: string;
+  name: string;
+}
+
+export interface BusinessCampaign {
+  id: string;
+  uniqueCode: string;
+  business: Business;
+  campaign: Campaign;
+}
+
 export interface PaginatedCampaignsResponse {
   data: PublicCampaignResponse[];
   total: number;
   page: number;
   limit: number;
+}
+
+export interface CampaignAnalytics {
+  id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  disabled: boolean;
+  sector: string | null;
+  status: 'active' | 'inactive';
+  totalParticipants: string;
+  totalPointsAwarded: string;
+  totalRewardsRedeemed: string;
+  redemptionRate: number;
+}
+
+export interface PaginatedCampaignAnalyticsResponse {
+  data: CampaignAnalytics[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface WeeklyChartData {
+  date: string;
+  pointsAwarded: string;
+  rewardsRedeemed: string;
+  newParticipants: string;
+}
+
+export interface RankedParticipant {
+  id: string;
+  name: string;
+  email: string;
+  totalPointsEarned: string;
+  totalRedemptions: string;
+}
+
+export interface TopReward {
+  id: string;
+  title: string;
+  pointsRequired: number;
+  totalRedemptions: string;
+}
+
+export interface DetailedCampaignAnalytics {
+  totalParticipants: string;
+  totalRewardsRedeemed: string;
+  totalPointsAwarded: string | null;
+  redemptionRate: number;
+  weeklyChartData: WeeklyChartData[];
+  rankedParticipants: RankedParticipant[];
+  topRewards: TopReward[];
 }
