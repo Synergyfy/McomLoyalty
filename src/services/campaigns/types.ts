@@ -136,3 +136,24 @@ export interface DetailedCampaignAnalytics {
   rankedParticipants: RankedParticipant[];
   topRewards: TopReward[];
 }
+
+export enum PointHistoryType {
+  EARN = 'EARN',
+  REDEEM = 'REDEEM',
+  MATCHING = 'MATCHING',
+}
+
+export interface CustomerActivityResponseDto {
+  participantName: string;
+  activityType: PointHistoryType;
+  details: string;
+  date: Date;
+  campaignName: string;
+}
+
+export interface PaginatedCustomerActivityResponseDto {
+  data: CustomerActivityResponseDto[];
+  total: number;
+  page: number;
+  limit: number;
+}
