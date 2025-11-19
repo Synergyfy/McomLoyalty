@@ -58,6 +58,15 @@ export default function CreateRewardWizardModal({ isOpen, onClose, mode = 'creat
   const [rewardSource, setRewardSource] = useState('mcom');
   const [audience, setAudience] = useState('all_businesses');
 
+  // Effect to reset sector/category/subcategory when audience changes to 'all_businesses'
+  useEffect(() => {
+    if (audience === 'all_businesses') {
+      setSelectedSector('');
+      setSelectedCategory('');
+      setSelectedSubCategory('');
+    }
+  }, [audience]);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showCampaignPrompt, setShowCampaignPrompt] = useState(false);
 
@@ -221,11 +230,27 @@ export default function CreateRewardWizardModal({ isOpen, onClose, mode = 'creat
                 <Textarea id="description" placeholder="Describe the reward" value={description} onChange={(e) => setDescription(e.target.value)} />
               </div>
 
+              {/* Audience - moved to be directly after Description */}
+              <div>
+                <label className="block text-sm font-medium mb-1">Audience</label>
+                <Select value={audience} onValueChange={setAudience}>
+                  <SelectTrigger><SelectValue placeholder="Select Audience" /></SelectTrigger>
+                  <SelectContent position="popper" className="z-[10000]">
+                    <SelectItem value="all_businesses">All Businesses</SelectItem>
+                    <SelectItem value="specific_sectors">Specific Sectors</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Sector/Category */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">Sector</label>
-                  <Select value={selectedSector} onValueChange={v => { setSelectedSector(v); setSelectedCategory(''); setSelectedSubCategory(''); }}>
+                  <Select
+                    value={selectedSector}
+                    onValueChange={v => { setSelectedSector(v); setSelectedCategory(''); setSelectedSubCategory(''); }}
+                    disabled={audience === 'all_businesses'}
+                  >
                     <SelectTrigger><SelectValue placeholder="Select Sector" /></SelectTrigger>
                     <SelectContent position="popper" className="z-[10000]">
                       {initialSectors.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
@@ -313,8 +338,8 @@ export default function CreateRewardWizardModal({ isOpen, onClose, mode = 'creat
                 </div>
               </div>
 
-              {/* Reward Source and Audience */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Reward Source */}
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                     <label className="block text-sm font-medium mb-2">Reward Source</label>
                     <RadioGroup value={rewardSource} onValueChange={setRewardSource} className="flex space-x-4">
@@ -327,17 +352,6 @@ export default function CreateRewardWizardModal({ isOpen, onClose, mode = 'creat
                             <Label htmlFor="partner">Partner</Label>
                         </div>
                     </RadioGroup>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Audience</label>
-                  <Select value={audience} onValueChange={setAudience}>
-                    <SelectTrigger><SelectValue placeholder="Select Audience" /></SelectTrigger>
-                    <SelectContent position="popper" className="z-[10000]">
-                      <SelectItem value="all_businesses">All Businesses</SelectItem>
-                      <SelectItem value="specific_sectors">Specific Sectors</SelectItem>
-                      <SelectItem value="specific_tiers">Specific Tiers</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
 

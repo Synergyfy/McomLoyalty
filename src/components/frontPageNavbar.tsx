@@ -1,14 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect} from "react";
+import { useState, useEffect } from "react";
 import Cookies from 'js-cookie';
-import { Menu, X, Home } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const FrontPageNavbar = () => {
-      const [menuOpen, setMenuOpen] = useState(false);
-      const [scrolled, setScrolled] = useState(false);
-      const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
 
         useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 40);
@@ -20,6 +30,28 @@ const FrontPageNavbar = () => {
       setIsAuthenticated(!!Cookies.get('access'));
     }, []);
 
+    const handleLogout = () => {
+      Cookies.remove('access');
+      Cookies.remove('refresh');
+      router.push('/login');
+    };
+
+    const getLinkClass = (href: string) => {
+      const isSpecialPage = pathname === '/pricing' || pathname === '/reward';
+      const isActive = pathname === href;
+
+      if (isSpecialPage) {
+        return "text-orange-600 hover:text-orange-700 transition-colors";
+      } else {
+        return `hover:text-orange-600 transition-colors ${
+          isActive
+            ? "text-orange-600"
+            : scrolled
+              ? "text-orange-500"
+              : "text-white"
+        }`;
+      }
+    };
 
     return (
       <nav
@@ -39,18 +71,34 @@ const FrontPageNavbar = () => {
               <span className="relative left-10"> MCOM REWARD</span>
             </span>
           </Link>
-          <div className={`hidden md:flex gap-8  font-medium ${scrolled ? "text-orange-500" : "text-white"}`}>
-            <Link href="/">Home</Link>
-            <Link href="/pricing">Pricing</Link>
-            <Link href="/deals">Deals</Link>
-            <Link href="/reward">Rewards</Link>
-            <Link href="/campaigns">Campaigns</Link>
+          <div className="hidden md:flex gap-8 font-medium">
+            <Link href="/" className={getLinkClass("/")}>Home</Link>
+            <Link href="/pricing" className={getLinkClass("/pricing")}>Pricing</Link>
+            <Link href="/deals" className={getLinkClass("/deals")}>Deals</Link>
+            <Link href="/reward" className={getLinkClass("/reward")}>Rewards</Link>
+            <Link href="/campaigns" className={getLinkClass("/campaigns")}>Campaigns</Link>
           </div>
           <div className="hidden md:flex gap-3">
             {isAuthenticated ? (
-              <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-bold">
-                A
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-bold cursor-pointer">
+                    A
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-48">
+                  <DropdownMenuItem onClick={() => router.push('/dashboard')}>
+                    Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/settings')}>
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <>
                 <Link href="/login">
@@ -73,11 +121,11 @@ const FrontPageNavbar = () => {
 
         {menuOpen && (
           <div className="md:hidden bg-white border-t shadow-md px-6 py-4 flex flex-col gap-3 text-gray-700">
-            <Link href="/">Home</Link>
-            <Link href="/pricing">Pricing</Link>
-            <Link href="/deals">Deals</Link>
-            <Link href="/reward">Rewards</Link>
-            <Link href="/campaigns">Campaigns</Link>
+            <Link href="/" className={getLinkClass("/")}>Home</Link>
+            <Link href="/pricing" className={getLinkClass("/pricing")}>Pricing</Link>
+            <Link href="/deals" className={getLinkClass("/deals")}>Deals</Link>
+            <Link href="/reward" className={getLinkClass("/reward")}>Rewards</Link>
+            <Link href="/campaigns" className={getLinkClass("/campaigns")}>Campaigns</Link>
             <div className="border-t my-3"></div>
             {!isAuthenticated && (
               <Link href="/business/signup">
