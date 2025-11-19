@@ -74,7 +74,7 @@ export interface BusinessCampaign {
   id: string;
   uniqueCode: string;
   business: Business;
-  campaign: Campaign;
+  campaign: PublicCampaignResponse;
 }
 
 export interface PaginatedCampaignsResponse {
