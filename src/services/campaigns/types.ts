@@ -114,16 +114,16 @@ export interface WeeklyChartData {
 
 export interface RankedParticipant {
   id: string;
-  name: string;
-  email: string;
+  pName: string;
+  pEmail: string;
   totalPointsEarned: string;
   totalRedemptions: string;
 }
 
 export interface TopReward {
   id: string;
-  title: string;
-  pointsRequired: number;
+  rTitle: string;
+  rPointsRequired: number;
   totalRedemptions: string;
 }
 
@@ -135,4 +135,27 @@ export interface DetailedCampaignAnalytics {
   weeklyChartData: WeeklyChartData[];
   rankedParticipants: RankedParticipant[];
   topRewards: TopReward[];
+}
+
+export enum PointHistoryType {
+  EARN = 'EARN',
+  REDEEM = 'REDEEM',
+  MATCHING = 'MATCHING',
+}
+
+export interface CustomerActivityResponseDto {
+  participantName: string;
+  participantId?: string;
+  activityType: PointHistoryType;
+  details: string;
+  campaignName: string;
+  date: Date;
+
+}
+
+export interface PaginatedCustomerActivityResponseDto {
+  data: CustomerActivityResponseDto[];
+  total: number;
+  page: number;
+  limit: number;
 }
