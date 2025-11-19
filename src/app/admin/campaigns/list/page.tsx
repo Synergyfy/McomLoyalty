@@ -22,7 +22,7 @@ export default function AdminCampaignsPage() {
   const filteredCampaigns = useMemo(() => {
     return campaigns.filter((campaign: PublicCampaignResponse) => {
       const matchesSearch = campaign.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            campaign.campaign_message.toLowerCase().includes(searchTerm.toLowerCase());
+                            (campaign.campaign_message && campaign.campaign_message.toLowerCase().includes(searchTerm.toLowerCase()));
       return matchesSearch;
     });
   }, [searchTerm, campaigns]);
