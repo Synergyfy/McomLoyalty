@@ -34,6 +34,7 @@ export default function PricingCards({ billingCycle }: PricingCardsProps) {
     name: t.name,
     description: t.description || "Unlock your potential", // Fallback description
     quarterlyPrice: t.quaterly_price, // Note typo in backend response 'quaterly_price'
+    annualPrice: t.annual_price,
     includesNfc: t.includesNfc ?? false,
     icon: iconByTier[t.name] ?? Target,
     features: t.features,
