@@ -222,3 +222,17 @@ export const useGetParticipantActivity = (participantId: string, page: number = 
     enabled: !!participantId,
   });
 };
+
+// Get Campaign By ID
+const getCampaignById = async (id: string): Promise<CampaignResponse> => {
+  const { data } = await api.get<CampaignResponse>(`/campaigns/${id}`);
+  return data;
+};
+
+export const useGetCampaignById = (id: string) => {
+  return useQuery({
+    queryKey: [CAMPAIGNS_QUERY_KEY, id],
+    queryFn: () => getCampaignById(id),
+    enabled: !!id,
+  });
+};
