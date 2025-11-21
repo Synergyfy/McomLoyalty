@@ -1,14 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Building2, User, ArrowLeft } from "lucide-react";
 import CustomerSignupPage from "@/components/Forms/CustomerSignupForm";
 import BusinessSignupForm from "@/components/Forms/BusinessSignupForm";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
-export default function SignupLayout() {
-  const [selectedType, setSelectedType] = useState<"customer" | "business" | null>(null);
+function SignupContent() {
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get('returnUrl');
+  // If returnUrl is present, default to 'customer' (participant) signup
+  const [selectedType, setSelectedType] = useState<"customer" | "business" | null>(returnUrl ? "customer" : null);
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -94,12 +98,14 @@ export default function SignupLayout() {
                 layout
                 className="w-full flex flex-col flex-1"
               >
-                <button
-                  onClick={() => setSelectedType(null)}
-                  className="flex items-center gap-2 text-sm text-gray-500 hover:text-orange-600 mb-4"
-                >
-                  <ArrowLeft size={18} /> Back
-                </button>
+                {!returnUrl && (
+                  <button
+                    onClick={() => setSelectedType(null)}
+                    className="flex items-center gap-2 text-sm text-gray-500 hover:text-orange-600 mb-4"
+                  >
+                    <ArrowLeft size={18} /> Back
+                  </button>
+                )}
 
                 {/* Scrollable Form */}
                 <div className="overflow-y-auto max-h-[500px] pr-2 custom-scroll">
@@ -141,7 +147,7 @@ export default function SignupLayout() {
           <p className="text-sm text-gray-600">
             Already have an account?{" "}
             <Link
-              href="/login"
+              href={`/login${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`}
               className="text-orange-500 hover:underline font-medium"
             >
               Log in
@@ -181,4 +187,12 @@ export default function SignupLayout() {
       `}</style>
     </div>
   );
+}
+
+export default function SignupLayout() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <SignupContent />
+        </Suspense>
+    )
 }

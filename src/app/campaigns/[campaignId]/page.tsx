@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import { Calendar, Tag, Info, Gift, CheckCircle, Users, Trophy } from "lucide-react";
-import { SignUpDialog } from '@/components/customer/SignUpDialog';
 import { useCampaignMembership } from '@/context/CampaignMembershipContext';
 import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
+import { useJoinCampaign } from '@/services/customer-campaigns/hook';
+import { toast } from 'sonner';
 
 interface PageProps {
   params: Promise<{ campaignId: string }>;
@@ -77,14 +79,35 @@ const mockCampaign = {
 };
 
 export default function CampaignDetailPage({}: PageProps) {
-  const [isSignUpDialogOpen, setIsSignUpDialogOpen] = useState(false);
-  const { isMember, memberName } = useCampaignMembership();
+  // In a real app, we would fetch campaign data here using params.campaignId
+  // const { data: campaign, isLoading } = useGetPublicCampaignDetails(params.campaignId);
+
+  const { isMember, memberName, isLoggedIn, joinCampaign: contextJoin } = useCampaignMembership();
+  const { mutate: joinCampaignMutate, isPending: isJoining } = useJoinCampaign();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const campaign = mockCampaign;
   const isLoading = false;
 
   const handleJoinClick = () => {
-    setIsSignUpDialogOpen(true);
+    if (!isLoggedIn) {
+      // Redirect to login if not logged in, with return URL
+      const returnUrl = encodeURIComponent(pathname);
+      router.push(`/login?returnUrl=${returnUrl}`);
+    } else {
+      // If logged in, call the join API
+      joinCampaignMutate(campaign.id, {
+        onSuccess: () => {
+          contextJoin();
+          toast.success('Successfully joined the campaign!');
+        },
+        onError: (error) => {
+          console.error('Error joining campaign:', error);
+          toast.error('Failed to join campaign. Please try again.');
+        }
+      });
+    }
   };
 
   return (
@@ -108,15 +131,42 @@ export default function CampaignDetailPage({}: PageProps) {
                   {campaign.title}
                 </h1>
                 <p className="text-lg md:text-xl mb-8 opacity-90 drop-shadow-md">
-                  {isMember ? `Welcome, ${memberName}!` : campaign.tagline}
+                  {isMember ? `Welcome, ${memberName || 'Member'}!` : campaign.tagline}
                 </p>
                 {!isMember && (
-                  <Button
-                    onClick={handleJoinClick}
-                    className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
-                  >
-                    Join Campaign & Get Reward
-                  </Button>
+                  <div className="flex flex-col sm:flex-row justify-center gap-4">
+                    {!isLoggedIn ? (
+                       <>
+                         <Button
+                            onClick={() => {
+                                const returnUrl = encodeURIComponent(pathname);
+                                router.push(`/login?returnUrl=${returnUrl}`);
+                            }}
+                            className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
+                         >
+                           Login to Join
+                         </Button>
+                         <Button
+                            onClick={() => {
+                                const returnUrl = encodeURIComponent(pathname);
+                                router.push(`/signup?returnUrl=${returnUrl}`);
+                            }}
+                            variant="secondary"
+                            className="bg-white text-orange-600 hover:bg-gray-100 text-lg px-8 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
+                         >
+                           Sign Up to Join
+                         </Button>
+                       </>
+                    ) : (
+                        <Button
+                            onClick={handleJoinClick}
+                            disabled={isJoining}
+                            className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
+                        >
+                            {isJoining ? 'Joining...' : 'Join Reward & Get Paid'}
+                        </Button>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -132,7 +182,7 @@ export default function CampaignDetailPage({}: PageProps) {
                       <CheckCircle className="h-5 w-5 text-green-400" />
                     </div>
                     <div className="ml-3">
-                      <p className="text-sm font-medium text-green-800">You have joined this campaign. Welcome, {memberName}!</p>
+                      <p className="text-sm font-medium text-green-800">You have joined this campaign. Welcome!</p>
                     </div>
                   </div>
                 </div>
@@ -289,7 +339,7 @@ export default function CampaignDetailPage({}: PageProps) {
 
           {/* Sticky Join Button */}
           <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg p-4 z-20">
-            <div className="max-w-4xl mx-auto flex justify-center">
+            <div className="max-w-4xl mx-auto flex justify-center gap-4">
                 {isMember ? (
                     <Link href="/campaigns/my-points" passHref>
                         <Button className="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white text-lg px-12 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105">
@@ -297,12 +347,39 @@ export default function CampaignDetailPage({}: PageProps) {
                         </Button>
                     </Link>
                 ) : (
-                    <Button
-                        onClick={handleJoinClick}
-                        className="w-full md:w-auto bg-orange-600 hover:bg-orange-700 text-white text-lg px-12 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
-                    >
-                        Join Campaign & Get Reward
-                    </Button>
+                    <>
+                    {!isLoggedIn ? (
+                       <>
+                         <Button
+                            onClick={() => {
+                                const returnUrl = encodeURIComponent(pathname);
+                                router.push(`/login?returnUrl=${returnUrl}`);
+                            }}
+                            className="w-full md:w-auto bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
+                         >
+                           Login to Join
+                         </Button>
+                         <Button
+                            onClick={() => {
+                                const returnUrl = encodeURIComponent(pathname);
+                                router.push(`/signup?returnUrl=${returnUrl}`);
+                            }}
+                            variant="outline"
+                            className="w-full md:w-auto border-orange-600 text-orange-600 hover:bg-orange-50 text-lg px-8 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
+                         >
+                           Sign Up to Join
+                         </Button>
+                       </>
+                    ) : (
+                        <Button
+                            onClick={handleJoinClick}
+                            disabled={isJoining}
+                            className="w-full md:w-auto bg-orange-600 hover:bg-orange-700 text-white text-lg px-12 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
+                        >
+                            {isJoining ? 'Joining...' : 'Join Reward & Get Paid'}
+                        </Button>
+                    )}
+                    </>
                 )}
             </div>
           </div>
@@ -310,11 +387,6 @@ export default function CampaignDetailPage({}: PageProps) {
       ) : (
         <p className="text-center text-lg text-red-500 py-20">Campaign not found.</p>
       )}
-      <SignUpDialog
-        isOpen={isSignUpDialogOpen}
-        onClose={() => setIsSignUpDialogOpen(false)}
-        campaignTitle={campaign.title}
-      />
     </div>
   );
 }

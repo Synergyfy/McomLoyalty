@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,9 @@ import { Switch } from "@/components/ui/switch";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
 import { useAuth } from "@/services/business/hook";
-import { useRouter } from "next/navigation";
+import { useParticipantSignIn } from "@/services/auth/hook";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type LoginFormData = {
   email: string;
@@ -17,7 +19,7 @@ type LoginFormData = {
   rememberMe: boolean;
 };
 
-export default function LoginPage() {
+function LoginForm() {
   const {
     register,
     handleSubmit,
@@ -25,19 +27,34 @@ export default function LoginPage() {
   } = useForm<LoginFormData>({
     defaultValues: { rememberMe: false },
   });
-  const { mutateAsync: login } = useAuth();
+  const { mutateAsync: businessLogin } = useAuth();
+  const { mutateAsync: participantLogin } = useParticipantSignIn();
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get('returnUrl');
+  const [loginType, setLoginType] = useState<'business' | 'participant'>('participant');
 
   const onSubmit = async (data: LoginFormData) => {
     try {
       const { rememberMe, ...loginData } = data;
-      await login(loginData)
-        .then(() => {
-          toast.success("Login successful! Redirecting...");
-        });
+
+      if (loginType === 'business') {
+        await businessLogin(loginData);
+        toast.success("Business login successful! Redirecting...");
+        router.push('/dashboard'); // Default business redirect
+      } else {
+        await participantLogin(loginData);
+        toast.success("Login successful! Redirecting...");
+        if (returnUrl) {
+            router.push(decodeURIComponent(returnUrl));
+        } else {
+            router.push('/campaigns'); // Default participant redirect
+        }
+      }
     } catch (error) {
       console.error("Login error:", error);
-      toast.error("Login failed. Please try again.");
+      toast.error("Login failed. Please check your credentials and try again.");
     }
   };
 
@@ -50,7 +67,6 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white p-6">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 space-y-6">
         <h2 className="text-2xl font-semibold text-center text-gray-800">
           Welcome Back
@@ -58,6 +74,13 @@ export default function LoginPage() {
         <p className="text-center text-gray-500 text-sm">
           Log in to manage your account
         </p>
+
+        <Tabs defaultValue="participant" className="w-full" onValueChange={(val) => setLoginType(val as 'business' | 'participant')}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="participant">Participant</TabsTrigger>
+            <TabsTrigger value="business">Business</TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         <Button
           type="button"
@@ -133,17 +156,26 @@ export default function LoginPage() {
             className="w-full bg-orange-500 text-white"
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Signing in..." : "Log In"}
+            {isSubmitting ? "Signing in..." : `Log In as ${loginType === 'business' ? 'Business' : 'Participant'}`}
           </Button>
         </form>
 
         <p className="text-center text-sm text-gray-600">
           Don’t have an account?{" "}
-          <a href="/signup" className="text-orange-400 hover:underline font-medium">
+          <a href={`/signup${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`} className="text-orange-400 hover:underline font-medium">
             Sign up
           </a>
         </p>
       </div>
-    </div>
   );
+}
+
+export default function LoginPage() {
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-white p-6">
+            <Suspense fallback={<div>Loading...</div>}>
+                <LoginForm />
+            </Suspense>
+        </div>
+    )
 }

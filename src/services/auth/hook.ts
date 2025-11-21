@@ -1,6 +1,13 @@
 import { useMutation } from '@tanstack/react-query';
 import api, { setBearerToken } from '../api';
-import { AdminLoginDto, AdminLoginResponse, RefreshTokenResponse } from './types';
+import {
+  AdminLoginDto,
+  AdminLoginResponse,
+  RefreshTokenResponse,
+  ParticipantLoginDto,
+  ParticipantSignupDto,
+  ParticipantAuthResponse
+} from './types';
 import Cookies from 'js-cookie';
 
 // Admin Login
@@ -12,6 +19,42 @@ const adminSignIn = async (loginData: AdminLoginDto): Promise<AdminLoginResponse
 export const useAdminSignIn = () => {
   return useMutation({
     mutationFn: adminSignIn,
+    onSuccess: (data) => {
+      Cookies.set('access', data.accessToken);
+      Cookies.set('refresh', data.refreshToken);
+      setBearerToken(data.accessToken);
+    },
+  });
+};
+
+// Participant Login
+const participantSignIn = async (loginData: ParticipantLoginDto): Promise<ParticipantAuthResponse> => {
+  // Using explicit /api/v1 prefix as requested
+  const { data } = await api.post<ParticipantAuthResponse>('/api/v1/participant/login', loginData);
+  return data;
+};
+
+export const useParticipantSignIn = () => {
+  return useMutation({
+    mutationFn: participantSignIn,
+    onSuccess: (data) => {
+      Cookies.set('access', data.accessToken);
+      Cookies.set('refresh', data.refreshToken);
+      setBearerToken(data.accessToken);
+    },
+  });
+};
+
+// Participant Signup
+const participantSignUp = async (signupData: ParticipantSignupDto): Promise<ParticipantAuthResponse> => {
+  // Using explicit /api/v1 prefix as requested
+  const { data } = await api.post<ParticipantAuthResponse>('/api/v1/participant/signup', signupData);
+  return data;
+};
+
+export const useParticipantSignUp = () => {
+  return useMutation({
+    mutationFn: participantSignUp,
     onSuccess: (data) => {
       Cookies.set('access', data.accessToken);
       Cookies.set('refresh', data.refreshToken);

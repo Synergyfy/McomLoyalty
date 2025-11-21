@@ -33,7 +33,8 @@ export const useGetPublicCampaignDetails = (campaignId: string) => {
 
 // Join Campaign
 const joinCampaign = async (campaignId: string): Promise<JoinCampaignResponse> => {
-  const { data } = await api.post<JoinCampaignResponse>(`/campaigns/${campaignId}/join`);
+  // Using the requested endpoint: POST /api/v1/participant/join-campaign
+  const { data } = await api.post<JoinCampaignResponse>('/api/v1/participant/join-campaign', { campaignId });
   return data;
 };
 
