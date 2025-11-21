@@ -7,24 +7,34 @@ import { Label } from "@/components/ui/label";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-
-type LoginData = {
-  email: string;
-  password: string;
-};
+import { zodResolver } from "@hookform/resolvers/zod";
+import { participantLoginSchema } from "@/lib/validators/participantSchemas";
+import { ParticipantLoginDto } from "@/services/participant/types";
+import { useParticipantLogin } from "@/services/participant/hook";
+import { useCampaignMembership } from "@/context/CampaignMembershipContext";
 
 export default function CustomerLoginPage() {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginData>();
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ParticipantLoginDto>({
+    resolver: zodResolver(participantLoginSchema),
+  });
   const router = useRouter();
+  // Use the context's login function which wraps the hook and handles state updates
+  const { login } = useCampaignMembership();
 
-  const onSubmit = async (data: LoginData) => {
-    console.log("Logging in:", data);
-    toast.success("Welcome back!");
-    router.push("/redemption");
+  const onSubmit = async (data: ParticipantLoginDto) => {
+    try {
+      await login(data);
+      toast.success("Welcome back!");
+      router.push("/redemption"); // Or redirect to dashboard/campaigns
+    } catch (error: any) {
+      console.error("Login error:", error);
+      toast.error(error?.response?.data?.message || "Login failed. Please check your credentials.");
+    }
   };
 
   const handleGoogleLogin = () => {
     toast.info("Redirecting to Google...");
+    // Implement Google login logic here if needed
   };
 
   return (
@@ -57,11 +67,12 @@ export default function CustomerLoginPage() {
         {/* Email Login Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
-            <Label>Email</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
+              id="email"
               type="email"
               placeholder="you@example.com"
-              {...register("email", { required: "Email is required" })}
+              {...register("email")}
             />
             {errors.email && (
               <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
@@ -69,11 +80,12 @@ export default function CustomerLoginPage() {
           </div>
 
           <div>
-            <Label>Password</Label>
+            <Label htmlFor="password">Password</Label>
             <Input
+              id="password"
               type="password"
               placeholder="••••••••"
-              {...register("password", { required: "Password is required" })}
+              {...register("password")}
             />
             {errors.password && (
               <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
