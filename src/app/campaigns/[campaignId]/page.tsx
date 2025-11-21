@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
-import { Calendar, Tag, Info, Gift, CheckCircle, Users, Trophy } from "lucide-react";
-import { SignUpDialog } from '@/components/customer/SignUpDialog';
-import { useCampaignMembership } from '@/context/CampaignMembershipContext';
+import { Calendar, Tag, Info, CheckCircle, Users, Trophy } from "lucide-react";
 import Link from 'next/link';
+import Cookies from 'js-cookie';
+import { useRouter } from 'next/navigation';
+import { useJoinCampaign } from '@/services/participant/hook';
+import { toast } from 'sonner';
 
 interface PageProps {
   params: Promise<{ campaignId: string }>;
@@ -77,14 +79,53 @@ const mockCampaign = {
 };
 
 export default function CampaignDetailPage({}: PageProps) {
-  const [isSignUpDialogOpen, setIsSignUpDialogOpen] = useState(false);
-  const { isMember, memberName } = useCampaignMembership();
+  const router = useRouter();
+  const { mutate: joinCampaign, isPending: isJoining } = useJoinCampaign();
+
+  const [isMember, setIsMember] = useState(false);
+  const [memberName, setMemberName] = useState(''); // Would typically fetch from user profile
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const campaign = mockCampaign;
   const isLoading = false;
 
+  useEffect(() => {
+    const token = Cookies.get('access');
+    if (token) {
+      setIsLoggedIn(true);
+      // In a real app, we would fetch user details and membership status for this campaign here
+      // For now, we assume they are not a member until they click join, unless we have local state
+      // If we want to auto-join on visit if logged in (as per one interpretation):
+      // But user said "Send request to join... that's if they've not joined before".
+      // To avoid spamming join, we should probably check status first.
+      // For this task, I will assume the user needs to click "Join" or we trigger it if we know they aren't member.
+    }
+  }, []);
+
   const handleJoinClick = () => {
-    setIsSignUpDialogOpen(true);
+    if (!isLoggedIn) {
+      // Redirect to signup with return URL
+      router.push(`/signup?returnUrl=/campaigns/${campaign.id}`);
+    } else {
+      // Already logged in, call join endpoint
+      joinCampaign({ campaignId: campaign.id }, {
+        onSuccess: () => {
+          setIsMember(true);
+          toast.success("Successfully joined the campaign!");
+          setMemberName("Participant"); // Use actual name if available in context/token
+        },
+        onError: (error) => {
+            // If error implies "Already joined", we can set isMember to true
+            // @ts-expect-error handling error type loosely
+            if (error?.response?.status === 409 || error?.message?.includes('joined')) {
+                setIsMember(true);
+                toast.info("You are already a member of this campaign.");
+            } else {
+                toast.error("Failed to join campaign. Please try again.");
+            }
+        }
+      });
+    }
   };
 
   return (
@@ -113,9 +154,10 @@ export default function CampaignDetailPage({}: PageProps) {
                 {!isMember && (
                   <Button
                     onClick={handleJoinClick}
+                    disabled={isJoining}
                     className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
                   >
-                    Join Campaign & Get Reward
+                    {isJoining ? 'Joining...' : 'Join Campaign & Get Reward'}
                   </Button>
                 )}
               </div>
@@ -132,7 +174,7 @@ export default function CampaignDetailPage({}: PageProps) {
                       <CheckCircle className="h-5 w-5 text-green-400" />
                     </div>
                     <div className="ml-3">
-                      <p className="text-sm font-medium text-green-800">You have joined this campaign. Welcome, {memberName}!</p>
+                      <p className="text-sm font-medium text-green-800">You have joined this campaign. Welcome!</p>
                     </div>
                   </div>
                 </div>
@@ -299,9 +341,10 @@ export default function CampaignDetailPage({}: PageProps) {
                 ) : (
                     <Button
                         onClick={handleJoinClick}
+                        disabled={isJoining}
                         className="w-full md:w-auto bg-orange-600 hover:bg-orange-700 text-white text-lg px-12 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
                     >
-                        Join Campaign & Get Reward
+                        {isJoining ? 'Joining...' : 'Join Campaign & Get Reward'}
                     </Button>
                 )}
             </div>
@@ -310,11 +353,6 @@ export default function CampaignDetailPage({}: PageProps) {
       ) : (
         <p className="text-center text-lg text-red-500 py-20">Campaign not found.</p>
       )}
-      <SignUpDialog
-        isOpen={isSignUpDialogOpen}
-        onClose={() => setIsSignUpDialogOpen(false)}
-        campaignTitle={campaign.title}
-      />
     </div>
   );
 }

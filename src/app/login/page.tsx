@@ -9,7 +9,9 @@ import { Switch } from "@/components/ui/switch";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
 import { useAuth } from "@/services/business/hook";
-import { useRouter } from "next/navigation";
+import { useParticipantLogin } from "@/services/participant/hook";
+import { useRouter, useSearchParams } from "next/navigation";
+import { User, Building2 } from "lucide-react";
 
 type LoginFormData = {
   email: string;
@@ -25,16 +27,34 @@ export default function LoginPage() {
   } = useForm<LoginFormData>({
     defaultValues: { rememberMe: false },
   });
-  const { mutateAsync: login } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get("returnUrl");
+
+  // Default to 'customer' unless explicitly toggled
+  const [userType, setUserType] = useState<'customer' | 'business'>('customer');
   const [showPassword, setShowPassword] = useState(false);
+
+  const { mutateAsync: businessLogin } = useAuth();
+  const { mutateAsync: participantLogin } = useParticipantLogin();
 
   const onSubmit = async (data: LoginFormData) => {
     try {
       const { rememberMe, ...loginData } = data;
-      await login(loginData)
-        .then(() => {
-          toast.success("Login successful! Redirecting...");
-        });
+
+      if (userType === 'business') {
+        await businessLogin(loginData);
+        toast.success("Business login successful! Redirecting...");
+        // Redirect handled in hook usually, but business hook does it.
+      } else {
+        await participantLogin(loginData);
+        toast.success("Login successful! Redirecting...");
+        if (returnUrl) {
+          router.push(returnUrl);
+        } else {
+          router.push("/dashboard"); // Or participant dashboard
+        }
+      }
     } catch (error) {
       console.error("Login error:", error);
       toast.error("Login failed. Please try again.");
@@ -58,6 +78,34 @@ export default function LoginPage() {
         <p className="text-center text-gray-500 text-sm">
           Log in to manage your account
         </p>
+
+        {/* User Type Toggle */}
+        <div className="flex p-1 bg-gray-100 rounded-xl">
+          <button
+            type="button"
+            onClick={() => setUserType('customer')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-lg transition-all ${
+              userType === 'customer'
+                ? 'bg-white text-orange-600 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <User size={18} />
+            Customer
+          </button>
+          <button
+            type="button"
+            onClick={() => setUserType('business')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-lg transition-all ${
+              userType === 'business'
+                ? 'bg-white text-orange-600 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Building2 size={18} />
+            Business
+          </button>
+        </div>
 
         <Button
           type="button"
