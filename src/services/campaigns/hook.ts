@@ -8,6 +8,7 @@ import {
   BusinessCampaign,
   PaginatedCampaignAnalyticsResponse,
   DetailedCampaignAnalytics,
+  PaginatedAdminCampaignsResponse,
 } from './types';
 
 const CAMPAIGNS_QUERY_KEY = 'campaigns';
@@ -131,6 +132,21 @@ export const useGetAllPublicCampaigns = (page: number = 1, limit: number = 10) =
   return useQuery({
     queryKey: [CAMPAIGNS_QUERY_KEY, 'all-public', { page, limit }],
     queryFn: () => getAllPublicCampaigns(page, limit),
+  });
+};
+
+// Get Admin Campaigns
+const getAdminCampaigns = async (page: number, limit: number): Promise<PaginatedAdminCampaignsResponse> => {
+  const { data } = await api.get<PaginatedAdminCampaignsResponse>('/campaigns/admins', {
+    params: { page, limit },
+  });
+  return data;
+};
+
+export const useGetAdminCampaigns = (page: number = 1, limit: number = 10) => {
+  return useQuery({
+    queryKey: [CAMPAIGNS_QUERY_KEY, 'admin', { page, limit }],
+    queryFn: () => getAdminCampaigns(page, limit),
   });
 };
 

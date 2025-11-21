@@ -101,7 +101,7 @@ export default function ReportingAnalyticsPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
           <CardHeader>
-            <CardTitle>Consumer Growth and Activity</CardTitle>
+            <CardTitle>Business Tier Distribution</CardTitle>
             <div className="flex gap-2 ml-auto">
               <Button size="sm" onClick={() => handleDownload('Consumer_Growth', consumerGrowthData)}>
                 <Download className="mr-2 h-4 w-4" /> Download XLS
@@ -114,6 +114,7 @@ export default function ReportingAnalyticsPage() {
                   Download PDF
                 </Button>
               </div>
+            </div>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={350}>

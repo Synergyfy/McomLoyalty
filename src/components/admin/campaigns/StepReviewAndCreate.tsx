@@ -47,11 +47,59 @@ export default function StepReviewAndCreate({ onBack }: StepProps) {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [activePreviewTab, setActivePreviewTab] = useState('campaignDetail');
 
-  const { mutate: createCampaign, isPending } = useCreateCampaign();
+  const { mutate: createCampaign, isPending: isCreating } = useCreateCampaign();
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleCreateCampaign = () => {
+  const uploadImage = async (blobUrl: string): Promise<string | null> => {
+    try {
+      const response = await fetch(blobUrl);
+      const blob = await response.blob();
+      const formData = new FormData();
+      formData.append('file', blob);
+
+      const uploadResponse = await fetch('/api/upload/campaigns', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload image');
+      }
+
+      const data = await uploadResponse.json();
+      return data.secure_url;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      return null;
+    }
+  };
+
+  const handleCreateCampaign = async () => {
     if (!formData.startDate || !formData.endDate) {
       alert("Start date and end date are required.");
+      return;
+    }
+
+    setIsUploading(true);
+    let bannerUrl = formData.imageUrl;
+    let logoUrl = formData.logoUrl;
+
+    try {
+      if (bannerUrl && bannerUrl.startsWith('blob:')) {
+        const uploadedBanner = await uploadImage(bannerUrl);
+        if (uploadedBanner) bannerUrl = uploadedBanner;
+        else throw new Error('Failed to upload banner image');
+      }
+
+      if (logoUrl && logoUrl.startsWith('blob:')) {
+        const uploadedLogo = await uploadImage(logoUrl);
+        if (uploadedLogo) logoUrl = uploadedLogo;
+        else throw new Error('Failed to upload logo image');
+      }
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      alert('Failed to upload images. Please try again.');
+      setIsUploading(false);
       return;
     }
 
@@ -64,8 +112,8 @@ export default function StepReviewAndCreate({ onBack }: StepProps) {
       quantity: Number(formData.rewardsAvailable) || 0,
       audience_type: formData.audienceType[0] || 'members', // Taking first element or default
       signUpPoint: 0, // Default as not in form
-      banner_url: formData.imageUrl,
-      logo_url: formData.logoUrl,
+      banner_url: bannerUrl,
+      logo_url: logoUrl,
       cta_text: formData.ctaButtonText,
       cta_background_color: formData.ctaBgColor,
       cta_text_color: formData.ctaTextColor,
@@ -92,10 +140,12 @@ export default function StepReviewAndCreate({ onBack }: StepProps) {
       onSuccess: (data) => {
         console.log('Campaign created successfully:', data);
         setShowSuccessDialog(true);
+        setIsUploading(false);
       },
       onError: (error) => {
         console.error('Failed to create campaign:', error);
         alert('Failed to create campaign. Please try again.');
+        setIsUploading(false);
       }
     });
   };
@@ -164,9 +214,9 @@ export default function StepReviewAndCreate({ onBack }: StepProps) {
           </div>
 
           <div className="flex justify-between mt-6">
-            <Button variant="outline" onClick={onBack} disabled={isPending}>Back</Button>
-            <Button onClick={handleCreateCampaign} disabled={isPending}>
-              {isPending ? 'Creating...' : 'Create Campaign'}
+            <Button variant="outline" onClick={onBack} disabled={isCreating || isUploading}>Back</Button>
+            <Button onClick={handleCreateCampaign} disabled={isCreating || isUploading}>
+              {isUploading ? 'Uploading Images...' : isCreating ? 'Creating...' : 'Create Campaign'}
             </Button>
           </div>
         </CardContent>

@@ -143,6 +143,13 @@ export interface PaginatedCampaignsResponse {
   limit: number;
 }
 
+export interface PaginatedAdminCampaignsResponse {
+  data: CampaignResponse[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export interface CampaignAnalytics {
   id: string;
   name: string;
