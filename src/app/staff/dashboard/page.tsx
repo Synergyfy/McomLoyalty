@@ -61,13 +61,13 @@ export default function StaffDashboard() {
                   </Badge>
                 </CardHeader>
                 <CardContent className="space-y-4 pt-4 flex-1 flex flex-col">
-                  <p className="text-sm text-gray-600 line-clamp-2 min-h-[40px]" title={campaign.campaign_message}>
-                    {campaign.campaign_message}
+                  <p className="text-sm text-gray-600 line-clamp-2 min-h-[40px]" title={campaign.campaignMessage}>
+                    {campaign.campaignMessage}
                   </p>
 
                   <div className="flex items-center text-sm text-gray-500 gap-2">
                     <Flame className="h-4 w-4 text-orange-500" />
-                    <span className="font-medium capitalize">{campaign.campaign_type.replace(/_/g, ' ')}</span>
+                    <span className="font-medium capitalize">{campaign.campaignType.replace(/_/g, ' ')}</span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 pt-2">
@@ -76,7 +76,7 @@ export default function StaffDashboard() {
                         <Calendar className="h-3 w-3" /> Start Date
                       </span>
                       <span className="text-sm font-medium text-gray-700">
-                        {new Date(campaign.start_date).toLocaleDateString()}
+                        {new Date(campaign.startDate).toLocaleDateString()}
                       </span>
                     </div>
                     <div className="flex flex-col space-y-1">
@@ -84,7 +84,7 @@ export default function StaffDashboard() {
                         <Calendar className="h-3 w-3" /> End Date
                       </span>
                       <span className="text-sm font-medium text-gray-700">
-                         {new Date(campaign.end_date).toLocaleDateString()}
+                         {new Date(campaign.endDate).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
