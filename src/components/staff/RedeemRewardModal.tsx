@@ -30,7 +30,8 @@ export function RedeemRewardModal({ campaignId, reward }: RedeemRewardModalProps
         campaignId,
         participantCode,
         points: reward.pointsRequired,
-        type: 'REDEEM'
+        type: 'REDEEM',
+        rewardId: reward.id
       });
       toast.success(`Successfully redeemed "${reward.title}" for ${participantCode}`);
       setIsOpen(false);

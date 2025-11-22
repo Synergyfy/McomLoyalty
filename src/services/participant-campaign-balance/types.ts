@@ -5,6 +5,7 @@ export interface ScanParticipantPayload {
   campaignId: string;
   points: number;
   type: TransactionType;
+  rewardId?: string;
 }
 
 export interface GenerateCodePayload {
