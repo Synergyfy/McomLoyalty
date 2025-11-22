@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useParticipantSignup } from "@/services/participant/hook";
 import { ParticipantSignupDto } from "@/services/participant/types";
+import { AxiosError } from "axios";
 
 type SignupData = ParticipantSignupDto & {
   agree: boolean;
@@ -45,7 +46,11 @@ export default function CustomerSignupPage() {
       }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to create account. Please try again.");
+      if (error instanceof AxiosError && error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Failed to create account. Please try again.");
+      }
     }
   };
 
@@ -83,8 +88,9 @@ export default function CustomerSignupPage() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <Label>Full Name</Label>
+            <Label htmlFor="fullName">Full Name</Label>
             <Input
+              id="fullName"
               placeholder="John Doe"
               {...register("fullName", { required: "Full name is required" })}
             />
@@ -94,8 +100,9 @@ export default function CustomerSignupPage() {
           </div>
 
           <div>
-            <Label>Email</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
+              id="email"
               type="email"
               placeholder="you@example.com"
               {...register("email", { required: "Email is required" })}
@@ -106,8 +113,9 @@ export default function CustomerSignupPage() {
           </div>
 
           <div>
-            <Label>Phone</Label>
+            <Label htmlFor="phone">Phone</Label>
             <Input
+              id="phone"
               type="tel"
               placeholder="+2348012345678"
               {...register("phone", { required: "Phone number is required" })}
@@ -118,8 +126,9 @@ export default function CustomerSignupPage() {
           </div>
 
           <div>
-            <Label>Password</Label>
+            <Label htmlFor="password">Password</Label>
             <Input
+              id="password"
               type="password"
               placeholder="••••••••"
               {...register("password", { required: "Password is required" })}
@@ -132,12 +141,13 @@ export default function CustomerSignupPage() {
           {/* Optional Fields */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Birthday</Label>
-              <Input type="date" {...register("birthday")} />
+              <Label htmlFor="birthday">Birthday</Label>
+              <Input id="birthday" type="date" {...register("birthday")} />
             </div>
             <div>
-              <Label>Gender</Label>
+              <Label htmlFor="gender">Gender</Label>
               <select
+                id="gender"
                 {...register("gender")}
                 className="w-full border rounded-md p-2 text-sm focus:ring-2 focus:ring-orange-500"
               >
@@ -150,8 +160,9 @@ export default function CustomerSignupPage() {
           </div>
 
           <div>
-            <Label>Location</Label>
+            <Label htmlFor="location">Location</Label>
             <Input
+              id="location"
               placeholder="e.g. Lagos, Nigeria"
               {...register("location")}
             />

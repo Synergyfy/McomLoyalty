@@ -11,6 +11,7 @@ import { toast } from "sonner"; // or your toast lib (shadcn, react-hot-toast, e
 import { useRouter } from "next/navigation";
 import { BusinessSignUpDto } from "@/services/business/types";
 import Link from "next/link";
+import { AxiosError } from "axios";
 
 export default function BusinessSignupForm() {
   const {
@@ -43,9 +44,13 @@ const onSubmit = async (data: BusinessSignUpDto) => {
 
   } catch (error) {
     console.error('Signup or login error:', error);
-    toast.error(
-      'Failed to create account. Please try again.'
-    );
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      toast.error(error.response.data.message);
+    } else {
+      toast.error(
+        'Failed to create account. Please try again.'
+      );
+    }
   }
 };
 
