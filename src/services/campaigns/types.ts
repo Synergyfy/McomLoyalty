@@ -143,6 +143,58 @@ export interface PaginatedCampaignsResponse {
   limit: number;
 }
 
+export interface OngoingCampaign {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  name: string;
+  campaign_type: string;
+  campaign_message: string;
+  start_date: string;
+  end_date: string;
+  quantity: number;
+  audience_type: string;
+  banner_url: string;
+  logo_url: string;
+  cta_text: string;
+  cta_background_color: string;
+  cta_text_color: string;
+  disabled: boolean;
+  text_color: string;
+  background_color: string;
+  signUpPoint: number;
+  total_points_earned: number;
+  total_points_redeemed: number;
+  reward_type: string;
+  regular_points_threshold: number;
+  matching_points_threshold: number | null;
+  total_matching_points_earned: number;
+  matching_points_disabled_by_admin: boolean;
+  uniqueCode: string;
+  earn_point_page_title: string;
+  earn_point_page_description: string;
+  redeem_reward_page_title: string;
+  redeem_reward_page_description: string;
+  contact_us_page_title: string;
+  contact_us_page_description: string;
+  contact_email: string;
+  contact_phone_number: string;
+  footer_text: string;
+  business: {
+    id: string;
+    name: string;
+  };
+  rewards: Reward[];
+  participantCount: number;
+}
+
+export interface PaginatedOngoingCampaignsResponse {
+  data: OngoingCampaign[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export interface PaginatedAdminCampaignsResponse {
   data: CampaignResponse[];
   total: number;

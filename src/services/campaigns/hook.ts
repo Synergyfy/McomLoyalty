@@ -10,6 +10,7 @@ import {
   DetailedCampaignAnalytics,
   PaginatedAdminCampaignsResponse,
   PaginatedCustomerActivityResponseDto,
+  PaginatedOngoingCampaignsResponse,
 } from './types';
 
 const CAMPAIGNS_QUERY_KEY = 'campaigns';
@@ -234,5 +235,20 @@ export const useGetCampaignById = (id: string) => {
     queryKey: [CAMPAIGNS_QUERY_KEY, id],
     queryFn: () => getCampaignById(id),
     enabled: !!id,
+  });
+};
+
+// Get Staff Ongoing Campaigns
+const getStaffOngoingCampaigns = async (page: number, limit: number): Promise<PaginatedOngoingCampaignsResponse> => {
+  const { data } = await api.get<PaginatedOngoingCampaignsResponse>('/campaigns/staff/ongoing', {
+    params: { page, limit },
+  });
+  return data;
+};
+
+export const useGetStaffOngoingCampaigns = (page: number = 1, limit: number = 10) => {
+  return useQuery({
+    queryKey: [CAMPAIGNS_QUERY_KEY, 'staff', 'ongoing', { page, limit }],
+    queryFn: () => getStaffOngoingCampaigns(page, limit),
   });
 };
