@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 
 // Participant Login
 const participantLogin = async (loginData: ParticipantLoginDto): Promise<ParticipantLoginResponse> => {
-  const { data } = await api.post<ParticipantLoginResponse>('/api/v1/participant/login', loginData);
+  const { data } = await api.post<ParticipantLoginResponse>('/participant/login', loginData);
   return data;
 };
 
@@ -27,7 +27,7 @@ export const useParticipantLogin = () => {
 
 // Participant Signup
 const participantSignup = async (signupData: ParticipantSignupDto): Promise<ParticipantLoginResponse> => {
-  const { data } = await api.post<ParticipantLoginResponse>('/api/v1/participant/signup', signupData);
+  const { data } = await api.post<ParticipantLoginResponse>('/participant/signup', signupData);
   return data;
 };
 
@@ -45,7 +45,7 @@ export const useParticipantSignup = () => {
 
 // Join Campaign
 const joinCampaign = async (joinData: JoinCampaignDto): Promise<JoinCampaignResponse> => {
-  const { data } = await api.post<JoinCampaignResponse>('/api/v1/participant/join-campaign', joinData);
+  const { data } = await api.post<JoinCampaignResponse>('/participant/join-campaign', joinData);
   return data;
 };
 
