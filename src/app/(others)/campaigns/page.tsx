@@ -32,10 +32,13 @@ export default function CampaignsPage() {
     if (!campaignsData?.data) return [];
 
     return campaignsData.data.filter(campaign => {
-      const category = campaign.category || 'General';
+      // Category is not in the new response, so we default to 'General' or check if we should filter by it at all.
+      // For now, we'll assume all campaigns are 'General' if no category field exists, or maybe we can't filter by category effectively without it.
+      // Let's assume 'General' for now to keep the UI working.
+      const category = 'General';
       const matchesCategory = selectedCategory === 'All' || category === selectedCategory;
-      const title = campaign.title || '';
-      const description = campaign.description || '';
+      const title = campaign.name || '';
+      const description = campaign.campaignMessage || '';
       const matchesSearch = title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         description.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesCategory && matchesSearch;
@@ -92,21 +95,21 @@ export default function CampaignsPage() {
                 <Card key={campaign.id} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-2xl">
                   <div className="relative h-48 w-full">
                     <Image
-                      src={campaign.banner_url || '/placeholder-image.jpg'}
-                      alt={campaign.title || 'Campaign Image'}
+                      src={campaign.bannerUrl || '/placeholder-image.jpg'}
+                      alt={campaign.name || 'Campaign Image'}
                       layout="fill"
                       objectFit="cover"
                     />
                     <div className="absolute top-2 right-2 bg-white text-gray-800 text-xs font-bold px-2 py-1 rounded-full shadow-md">
-                      {campaign.category || 'General'}
+                      {'General'}
                     </div>
                     <div className="absolute top-2 left-2 bg-black/30 rounded-full backdrop-blur-sm">
-                      <WishlistButton onClick={(e) => handleWishlistClick(e, campaign.title)} />
+                      <WishlistButton onClick={(e) => handleWishlistClick(e, campaign.name)} />
                     </div>
                   </div>
                   <CardContent className="p-6">
-                    <h2 className="text-xl font-bold mb-2 text-gray-800">{campaign.title}</h2>
-                    <p className="text-gray-600 mb-4 h-20 overflow-hidden line-clamp-3">{campaign.description}</p>
+                    <h2 className="text-xl font-bold mb-2 text-gray-800">{campaign.name}</h2>
+                    <p className="text-gray-600 mb-4 h-20 overflow-hidden line-clamp-3">{campaign.campaignMessage}</p>
                     <Link href={`/campaigns/${campaign.id}`}>
                       <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white rounded-full">View Details</Button>
                     </Link>

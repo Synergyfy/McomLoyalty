@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState, use } from 'react';
+import { isAxiosError } from 'axios';
+import React, { use, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import { Calendar, Tag, Info, CheckCircle, Users, Trophy } from "lucide-react";
-import { SignUpDialog } from '@/components/customer/SignUpDialog';
 import { useCampaignMembership } from '@/context/CampaignMembershipContext';
 import Link from 'next/link';
-import { useGetPublicCampaignDetails } from '@/services/customer-campaigns/hook';
+import { useGetPublicCampaignDetails, useJoinCampaign, useCheckCampaignJoinStatus } from '@/services/customer-campaigns/hook';
 
 interface PageProps {
   params: Promise<{ campaignId: string }>;
@@ -17,13 +17,29 @@ interface PageProps {
 
 export default function CampaignDetailPage({ params }: PageProps) {
   const { campaignId } = use(params);
-  const [isSignUpDialogOpen, setIsSignUpDialogOpen] = useState(false);
-  const { isMember, memberName } = useCampaignMembership();
+  const { memberName, joinCampaign, isCampaignJoined } = useCampaignMembership();
 
   const { data: campaign, isLoading, error } = useGetPublicCampaignDetails(campaignId);
+  const { data: joinStatus } = useCheckCampaignJoinStatus(campaignId);
+  const { mutate: joinCampaignMutation, isPending: isJoining } = useJoinCampaign();
+
+  const isMember = joinStatus?.isJoined || isCampaignJoined(campaignId);
 
   const handleJoinClick = () => {
-    setIsSignUpDialogOpen(true);
+    joinCampaignMutation(campaignId, {
+      onSuccess: () => {
+        joinCampaign(campaignId);
+      },
+      onError: (error: Error) => {
+        console.error('Failed to join campaign:', error);
+        if (isAxiosError(error) && error.response?.status === 401) {
+          // Redirect to login with campaignId
+          window.location.href = `/login?campaignId=${campaignId}`;
+        } else {
+          alert('Failed to join campaign. Please try again.');
+        }
+      }
+    });
   };
 
   if (isLoading) {
@@ -60,7 +76,7 @@ export default function CampaignDetailPage({ params }: PageProps) {
                 {campaign.title}
               </h1>
               <p className="text-lg md:text-xl mb-8 opacity-90 drop-shadow-md">
-                {isMember ? `Welcome, ${memberName}!` : campaign.tagline || campaign.description.substring(0, 100) + '...'}
+                {isMember ? `Welcome, ${memberName}!` : campaign.tagline || (campaign.description || campaign.campaignMessage || '').substring(0, 100) + '...'}
               </p>
               {!isMember && (
                 <Button
@@ -95,7 +111,7 @@ export default function CampaignDetailPage({ params }: PageProps) {
                 <section>
                   <h2 className="text-3xl font-bold text-gray-800 mb-4">About This Campaign</h2>
                   <p className="text-lg text-gray-700 leading-relaxed">
-                    {campaign.description}
+                    {campaign.description || campaign.campaignMessage}
                   </p>
                 </section>
 
@@ -232,7 +248,7 @@ export default function CampaignDetailPage({ params }: PageProps) {
           <div className="max-w-4xl mx-auto flex justify-center">
             {isMember ? (
               <div className="flex flex-col md:flex-row gap-4 w-full justify-center">
-                <Link href="/campaigns/my-points" passHref>
+                <Link href={`/campaigns/${campaignId}/my-points`} passHref>
                   <Button className="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white text-lg px-12 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105">
                     View My Points
                   </Button>
@@ -259,11 +275,6 @@ export default function CampaignDetailPage({ params }: PageProps) {
           </div>
         </div>
       </div>
-      <SignUpDialog
-        isOpen={isSignUpDialogOpen}
-        onClose={() => setIsSignUpDialogOpen(false)}
-        campaignTitle={campaign.title}
-      />
     </div>
   );
 }

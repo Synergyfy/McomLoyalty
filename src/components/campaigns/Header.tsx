@@ -26,7 +26,7 @@ export default function Header() {
     { href: `/campaigns/${campaignId}/earn-points`, label: 'EARN POINTS' },
     { href: `/campaigns/${campaignId}/redeem-points`, label: 'REDEEM POINTS' },
     { href: `/campaigns/${campaignId}/contact-us`, label: 'CONTACT US' },
-    { href: '/campaigns/my-points', label: 'MY POINTS' },
+    { href: `/campaigns/${campaignId}/my-points`, label: 'MY POINTS' },
   ];
 
   return (

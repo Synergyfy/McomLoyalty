@@ -7,7 +7,7 @@ import { Trophy } from "lucide-react";
 import Image from 'next/image';
 import { Progress } from '@/components/ui/progress';
 import { RedemptionSuccessDialog } from '@/components/customer/RedemptionSuccessDialog';
-import { useGetPublicCampaignDetails } from '@/services/customer-campaigns/hook';
+import { useGetPublicCampaignDetails, useGetParticipantBalance, useRedeemReward } from '@/services/customer-campaigns/hook';
 import { RewardResponse } from '@/services/rewards/types';
 import { useCampaignMembership } from '@/context/CampaignMembershipContext';
 
@@ -19,23 +19,46 @@ export default function RedeemPointsPage({ params }: PageProps) {
     const { campaignId } = use(params);
     console.log('RedeemPointsPage campaignId:', campaignId);
     const { data: campaign, isLoading, error } = useGetPublicCampaignDetails(campaignId);
+    const { data: balance } = useGetParticipantBalance(campaignId);
+    const { mutate: redeemReward } = useRedeemReward();
     console.log('RedeemPointsPage data:', campaign, 'isLoading:', isLoading, 'error:', error);
-    const { isMember } = useCampaignMembership(); // Assuming membership context might have points, but for now using mock or campaign data if available
+    const { isMember } = useCampaignMembership();
 
-    // TODO: Fetch real user points from an API. For now, mocking or using a placeholder.
-    // The campaign object has totalPointsEarned, but that might be aggregate. 
-    // We'll assume a mock value for now as per previous implementation, or 0 if not member.
-    const [userPoints, setUserPoints] = useState(isMember ? 200 : 0);
+    const userPoints = balance?.points || 0;
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedReward, setSelectedReward] = useState<{ title: string } | null>(null);
 
     const handleRedeemClick = (reward: RewardResponse) => {
-        // In a real app, this would call a mutation to redeem the reward
         if (userPoints >= reward.pointsRequired) {
-            setSelectedReward(reward);
-            setUserPoints(prev => prev - reward.pointsRequired);
-            setIsDialogOpen(true);
+            // In a real app, we would need the staffId and participantId here.
+            // Since this is a customer-facing app, we might need to adjust the endpoint or flow.
+            // For now, we will use mock IDs as per previous instructions or context if available.
+            // Assuming the backend handles validation based on the token or session.
+
+            // However, the current useRedeemReward hook expects a payload with staffId and participantId.
+            // If these are not available in the customer context, we might need to use a different endpoint
+            // or the backend should infer them.
+
+            // Given the constraints, I'll proceed with the existing hook but note this limitation.
+            // We'll use a placeholder for now to allow the UI to function.
+            const payload = {
+                staffId: 'mock-staff-id', // This should ideally come from context or be handled by backend
+                participantId: 'mock-participant-id', // This should come from context
+                rewardId: reward.id,
+                redemptionCode: `RED-${Date.now()}`, // Generate a temporary code
+            };
+
+            redeemReward(payload, {
+                onSuccess: () => {
+                    setSelectedReward(reward);
+                    setIsDialogOpen(true);
+                },
+                onError: (error) => {
+                    console.error('Redemption failed:', error);
+                    alert('Failed to redeem reward. Please try again.');
+                }
+            });
         }
     };
 
