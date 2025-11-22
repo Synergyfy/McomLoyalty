@@ -39,8 +39,15 @@ export default function CustomerSignupPage() {
       await signup(signupData);
       toast.success("Account created successfully! 🎉");
 
+      // Check local storage for campaign ID if no returnUrl provided
+      const storedCampaignId = localStorage.getItem('campaignId');
+
       if (returnUrl) {
         router.push(returnUrl);
+      } else if (storedCampaignId) {
+        // Clear it so we don't redirect there forever
+        localStorage.removeItem('campaignId');
+        router.push(`/campaigns/${storedCampaignId}`);
       } else {
         router.push("/dashboard"); // Or a default participant dashboard
       }
