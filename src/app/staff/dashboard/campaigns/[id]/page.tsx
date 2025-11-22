@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import { OngoingCampaignReward } from "@/services/campaigns/types";
+import { AwardPointsModal } from "@/components/staff/AwardPointsModal";
 
 export default function CampaignDetailsPage() {
   const params = useParams();
@@ -99,6 +100,25 @@ export default function CampaignDetailsPage() {
                   </div>
                 )}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Award Points Section */}
+          <Card className="border-green-100 bg-green-50/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-green-800">
+                <Flame className="h-5 w-5 text-green-600" />
+                Award Points
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-green-700">
+                Select this option to award points to a customer for a purchase or action. You can scan their QR code, generate a receipt code, or manually verify.
+              </p>
+              <AwardPointsModal
+                campaignId={campaign.id}
+                campaignName={campaign.name}
+              />
             </CardContent>
           </Card>
 
