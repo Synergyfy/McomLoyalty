@@ -169,7 +169,7 @@ function LoginForm() {
 
         <p className="text-center text-sm text-gray-600">
           Don’t have an account?{" "}
-          <a href={campaignId ? `/signup?campaignId=${campaignId}` : "/signup"} className="text-orange-400 hover:underline font-medium">
+          <a href={campaignId ? `/signup?campaignId=${campaignId}&type=customer` : "/signup"} className="text-orange-400 hover:underline font-medium">
             Sign up
           </a>
         </p>
