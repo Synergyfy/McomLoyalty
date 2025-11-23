@@ -37,7 +37,7 @@ function LoginForm() {
 
   const { mutateAsync: login } = useAuth();
   const { mutateAsync: participantLogin } = useParticipantLogin();
-  const { mutate: joinCampaign } = useJoinCampaign();
+  const { mutateAsync: joinCampaign } = useJoinCampaign();
   const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = async (data: LoginFormData) => {
@@ -54,6 +54,12 @@ function LoginForm() {
             }
 
             if (campaignId) {
+              try {
+                await joinCampaign(campaignId);
+              } catch (joinError) {
+                console.error("Failed to auto-join campaign:", joinError);
+              }
+
               await queryClient.invalidateQueries({ queryKey: ['isJoined', campaignId] });
               await queryClient.invalidateQueries({ queryKey: ['publicCampaigns', campaignId] });
             }
