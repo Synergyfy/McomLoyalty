@@ -6,25 +6,19 @@ import { mockCustomerData } from '@/lib/mock-data/customer';
 import { motion } from "framer-motion";
 import { Progress } from '../ui/progress';
 import { mockWallet } from '@/lib/mock-data/wallet';
-import { useGetParticipantGlobalBalance } from '@/services/customer-campaigns/hook';
+import { useGetParticipantGlobalBalance, useGetParticipantProfile } from '@/services/customer-campaigns/hook';
 
 export function PointsBalanceCard() {
 
-  const { data: balanceData, isLoading } = useGetParticipantGlobalBalance();
+  const { data: balanceData, isLoading: isBalanceLoading } = useGetParticipantGlobalBalance();
+  const { data: profileData, isLoading: isProfileLoading } = useGetParticipantProfile();
 
   const totalPoints = balanceData?.globalTotalPoints || 0;
   const matchingPoints = balanceData?.matchingPoints || 0;
+  const utilization = profileData?.point_utilization || 0;
   const expiryDate = "2025-12-31";
 
-  const utilization = useMemo(() => {
-    const spent = mockWallet.transactions.filter((t) => t.points < 0)
-      .reduce((acc, t) => acc + Math.abs(t.points), 0);
-    const earned = mockWallet.transactions.filter((t) => t.points > 0)
-      .reduce((acc, t) => acc + t.points, 0);
-    return Math.min((spent / earned) * 100, 100);
-  }, []);
-
-  if (isLoading) {
+  if (isBalanceLoading || isProfileLoading) {
     return (
       <Card className="flex items-center justify-center shadow-xl rounded-2xl overflow-hidden text-white h-[300px]">
         <div className="animate-pulse flex flex-col items-center">

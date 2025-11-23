@@ -20,7 +20,8 @@ import {
   SignUpResponse,
   IsJoinedResponse,
   UniqueCodeResponse,
-  ParticipantGlobalBalanceResponse
+  ParticipantGlobalBalanceResponse,
+  ParticipantProfileResponse
 } from './types';
 
 const PUBLIC_CAMPAIGNS_QUERY_KEY = 'publicCampaigns';
@@ -246,5 +247,18 @@ export const useGetParticipantGlobalHistory = (page: number = 1, limit: number =
   return useQuery({
     queryKey: ['participantGlobalHistory', page, limit],
     queryFn: () => getParticipantGlobalHistory(page, limit),
+  });
+};
+
+// Get Participant Profile
+const getParticipantProfile = async (): Promise<ParticipantProfileResponse> => {
+  const { data } = await api.get<ParticipantProfileResponse>('/participant/me');
+  return data;
+};
+
+export const useGetParticipantProfile = () => {
+  return useQuery({
+    queryKey: ['participantProfile'],
+    queryFn: getParticipantProfile,
   });
 };
