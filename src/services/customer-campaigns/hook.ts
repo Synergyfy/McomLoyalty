@@ -233,3 +233,18 @@ export const useGetParticipantGlobalBalance = () => {
     queryFn: getParticipantGlobalBalance,
   });
 };
+
+// Get Participant Global History
+const getParticipantGlobalHistory = async (page: number, limit: number): Promise<ParticipantHistoryResponse> => {
+  const { data } = await api.get<ParticipantHistoryResponse>('/participant-campaign-balance/history', {
+    params: { page, limit },
+  });
+  return data;
+};
+
+export const useGetParticipantGlobalHistory = (page: number = 1, limit: number = 10) => {
+  return useQuery({
+    queryKey: ['participantGlobalHistory', page, limit],
+    queryFn: () => getParticipantGlobalHistory(page, limit),
+  });
+};
