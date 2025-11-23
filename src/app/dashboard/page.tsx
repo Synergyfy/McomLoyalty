@@ -121,10 +121,10 @@ export default function BusinessDashboard() {
         <CardContent>
           {analyticsData?.lastTenActivities && analyticsData.lastTenActivities.length > 0 ? (
             <ul className="space-y-3">
-              {analyticsData.lastTenActivities.map((a, i) => (
-                <li key={i} className="flex justify-between text-sm text-gray-700">
-                  <span>{a.activity}</span>
-                  <span className="text-gray-500">{new Date(a.timestamp).toLocaleDateString()}</span>
+              {analyticsData.lastTenActivities.map((a) => (
+                <li key={a.id} className="flex justify-between text-sm text-gray-700">
+                  <span>{a.description}</span>
+                  <span className="text-gray-500">{new Date(a.createdAt).toLocaleDateString()}</span>
                 </li>
               ))}
             </ul>
