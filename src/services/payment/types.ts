@@ -21,9 +21,9 @@ export interface Tier {
 }
 
 export enum PlanType {
-    MONTHLY = 'MONTHLY',
-    QUARTERLY = 'QUARTERLY',
-    ANNUALLY = 'ANNUALLY',
+    MONTHLY = 'monthly',
+    QUARTERLY = 'quarterly',
+    ANNUALLY = 'annually',
 }
 
 export enum PaymentProvider {
@@ -31,26 +31,41 @@ export enum PaymentProvider {
     PAYPAL = 'paypal',
 }
 
-export interface SubscribeDto {
+// Stripe Payment Types
+export interface StripeInitiateRequest {
     tier_id: string;
-    plan_type: PlanType;
-    provider?: PaymentProvider;
-    payment_token?: string; // Required for Stripe
-    return_url?: string;    // Required for PayPal
-    cancel_url?: string;    // Required for PayPal
-    is_trial?: boolean;
+    plan_type: string; // "monthly" | "quarterly" | "annually"
+    coupon_code?: string;
 }
 
-export interface StripeSubscriptionResponse {
-    status: string;
+export interface StripeInitiateResponse {
     clientSecret: string;
-    subscriptionId: string;
 }
 
-export interface PayPalSubscriptionResponse {
+export interface StripeVerifyRequest {
+    transaction_id: string;
+}
+
+export interface StripeVerifyResponse {
     status: string;
-    orderId: string;
-    approveLink: string;
 }
 
-export type SubscriptionResponse = StripeSubscriptionResponse | PayPalSubscriptionResponse;
+// PayPal Payment Types
+export interface PayPalInitiateRequest {
+    tier_id: string;
+    plan_type: string; // "monthly" | "quarterly" | "annually"
+    coupon_code?: string;
+}
+
+export interface PayPalInitiateResponse {
+    orderId: string;
+    approveLink?: string; // PayPal approval URL to redirect user to
+}
+
+export interface PayPalVerifyRequest {
+    transaction_id: string;
+}
+
+export interface PayPalVerifyResponse {
+    status: string;
+}
