@@ -1,16 +1,23 @@
 export interface Tier {
     id: string;
-    created_at: string;
-    updated_at: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
     name: string;
-    monthly_price: number;
-    annual_price: number;
-    quaterly_price: number;
+    monthlyPrice: string; // API returns string "45.00"
+    annualPrice: string; // API returns string "540.00"
+    quaterlyPrice: string; // API returns string "135.00"
     features: string[];
     status: string;
+    stripeMonthlyPriceId: string;
+    stripeQuarterlyPriceId: string;
+    stripeAnnualPriceId: string;
+    paypalMonthlyPlanId: string;
+    paypalQuarterlyPlanId: string;
+    paypalAnnualPlanId: string;
     qrCodeCount: number;
-    description?: string; // Added optional description as it might be useful for UI
-    includesNfc?: boolean; // Added optional field for UI compatibility
+    description?: string;
+    includesNfc?: boolean;
 }
 
 export enum PlanType {
