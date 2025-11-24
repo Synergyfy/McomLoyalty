@@ -42,7 +42,7 @@ interface CampaignData {
 }
 
 interface CampaignPreviewProps {
-  campaign: CampaignData | any; // Allow any to bypass strict type checks against the old interface
+  campaign: CampaignData;
 }
 
 export default function CampaignPreview({ campaign }: CampaignPreviewProps) {

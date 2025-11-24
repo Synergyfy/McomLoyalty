@@ -8,6 +8,7 @@ import CampaignTransactionHistoryDialog from '@/components/customer/CampaignTran
 import { WishlistButton } from '@/components/customer/wishlist/WishlistButton';
 import { WishlistModal } from '@/components/customer/wishlist/WishlistModal';
 import { useGetMyCampaigns } from '@/services/customer-campaigns/hook';
+import { MyCampaign } from '@/services/customer-campaigns/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -88,7 +89,7 @@ export default function MyCampaignsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {campaigns.map((campaign) => {
+          {campaigns.map((campaign: MyCampaign) => {
             // Calculate progress if possible, otherwise default to 0 or logic based on requirements
             // Assuming regularPointsThreshold is the target for a reward?
             const target = campaign.regularPointsThreshold || 1000; // Default target if null? Or maybe hide progress?
