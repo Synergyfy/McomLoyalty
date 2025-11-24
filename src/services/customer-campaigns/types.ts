@@ -89,6 +89,33 @@ export interface ParticipantBalance {
   balance: number;
 }
 
+export interface ParticipantGlobalBalanceResponse {
+  globalTotalPoints: number;
+  matchingPoints: number;
+  campaignBalances: ParticipantBalance[];
+}
+
+export interface ParticipantProfileResponse {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  uniqueCode: string;
+  global_total_points: number;
+  matching_points: number;
+  point_utilization: number;
+  total_points_earned: number;
+  total_points_redeemed: number;
+  isDisabled: boolean;
+  created_at: string;
+  updated_at: string;
+  campaign_balances: {
+    campaign_id: string;
+    campaign_name: string;
+    balance: number;
+  }[];
+}
+
 export interface ClaimCodePayload {
   code: string;
   campaignId: string;
@@ -166,4 +193,32 @@ export interface SignUpResponse {
 
 export interface UniqueCodeResponse {
   uniqueCode: string;
+}
+
+export interface ParticipantHistoryItem {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  type: 'EARN' | 'REDEEM';
+  points: number;
+  redemptionCode: string | null;
+  description: string;
+  campaign: {
+    id: string;
+    name: string;
+  };
+  reward: {
+    title: string;
+  } | null;
+  business: {
+    name: string;
+  };
+}
+
+export interface ParticipantHistoryResponse {
+  data: ParticipantHistoryItem[];
+  total: number;
+  page: number;
+  limit: number;
 }
