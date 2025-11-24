@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import api, { setBearerToken } from '../api';
 import { AdminLoginDto, AdminLoginResponse, RefreshTokenResponse, ParticipantLoginDto, ParticipantLoginResponse } from './types';
 import Cookies from 'js-cookie';
+import { handleAuthResponse } from './utils';
 
 // Admin Login
 const adminSignIn = async (loginData: AdminLoginDto): Promise<AdminLoginResponse> => {
@@ -22,8 +23,8 @@ export const useAdminSignIn = () => {
 
 // Participant Login
 const participantSignIn = async (loginData: ParticipantLoginDto): Promise<ParticipantLoginResponse> => {
-  const { data } = await api.post<ParticipantLoginResponse>('/participant/login', loginData);
-  return data;
+  const response = await api.post<ParticipantLoginResponse>('/participant/login', loginData);
+  return handleAuthResponse(response, 'Participant Sign In');
 };
 
 export const useParticipantLogin = () => {

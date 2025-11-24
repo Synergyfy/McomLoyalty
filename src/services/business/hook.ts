@@ -4,6 +4,7 @@ import { SectorResponse } from '@/services/sectors/types';
 import Cookies from 'js-cookie';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { handleAuthResponse } from '../auth/utils';
 
 const BUSINESS_QUERY_KEY = 'business';
 
@@ -31,8 +32,8 @@ export const useBusinessSignUp = () => {
 
 // General Auth Hook
 const login = async (loginData: BusinessLoginDto): Promise<BusinessLoginResponse> => {
-  const { data } = await api.post<BusinessLoginResponse>('/auth/login', loginData);
-  return data;
+  const response = await api.post<BusinessLoginResponse>('/auth/login', loginData);
+  return handleAuthResponse(response, 'Login');
 };
 
 export const useAuth = () => {
@@ -129,8 +130,8 @@ export const useGetSubcategories = (categoryId: string, page = 1, limit = 10) =>
 
 // Business Login
 const businessSignIn = async (loginData: BusinessLoginDto): Promise<BusinessLoginResponse> => {
-  const { data } = await api.post<BusinessLoginResponse>('/auth/login', loginData);
-  return data;
+  const response = await api.post<BusinessLoginResponse>('/auth/login', loginData);
+  return handleAuthResponse(response, 'Business Sign In');
 };
 
 export const useBusinessSignIn = (options?: { skipRedirect?: boolean }) => {
