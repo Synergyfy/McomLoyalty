@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 export default function MyCampaignsPage() {
   const [page, setPage] = useState(1);
   const [limit] = useState(10); // Or whatever limit you prefer
-  const { data: campaignsData, isLoading } = useGetMyCampaigns(page, limit);
+  const { data: campaignsData, isLoading } = useGetMyCampaigns(page, limit, undefined, undefined);
 
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
@@ -115,7 +115,7 @@ export default function MyCampaignsPage() {
                   {/* Business name is not explicitly in the response, using a placeholder or hiding it */}
                   {/* <h3 className="text-sm font-semibold text-gray-500">Business Name</h3> */}
                   <h2 className="text-xl font-bold mb-2 text-gray-800">{campaign.name}</h2>
-                  <p className="text-gray-600 mb-4 text-sm line-clamp-2">{campaign.campaignMessage || 'No description available.'}</p>
+                  <p className="text-gray-600 mb-4 text-sm line-clamp-2">{campaign.description || 'No description available.'}</p>
 
                   <div className="flex justify-between text-sm mb-1">
                     <span className="font-semibold text-gray-700">Balance: {campaign.balance}</span>

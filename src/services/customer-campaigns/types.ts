@@ -244,7 +244,7 @@ export interface ParticipantHistoryResponse {
 export interface MyCampaign {
   id: string;
   name: string;
-  campaignMessage: string;
+  description: string;
   balance: number;
   regularPointsThreshold: number;
   bannerUrl: string;
