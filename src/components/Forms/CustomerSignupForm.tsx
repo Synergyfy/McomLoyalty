@@ -7,9 +7,10 @@ import { Label } from "@/components/ui/label";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useSignUp } from "@/services/customer-campaigns/hook";
+import { useSignUp, useJoinCampaign } from "@/services/customer-campaigns/hook";
 import { useParticipantLogin } from "@/services/auth/hook";
 import { isAxiosError } from "axios";
+import { useQueryClient } from "@tanstack/react-query";
 
 type SignupData = {
   name: string;
@@ -22,9 +23,11 @@ export default function CustomerSignupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const campaignId = searchParams.get("campaignId");
+  const queryClient = useQueryClient();
 
   const { mutateAsync: signUp, isPending: isSigningUp } = useSignUp();
   const { mutateAsync: participantLogin } = useParticipantLogin();
+  const { mutateAsync: joinCampaign } = useJoinCampaign();
 
   const {
     register,
@@ -62,6 +65,18 @@ export default function CustomerSignupPage() {
           localStorage.setItem('campaignMemberName', response.user.name);
         }
 
+        // Explicitly join the campaign after login to ensure status is updated
+        try {
+          await joinCampaign(campaignId);
+        } catch (joinError) {
+          console.error("Failed to auto-join campaign:", joinError);
+          // Don't block flow if join fails (maybe already joined), but log it
+        }
+
+        // Invalidate queries to ensure the campaign page shows the updated member status immediately
+        await queryClient.invalidateQueries({ queryKey: ['isJoined', campaignId] });
+        await queryClient.invalidateQueries({ queryKey: ['publicCampaigns', campaignId] });
+
         toast.success("Joined campaign successfully!");
         router.push(`/campaigns/${campaignId}`);
       } else {
@@ -84,8 +99,8 @@ export default function CustomerSignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white ">
-      <div className="w-full max-w-md bg-white rounded-2xl  p-8 space-y-6">
+    <div className="w-full space-y-6">
+      <div>
         <h2 className="text-2xl font-semibold text-center text-gray-800">
           Join <span className="text-orange-500">MCOM Rewards</span>
         </h2>
