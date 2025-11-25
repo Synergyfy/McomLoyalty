@@ -181,7 +181,7 @@ export function AddEditTierBadgeModal({
           {type === 'tier' && (
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="maxPoints" className="text-right">Max Points</Label>
-              <Input type="number" id="maxPoints" value={maxPoints || ''} onChange={(e) => setMaxPoints(e.target.value ? Number(e.target.value) : undefined)} className="col-span-3" placeholder="Optional" />
+              <Input type="number" id="maxPoints" value={maxPoints || ''} onChange={(e) => setMaxPoints(e.target.value ? Number(e.target.value) : undefined)} className="col-span-3" />
             </div>
           )}
 
@@ -199,7 +199,7 @@ export function AddEditTierBadgeModal({
           {type === 'tier' && (
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="maxCampaigns" className="text-right">Max Campaigns</Label>
-              <Input type="number" id="maxCampaigns" value={maxCampaigns || ''} onChange={(e) => setMaxCampaigns(e.target.value ? Number(e.target.value) : undefined)} className="col-span-3" placeholder="Optional" />
+              <Input type="number" id="maxCampaigns" value={maxCampaigns || ''} onChange={(e) => setMaxCampaigns(e.target.value ? Number(e.target.value) : undefined)} className="col-span-3" />
             </div>
           )}
 
