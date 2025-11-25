@@ -34,14 +34,13 @@ export function AddEditTierBadgeModal({
 }: AddEditTierBadgeModalProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [minPoints, setMinPoints] = useState<number>(0);
+  const [minPoints, setMinPoints] = useState<number | string>('');
   const [maxPoints, setMaxPoints] = useState<number | undefined>(undefined);
-  const [minCampaigns, setMinCampaigns] = useState<number>(0);
+  const [minCampaigns, setMinCampaigns] = useState<number | string>('');
   const [maxCampaigns, setMaxCampaigns] = useState<number | undefined>(undefined);
 
   const [criteria, setCriteria] = useState<string[]>(['']);
   const [privileges, setPrivileges] = useState<string[]>(['']);
-  const [color, setColor] = useState('');
 
   // State for Feedback Dialog
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
@@ -65,7 +64,6 @@ export function AddEditTierBadgeModal({
       setName(initialData.name);
       setDescription(initialData.description);
       setPrivileges(initialData.privileges && initialData.privileges.length > 0 ? initialData.privileges : ['']);
-      setColor(initialData.color || '');
       setCriteria(initialData.criteria && initialData.criteria.length > 0 ? initialData.criteria : ['']);
 
       if (type === 'tier') {
@@ -83,13 +81,12 @@ export function AddEditTierBadgeModal({
       // Reset form
       setName('');
       setDescription('');
-      setMinPoints(0);
+      setMinPoints('');
       setMaxPoints(undefined);
-      setMinCampaigns(0);
+      setMinCampaigns('');
       setMaxCampaigns(undefined);
       setCriteria(['']);
       setPrivileges(['']);
-      setColor('');
     }
   }, [initialData, type, isOpen]);
 
@@ -114,9 +111,8 @@ export function AddEditTierBadgeModal({
     const commonData = {
       name,
       description,
-      minPoints,
+      minPoints: typeof minPoints === 'string' ? (minPoints === '' ? 0 : Number(minPoints)) : minPoints,
       privileges: privileges.filter(p => p.trim() !== ''),
-      color,
       criteria: criteria.filter(c => c.trim() !== ''),
     };
 
@@ -125,13 +121,13 @@ export function AddEditTierBadgeModal({
       dataToSave = {
         ...commonData,
         maxPoints,
-        minCampaigns,
+        minCampaigns: typeof minCampaigns === 'string' ? (minCampaigns === '' ? 0 : Number(minCampaigns)) : minCampaigns,
         maxCampaigns,
       };
     } else {
       dataToSave = {
         ...commonData,
-        minCampaignsJoined: minCampaigns,
+        minCampaignsJoined: typeof minCampaigns === 'string' ? (minCampaigns === '' ? 0 : Number(minCampaigns)) : minCampaigns,
       };
     }
 
@@ -173,7 +169,13 @@ export function AddEditTierBadgeModal({
 
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="minPoints" className="text-right">Min Points</Label>
-            <Input type="number" id="minPoints" value={minPoints} onChange={(e) => setMinPoints(Number(e.target.value))} className="col-span-3" />
+            <Input
+              type="number"
+              id="minPoints"
+              value={minPoints}
+              onChange={(e) => setMinPoints(e.target.value === '' ? '' : Number(e.target.value))}
+              className="col-span-3"
+            />
           </div>
 
           {type === 'tier' && (
@@ -185,7 +187,13 @@ export function AddEditTierBadgeModal({
 
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="minCampaigns" className="text-right">{type === 'tier' ? 'Min Campaigns' : 'Min Joined'}</Label>
-            <Input type="number" id="minCampaigns" value={minCampaigns} onChange={(e) => setMinCampaigns(Number(e.target.value))} className="col-span-3" />
+            <Input
+              type="number"
+              id="minCampaigns"
+              value={minCampaigns}
+              onChange={(e) => setMinCampaigns(e.target.value === '' ? '' : Number(e.target.value))}
+              className="col-span-3"
+            />
           </div>
 
           {type === 'tier' && (
@@ -245,11 +253,6 @@ export function AddEditTierBadgeModal({
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="color" className="text-right">Color</Label>
-            <Input id="color" value={color} onChange={(e) => setColor(e.target.value)} placeholder="e.g., #FFD700" className="col-span-3" />
           </div>
         </div>
         <DialogFooter>

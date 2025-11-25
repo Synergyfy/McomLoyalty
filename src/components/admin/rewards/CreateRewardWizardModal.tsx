@@ -103,7 +103,7 @@ export default function CreateRewardWizardModal({
         setRewardType(reward.type);
         setValue(reward.value);
         setPointsRequired(reward.pointsRequired);
-        setExpiry(new Date(reward.expiry));
+        setExpiry(reward.expiry ? new Date(reward.expiry) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
         setImagePreviewUrl(reward.image);
         setStatus(reward.status);
         // Handle badgeLevel - convert string to array if needed
