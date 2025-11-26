@@ -45,7 +45,7 @@ interface OnApproveActions {
 
 interface PayPalButtonProps {
   tier_id: string;
-  plan_type: "monthly" | "annual" | "quaterly";
+  plan_type: "monthly" | "annual" | "quarterly";
   coupon_code: string;
   onPaymentSuccess: (details: PayPalVerifyResponse, orderId: string) => void;
   onPaymentError: (error: Error) => void;

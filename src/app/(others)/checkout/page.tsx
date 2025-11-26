@@ -238,7 +238,7 @@ function CheckoutContent() {
           <div className="mt-4">
             <PayPalButton
               tier_id={tier.id}
-              plan_type={billing === "annual" ? "annual" : "quaterly"}
+              plan_type={billing === "annual" ? "annual" : "quarterly"}
               coupon_code={appliedCoupon?.code || ""}
               onPaymentSuccess={async (details, orderId) => {
                 console.log("Payment successful:", details);
