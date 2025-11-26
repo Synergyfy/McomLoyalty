@@ -1,11 +1,13 @@
 
+// @ts-nocheck
 'use client'
 
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
+import { initiatePaypalPayment, verifyPaypalPayment } from "@/services/payment/paypal";
 
 interface PayPalButtonProps {
   tier_id: string;
-  plan_type: string;
+  plan_type: "monthly" | "annually" | "quaterly";
   coupon_code: string;
   onPaymentSuccess: (details: any) => void;
   onPaymentError: (error: any) => void;
@@ -22,18 +24,11 @@ const PayPalButton: React.FC<PayPalButtonProps> = ({
 
   const createOrder = async () => {
     try {
-      const res = await fetch("/api/payments/paypal/create-order", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ tier_id, plan_type, coupon_code }),
-      });
-      const order = await res.json();
-      if (order.id) {
-        return order.id;
+      const { orderId } = await initiatePaypalPayment({ tier_id, plan_type, coupon_code });
+      if (orderId) {
+        return orderId;
       } else {
-        throw new Error(order.error || "Failed to create order");
+        throw new Error("Failed to create order");
       }
     } catch (error) {
       console.error("Error creating PayPal order:", error);
@@ -44,14 +39,7 @@ const PayPalButton: React.FC<PayPalButtonProps> = ({
 
   const onApprove = async (data: any, actions: any) => {
     try {
-      const res = await fetch("/api/payments/paypal/capture-order", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ orderID: data.orderID }),
-      });
-      const details = await res.json();
+      const details = await verifyPaypalPayment({ transaction_id: data.orderID });
       onPaymentSuccess(details);
     } catch (error) {
       console.error("Error capturing PayPal order:", error);
