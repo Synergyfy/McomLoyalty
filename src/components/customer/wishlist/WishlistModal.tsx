@@ -22,7 +22,7 @@ import { CloudinaryUpload } from '@/components/ui/cloudinary-upload';
 import Image from 'next/image';
 import { useGetCategories } from '@/services/wishlist/hook';
 import { Category } from '@/services/wishlist/types';
-import axios from 'axios';
+// import axios from 'axios';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 

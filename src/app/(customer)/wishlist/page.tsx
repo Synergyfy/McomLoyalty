@@ -46,6 +46,7 @@ export default function WishlistPage() {
   };
 
   const handleDelete = (id: string) => {
+    console.log("Delete item:", id);
     // Specification didn't provide a delete endpoint. 
     // We will simulate it locally for now.
     // In a real scenario, we would use a delete mutation here.
@@ -65,10 +66,21 @@ export default function WishlistPage() {
     }
   };
 
-  const handleSave = async (item: Omit<CardWishlistItem, 'id'> | CardWishlistItem | any) => {
-    // Note: We are using 'any' on item because we are passing extra fields (isForThirdParty, etc.) from the modal
-    // that are not strictly in CardWishlistItem type. Ideally, we should update the type definition.
-    
+  const handleSave = async (item: Omit<CardWishlistItem, 'id'> | CardWishlistItem | {
+      id?: string;
+      name: string;
+      category: string;
+      priority: string;
+      occasion?: string;
+      targetDate?: string;
+      consent: boolean;
+      imageUrl?: string;
+      isForThirdParty?: boolean;
+      recipientName?: string;
+      recipientEmail?: string;
+      recipientPhone?: string;
+      relationship?: 'FATHER' | 'MOTHER' | 'BROTHER' | 'SISTER' | 'HUSBAND' | 'WIFE' | 'OTHERS';
+  }) => {
     // We expect the Modal to pass us a valid `categoryId` in the `category` field now.
     // Or we expect `item.category` to be the ID.
     
@@ -85,16 +97,16 @@ export default function WishlistPage() {
         itemName: item.name,
         itemImageUrl: item.imageUrl,
         categoryId: categoryId, 
-        occasion: item.occasion ? item.occasion.toUpperCase() as any : 'NONE',
+        occasion: item.occasion ? item.occasion.toUpperCase() as 'BIRTHDAY' | 'ANNIVERSARY' | 'NONE' | 'CUSTOM' : 'NONE',
         season: 'NONE', 
         targetDate: item.targetDate,
         priority: item.priority.toUpperCase() as 'LOW' | 'MEDIUM' | 'HIGH',
         marketingConsent: item.consent,
-        isForThirdParty: item.isForThirdParty || false,
-        recipientName: item.recipientName,
-        recipientEmail: item.recipientEmail,
-        recipientPhone: item.recipientPhone,
-        relationship: item.relationship
+        isForThirdParty: 'isForThirdParty' in item ? item.isForThirdParty || false : false,
+        recipientName: 'recipientName' in item ? item.recipientName : undefined,
+        recipientEmail: 'recipientEmail' in item ? item.recipientEmail : undefined,
+        recipientPhone: 'recipientPhone' in item ? item.recipientPhone : undefined,
+        relationship: 'relationship' in item ? item.relationship : undefined
     };
 
     try {
