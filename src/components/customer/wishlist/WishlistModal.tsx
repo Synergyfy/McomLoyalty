@@ -22,6 +22,9 @@ import { CloudinaryUpload } from '@/components/ui/cloudinary-upload';
 import Image from 'next/image';
 import { useGetCategories } from '@/services/wishlist/hook';
 import { Category } from '@/services/wishlist/types';
+import axios from 'axios';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface WishlistModalProps {
   isOpen: boolean;
@@ -37,7 +40,7 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
 
   // Step 1 state
   const [wishlistFor, setWishlistFor] = useState<'myself' | 'friend' | 'family' | ''>(itemToEdit ? 'myself' : '');
-  const [myEmail, setMyEmail] = useState(''); // New state for myself's email
+  const [myEmail, setMyEmail] = useState(''); 
   const [friendName, setFriendName] = useState('');
   const [relationship, setRelationship] = useState('');
   const [customRelationship, setCustomRelationship] = useState('');
@@ -48,7 +51,6 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
 
   // Step 2 state
   const [name, setName] = useState('');
-  // Use categoryId instead of category name
   const [categoryId, setCategoryId] = useState<string>('');
   const [occasion, setOccasion] = useState('None');
   const [season, setSeason] = useState('None');
@@ -60,15 +62,12 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 
+  const [isUploading, setIsUploading] = useState(false);
+
   useEffect(() => {
     if (isOpen) {
       if (itemToEdit) {
         setName(itemToEdit.name);
-        // Map category name back to ID if possible, or handle this properly.
-        // For editing, if the item object doesn't have categoryId, we might have trouble displaying the correct category.
-        // Assuming itemToEdit might be coming from a place that doesn't have the ID handy or matching.
-        // Ideally we should pass the full object with IDs.
-        // For now, let's try to match by name if ID isn't available, or just default.
         if (categories) {
             const matchedCategory = categories.find(c => c.name === itemToEdit.category);
             if (matchedCategory) {
@@ -81,19 +80,18 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
         setOccasion(itemToEdit.occasion || 'None');
         setTargetDate(itemToEdit.targetDate ? new Date(itemToEdit.targetDate) : undefined);
         setImagePreviewUrl(itemToEdit.imageUrl || null);
-        setStep(2); // If editing, go straight to step 2
+        setStep(2); 
         setWishlistFor('myself');
       } else {
-        // Reset for new item
         setName(itemName || '');
-        setCategoryId(''); // Reset category
+        setCategoryId(''); 
         setPriority('Medium');
         setConsent(false);
         setOccasion('None');
         setTargetDate(undefined);
         setStep(1);
         setWishlistFor('');
-        setMyEmail(''); // Reset myEmail
+        setMyEmail(''); 
         setFriendName('');
         setRelationship('');
         setCustomRelationship('');
@@ -179,36 +177,58 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
     setStep(2);
   };
 
-  const handleSave = () => {
-    // Find category name for display purposes if needed, though onSave expects just fields to pass to API mostly.
-    // The component WishlistItem interface expects `category` as string (name).
-    // But the API call needs `categoryId`. 
-    // We will pass the ID in a way the parent can use it, or we rely on the parent to handle the DTO construction.
-    // Given the current structure, let's pass the ID in the 'category' field if the parent is smart enough, 
-    // OR we pass an extended object.
-    
-    // Actually, looking at the parent `handleSave`, it constructs `CreateWishlistDto`. 
-    // It currently hardcodes `categoryId`. We need to pass the selected category ID up.
-    
-    // We can "hack" the category field to pass the ID, or we need to update the `WishlistItem` type in the component.
-    // But `WishlistItem` is used for display cards too.
-    
-    // Best approach: Pass the ID. The parent `handleSave` in `page.tsx` will need to use it.
-    // We'll overload the `category` field with the ID for now, since `page.tsx` uses it to set `categoryId`.
-    
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    // Using the same server-side proxy route pattern as seen in SectorDialog
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('/api/upload/wishlist', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to upload image');
+    }
+
+    const data = await response.json();
+    return data.secure_url;
+  };
+
+  const handleSave = async () => {
+    let finalImageUrl = imageUrl;
+
+    // Logic aligned with SectorDialog: if file is selected and is a blob (preview), upload it
+    if (uploadOrLink === 'upload' && selectedFile) {
+        setIsUploading(true);
+        try {
+            finalImageUrl = await uploadToCloudinary(selectedFile);
+        } catch (error) {
+            toast.error("Failed to upload image. Please try again or use a link.");
+            console.error(error);
+            setIsUploading(false);
+            return;
+        }
+        setIsUploading(false);
+    } else if (uploadOrLink === 'link') {
+        finalImageUrl = imageUrl;
+    } else {
+        finalImageUrl = imagePreviewUrl || ''; // Fallback if editing and existing image
+    }
+
     const newItem: any = {
       ...(itemToEdit || {}),
       name,
-      category: categoryId, // Passing ID here!
+      category: categoryId, 
       priority,
       consent,
       occasion,
       targetDate: targetDate?.toISOString(),
-      imageUrl: imagePreviewUrl || undefined,
+      imageUrl: finalImageUrl || undefined,
       
-      // Pass the third party info as well so parent can construct DTO properly
       isForThirdParty: wishlistFor !== 'myself',
-      recipientName: wishlistFor === 'myself' ? undefined : (wishlistFor === 'friend' ? friendName : 'Family Member'), // Simplify for now
+      recipientName: wishlistFor === 'myself' ? undefined : (wishlistFor === 'friend' ? friendName : 'Family Member'),
       recipientEmail: wishlistFor === 'myself' ? myEmail : (contactMethods.email ? friendEmail : undefined),
       recipientPhone: wishlistFor !== 'myself' && contactMethods.phone ? friendPhone : undefined,
       relationship: wishlistFor === 'family' ? relationship.toUpperCase() : (wishlistFor === 'friend' ? 'OTHERS' : undefined),
@@ -364,7 +384,12 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
         </AnimatePresence>
       </motion.div>
       <DialogFooter>
-        <Button variant="outline" onClick={onClose}>Cancel</Button>
+        {!itemToEdit && <Button variant="outline" onClick={handleBack} disabled={isUploading}>Back</Button>}
+        <Button variant="outline" onClick={onClose} disabled={isUploading}>Cancel</Button>
+        <Button onClick={handleSave} disabled={isUploading}>
+            {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isUploading ? 'Uploading...' : 'Save to Wishlist'}
+        </Button>
       </DialogFooter>
     </div>
   );
@@ -512,9 +537,12 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
         </div>
       </div>
       <DialogFooter>
-        {!itemToEdit && <Button variant="outline" onClick={handleBack}>Back</Button>}
-        <Button variant="outline" onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSave}>Save to Wishlist</Button>
+        {!itemToEdit && <Button variant="outline" onClick={handleBack} disabled={isUploading}>Back</Button>}
+        <Button variant="outline" onClick={onClose} disabled={isUploading}>Cancel</Button>
+        <Button onClick={handleSave} disabled={isUploading}>
+            {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isUploading ? 'Uploading...' : 'Save to Wishlist'}
+        </Button>
       </DialogFooter>
     </div>
   );
