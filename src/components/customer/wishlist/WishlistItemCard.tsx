@@ -16,6 +16,12 @@ export interface WishlistItem {
   targetDate?: string;
   consent: boolean;
   imageUrl?: string;
+  // Extended properties
+  isForThirdParty?: boolean;
+  recipientName?: string;
+  recipientEmail?: string;
+  recipientPhone?: string;
+  relationship?: 'FATHER' | 'MOTHER' | 'BROTHER' | 'SISTER' | 'HUSBAND' | 'WIFE' | 'OTHERS';
 }
 
 interface WishlistItemCardProps {
