@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { AudienceEstimateModal } from '@/components/admin/campaigns/AudienceEstimateModal';
 import { useGetWishlistInsights } from '@/services/wishlist/hook';
 import { WishlistAggregate } from '@/services/wishlist/types';
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
 type WishlistInsight = {
@@ -26,15 +26,10 @@ export default function WishlistInsightsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<WishlistInsight | null>(null);
   const { data: insightsData, isLoading: loading, error } = useGetWishlistInsights({ page: 1, limit: 100 });
-  const { toast } = useToast();
 
   if (error) {
       console.error("Failed to fetch admin wishlist insights:", error);
-      toast({
-          title: "Error",
-          description: "Failed to load wishlist insights. Please try again.",
-          variant: "destructive",
-      });
+      toast.error("Failed to load wishlist insights. Please try again.");
   }
 
   // Transform API data to Component state

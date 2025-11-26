@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { WishlistItemCard, WishlistItem as CardWishlistItem } from "@/components/customer/wishlist/WishlistItemCard";
 import { WishlistModal } from '@/components/customer/wishlist/WishlistModal';
 import { Button } from '@/components/ui/button';
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from 'sonner';
 import { useGetMyWishlist, useCreateWishlistItem } from '@/services/wishlist/hook';
 import { WishlistItem, CreateWishlistDto } from '@/services/wishlist/types';
 import { Loader2 } from 'lucide-react';
@@ -27,17 +27,12 @@ export default function WishlistPage() {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<CardWishlistItem | undefined>(undefined);
-  const { toast } = useToast();
 
   const wishlistItems: CardWishlistItem[] = wishlistData?.data?.map(adaptWishlistItem) || [];
 
   if (error) {
       console.error("Failed to fetch wishlist:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load wishlist items. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Failed to load wishlist items. Please try again.");
   }
 
   const handleCreate = () => {
@@ -54,10 +49,7 @@ export default function WishlistPage() {
     // Specification didn't provide a delete endpoint. 
     // We will simulate it locally for now.
     // In a real scenario, we would use a delete mutation here.
-    toast({
-        title: "Item Removed",
-        description: "The item has been removed from your wishlist (local simulation).",
-    });
+    toast.info("The item has been removed from your wishlist (local simulation).");
   };
 
   const handleShare = (id: string) => {
@@ -69,10 +61,7 @@ export default function WishlistPage() {
         url: window.location.href,
       }).catch(console.error);
     } else {
-        toast({
-            title: "Share",
-            description: "Sharing is not supported on this device or item not found.",
-        });
+        toast.info("Sharing is not supported on this device or item not found.");
     }
   };
 
@@ -93,26 +82,16 @@ export default function WishlistPage() {
         if ('id' in item) {
             // Edit mode - API doesn't support PUT/PATCH in spec provided.
             // We will just show a toast for simulation
-            toast({
-                title: "Updated",
-                description: "Item updated locally (API update not specified).",
-            });
+            toast.info("Item updated locally (API update not specified).");
         } else {
             // Create mode
             await createWishlist(dto);
-            toast({
-                title: "Success",
-                description: "Item added to your wishlist.",
-            });
+            toast.success("Item added to your wishlist.");
         }
         setIsModalOpen(false);
     } catch (error) {
         console.error("Error saving wishlist item:", error);
-        toast({
-            title: "Error",
-            description: "Failed to save item. Please try again.",
-            variant: "destructive",
-        });
+        toast.error("Failed to save item. Please try again.");
     }
   };
 

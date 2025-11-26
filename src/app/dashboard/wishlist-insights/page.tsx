@@ -8,7 +8,7 @@ import WishlistTable from '@/components/dashboard/wishlist-insights/WishlistTabl
 import { exportToCsv } from '@/lib/export';
 import { useGetWishlistInsights } from '@/services/wishlist/hook';
 import { WishlistAggregate } from '@/services/wishlist/types';
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from 'sonner';
 
 // Adapter to match WishlistTable expected props
 const adaptToTableItem = (item: WishlistAggregate) => ({
@@ -22,17 +22,12 @@ const adaptToTableItem = (item: WishlistAggregate) => ({
 
 export default function WishlistInsightsPage() {
   const { data: insightsData, isLoading: loading, error } = useGetWishlistInsights({ page: 1, limit: 100 });
-  const { toast } = useToast();
 
   const data = insightsData?.data?.map(adaptToTableItem) || [];
 
   if (error) {
       console.error("Failed to fetch wishlist insights:", error);
-      toast({
-          title: "Error",
-          description: "Failed to load insights. Please try again.",
-          variant: "destructive",
-      });
+      toast.error("Failed to load insights. Please try again.");
   }
 
   const handleExport = () => {
