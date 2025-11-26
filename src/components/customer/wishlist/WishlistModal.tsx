@@ -39,7 +39,7 @@ interface WishlistFormValues {
   recipientName?: string;
   recipientEmail?: string;
   recipientPhone?: string;
-  relationship?: string;
+  relationship?: 'FATHER' | 'MOTHER' | 'BROTHER' | 'SISTER' | 'HUSBAND' | 'WIFE' | 'OTHERS';
 }
 
 interface WishlistModalProps {
@@ -254,7 +254,7 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
       recipientName: wishlistFor === 'myself' ? undefined : (wishlistFor === 'friend' ? friendName : 'Family Member'),
       recipientEmail: wishlistFor === 'myself' ? myEmail : (contactMethods.email ? friendEmail : undefined),
       recipientPhone: wishlistFor !== 'myself' && contactMethods.phone ? friendPhone : undefined,
-      relationship: wishlistFor === 'family' ? relationship.toUpperCase() : (wishlistFor === 'friend' ? 'OTHERS' : undefined),
+      relationship: wishlistFor === 'family' ? (relationship.toUpperCase() as 'FATHER' | 'MOTHER' | 'BROTHER' | 'SISTER' | 'HUSBAND' | 'WIFE' | 'OTHERS') : (wishlistFor === 'friend' ? 'OTHERS' : undefined),
     };
     onSave(newItem);
     onClose();

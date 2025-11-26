@@ -59,7 +59,7 @@ export interface CreateWishlistDto {
   relationship?: 'FATHER' | 'MOTHER' | 'BROTHER' | 'SISTER' | 'HUSBAND' | 'WIFE' | 'OTHERS';
 }
 
-export interface UpdateWishlistDto extends Partial<CreateWishlistDto> {}
+export type UpdateWishlistDto = Partial<CreateWishlistDto>;
 
 export interface WishlistAggregate {
   id: string;
