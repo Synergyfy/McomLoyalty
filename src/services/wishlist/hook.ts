@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/services/api';
-import { CreateWishlistDto, WishlistItem, Paginated, PaginationDto, WishlistAggregate, Category } from './types';
+import { CreateWishlistDto, UpdateWishlistDto, WishlistItem, Paginated, PaginationDto, WishlistAggregate, Category } from './types';
 
 const WISHLIST_QUERY_KEY = 'wishlist';
 const WISHLIST_INSIGHTS_QUERY_KEY = 'wishlistInsights';
@@ -18,6 +18,15 @@ const fetchMyWishlist = async (params: PaginationDto) => {
 const createWishlistItemFn = async (data: CreateWishlistDto) => {
   const { data: response } = await api.post<WishlistItem>('/wishlist', data);
   return response;
+};
+
+const updateWishlistItemFn = async ({ id, data }: { id: string; data: UpdateWishlistDto }) => {
+    const { data: response } = await api.patch<WishlistItem>(`/wishlist/${id}`, data);
+    return response;
+};
+
+const deleteWishlistItemFn = async (id: string) => {
+    await api.delete(`/wishlist/${id}`);
 };
 
 const fetchWishlistInsights = async (params: PaginationDto) => {
@@ -49,6 +58,26 @@ export const useCreateWishlistItem = () => {
       queryClient.invalidateQueries({ queryKey: [WISHLIST_QUERY_KEY] });
     },
   });
+};
+
+export const useUpdateWishlistItem = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: updateWishlistItemFn,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [WISHLIST_QUERY_KEY] });
+        },
+    });
+};
+
+export const useDeleteWishlistItem = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: deleteWishlistItemFn,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [WISHLIST_QUERY_KEY] });
+        },
+    });
 };
 
 export const useGetWishlistInsights = (params: PaginationDto = { page: 1, limit: 10 }) => {

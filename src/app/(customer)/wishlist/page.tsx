@@ -5,8 +5,8 @@ import { WishlistItemCard, WishlistItem as CardWishlistItem } from "@/components
 import { WishlistModal } from '@/components/customer/wishlist/WishlistModal';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { useGetMyWishlist, useCreateWishlistItem } from '@/services/wishlist/hook';
-import { WishlistItem, CreateWishlistDto } from '@/services/wishlist/types';
+import { useGetMyWishlist, useCreateWishlistItem, useUpdateWishlistItem, useDeleteWishlistItem } from '@/services/wishlist/hook';
+import { WishlistItem, CreateWishlistDto, UpdateWishlistDto } from '@/services/wishlist/types';
 import { Loader2, Plus } from 'lucide-react';
 
 // Adapter function to convert Service WishlistItem to Component WishlistItem
@@ -19,11 +19,19 @@ const adaptWishlistItem = (item: WishlistItem): CardWishlistItem => ({
   targetDate: item.targetDate || undefined,
   consent: item.marketingConsent,
   imageUrl: item.itemImageUrl || undefined,
+  // Mapping other fields if needed by CardWishlistItem, or for edit logic
+  isForThirdParty: item.isForThirdParty, 
+  recipientName: item.recipientName || undefined,
+  recipientEmail: item.recipientEmail || undefined,
+  recipientPhone: item.recipientPhone || undefined,
+  relationship: item.relationship || undefined,
 });
 
 export default function WishlistPage() {
   const { data: wishlistData, isLoading: loading, error } = useGetMyWishlist({ page: 1, limit: 100 });
   const { mutateAsync: createWishlist, isPending: isCreating } = useCreateWishlistItem();
+  const { mutateAsync: updateWishlist, isPending: isUpdating } = useUpdateWishlistItem();
+  const { mutateAsync: deleteWishlist, isPending: isDeleting } = useDeleteWishlistItem();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<CardWishlistItem | undefined>(undefined);
@@ -45,12 +53,16 @@ export default function WishlistPage() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    console.log("Delete item:", id);
-    // Specification didn't provide a delete endpoint. 
-    // We will simulate it locally for now.
-    // In a real scenario, we would use a delete mutation here.
-    toast.info("The item has been removed from your wishlist (local simulation).");
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this item?")) {
+        try {
+            await deleteWishlist(id);
+            toast.success("Item deleted successfully.");
+        } catch (error) {
+            console.error("Error deleting item:", error);
+            toast.error("Failed to delete item.");
+        }
+    }
   };
 
   const handleShare = (id: string) => {
@@ -93,12 +105,12 @@ export default function WishlistPage() {
         return;
     }
 
-    const dto: CreateWishlistDto = {
+    const payload = {
         itemName: item.name,
         itemImageUrl: item.imageUrl,
         categoryId: categoryId, 
         occasion: item.occasion ? item.occasion.toUpperCase() as 'BIRTHDAY' | 'ANNIVERSARY' | 'NONE' | 'CUSTOM' : 'NONE',
-        season: 'NONE', 
+        season: 'NONE' as const, 
         targetDate: item.targetDate,
         priority: item.priority.toUpperCase() as 'LOW' | 'MEDIUM' | 'HIGH',
         marketingConsent: item.consent,
@@ -110,13 +122,15 @@ export default function WishlistPage() {
     };
 
     try {
-        if ('id' in item) {
-            // Edit mode - API doesn't support PUT/PATCH in spec provided.
-            // We will just show a toast for simulation
-            toast.info("Item updated locally (API update not specified).");
+        if ('id' in item && item.id) {
+            // Edit mode
+            const updateDto: UpdateWishlistDto = payload;
+            await updateWishlist({ id: item.id, data: updateDto });
+            toast.success("Item updated successfully.");
         } else {
             // Create mode
-            await createWishlist(dto);
+            const createDto: CreateWishlistDto = payload;
+            await createWishlist(createDto);
             toast.success("Item added to your wishlist.");
         }
         setIsModalOpen(false);
@@ -138,8 +152,8 @@ export default function WishlistPage() {
           </p>
         </div>
         <div>
-           <Button onClick={handleCreate} disabled={isCreating} size="lg" className="rounded-full shadow-lg hover:shadow-xl transition-all">
-               {isCreating ? <Loader2 className="h-5 w-5 animate-spin mr-2"/> : <Plus className="h-5 w-5 mr-2" />}
+           <Button onClick={handleCreate} disabled={isCreating || isUpdating} size="lg" className="rounded-full shadow-lg hover:shadow-xl transition-all">
+               {isCreating || isUpdating ? <Loader2 className="h-5 w-5 animate-spin mr-2"/> : <Plus className="h-5 w-5 mr-2" />}
                Create New Wish
            </Button>
         </div>
