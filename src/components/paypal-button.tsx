@@ -7,7 +7,7 @@ import { initiatePaypalPayment, verifyPaypalPayment } from "@/services/payment/p
 
 interface PayPalButtonProps {
   tier_id: string;
-  plan_type: "monthly" | "annually" | "quaterly";
+  plan_type: "monthly" | "annual" | "quaterly";
   coupon_code: string;
   onPaymentSuccess: (details: any) => void;
   onPaymentError: (error: any) => void;

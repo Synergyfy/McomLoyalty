@@ -2,7 +2,7 @@ import api from "../api";
 
 export interface InitiatePaypalPaymentPayload {
   tier_id: string;
-  plan_type: "monthly" | "annually" | "quaterly";
+  plan_type: "monthly" | "annual" | "quaterly";
   coupon_code?: string;
 }
 
