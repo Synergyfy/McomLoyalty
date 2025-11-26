@@ -28,7 +28,7 @@ export interface WishlistItem {
     // Let's assume the wishlist endpoint returns the category object as defined there.
     // However, for fetching categories list, we use the snake_case one.
     // Let's keep this generic or permissive if possible.
-    [key: string]: any; 
+    [key: string]: string | number | boolean | null | undefined; 
   };
   participant: Participant;
   isForThirdParty: boolean;
