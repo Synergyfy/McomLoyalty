@@ -20,21 +20,43 @@ import { WishlistItem } from '@/components/customer/wishlist/WishlistItemCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CloudinaryUpload } from '@/components/ui/cloudinary-upload';
 import Image from 'next/image';
+import { useGetCategories } from '@/services/wishlist/hook';
+import { Category } from '@/services/wishlist/types';
+// import axios from 'axios';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+
+interface WishlistFormValues {
+  id?: string;
+  name: string;
+  category: string;
+  priority: 'Low' | 'Medium' | 'High';
+  occasion?: string;
+  targetDate?: string;
+  consent: boolean;
+  imageUrl?: string;
+  isForThirdParty: boolean;
+  recipientName?: string;
+  recipientEmail?: string;
+  recipientPhone?: string;
+  relationship?: string;
+}
 
 interface WishlistModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (item: Omit<WishlistItem, 'id'> | WishlistItem) => void;
+  onSave: (item: WishlistFormValues) => void;
   itemToEdit?: WishlistItem;
   itemName?: string;
 }
 
 export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }: WishlistModalProps) => {
   const [step, setStep] = useState(1);
+  const { data: categories, isLoading: isCategoriesLoading } = useGetCategories();
 
   // Step 1 state
   const [wishlistFor, setWishlistFor] = useState<'myself' | 'friend' | 'family' | ''>(itemToEdit ? 'myself' : '');
-  const [myEmail, setMyEmail] = useState(''); // New state for myself's email
+  const [myEmail, setMyEmail] = useState(''); 
   const [friendName, setFriendName] = useState('');
   const [relationship, setRelationship] = useState('');
   const [customRelationship, setCustomRelationship] = useState('');
@@ -45,7 +67,7 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
 
   // Step 2 state
   const [name, setName] = useState('');
-  const [category, setCategory] = useState('Food');
+  const [categoryId, setCategoryId] = useState<string>('');
   const [occasion, setOccasion] = useState('None');
   const [season, setSeason] = useState('None');
   const [targetDate, setTargetDate] = useState<Date | undefined>();
@@ -56,29 +78,36 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 
+  const [isUploading, setIsUploading] = useState(false);
+
   useEffect(() => {
     if (isOpen) {
       if (itemToEdit) {
         setName(itemToEdit.name);
-        setCategory(itemToEdit.category);
+        if (categories) {
+            const matchedCategory = categories.find(c => c.name === itemToEdit.category);
+            if (matchedCategory) {
+                setCategoryId(matchedCategory.id);
+            }
+        }
+        
         setPriority(itemToEdit.priority);
         setConsent(itemToEdit.consent);
         setOccasion(itemToEdit.occasion || 'None');
         setTargetDate(itemToEdit.targetDate ? new Date(itemToEdit.targetDate) : undefined);
         setImagePreviewUrl(itemToEdit.imageUrl || null);
-        setStep(2); // If editing, go straight to step 2
+        setStep(2); 
         setWishlistFor('myself');
       } else {
-        // Reset for new item
         setName(itemName || '');
-        setCategory('Food');
+        setCategoryId(''); 
         setPriority('Medium');
         setConsent(false);
         setOccasion('None');
         setTargetDate(undefined);
         setStep(1);
         setWishlistFor('');
-        setMyEmail(''); // Reset myEmail
+        setMyEmail(''); 
         setFriendName('');
         setRelationship('');
         setCustomRelationship('');
@@ -92,7 +121,7 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
         setImagePreviewUrl(null);
       }
     }
-  }, [itemToEdit, itemName, isOpen]);
+  }, [itemToEdit, itemName, isOpen, categories]);
 
   const handleFileSelect = (file: File | null, previewUrl: string | null) => {
     setSelectedFile(file);
@@ -164,16 +193,61 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
     setStep(2);
   };
 
-  const handleSave = () => {
-    const newItem: Omit<WishlistItem, 'id'> | WishlistItem = {
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    // Using the same server-side proxy route pattern as seen in SectorDialog
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('/api/upload/wishlist', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to upload image');
+    }
+
+    const data = await response.json();
+    return data.secure_url;
+  };
+
+  const handleSave = async () => {
+    let finalImageUrl = imageUrl;
+
+    // Logic aligned with SectorDialog: if file is selected and is a blob (preview), upload it
+    if (uploadOrLink === 'upload' && selectedFile) {
+        setIsUploading(true);
+        try {
+            finalImageUrl = await uploadToCloudinary(selectedFile);
+        } catch (error) {
+            toast.error("Failed to upload image. Please try again or use a link.");
+            console.error(error);
+            setIsUploading(false);
+            return;
+        }
+        setIsUploading(false);
+    } else if (uploadOrLink === 'link') {
+        finalImageUrl = imageUrl;
+    } else {
+        finalImageUrl = imagePreviewUrl || ''; // Fallback if editing and existing image
+    }
+
+    const newItem: WishlistFormValues = {
       ...(itemToEdit || {}),
       name,
-      category,
+      category: categoryId, 
       priority,
       consent,
       occasion,
       targetDate: targetDate?.toISOString(),
-      imageUrl: imagePreviewUrl || undefined,
+      imageUrl: finalImageUrl || undefined,
+      
+      isForThirdParty: wishlistFor !== 'myself',
+      recipientName: wishlistFor === 'myself' ? undefined : (wishlistFor === 'friend' ? friendName : 'Family Member'),
+      recipientEmail: wishlistFor === 'myself' ? myEmail : (contactMethods.email ? friendEmail : undefined),
+      recipientPhone: wishlistFor !== 'myself' && contactMethods.phone ? friendPhone : undefined,
+      relationship: wishlistFor === 'family' ? relationship.toUpperCase() : (wishlistFor === 'friend' ? 'OTHERS' : undefined),
     };
     onSave(newItem);
     onClose();
@@ -326,7 +400,12 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
         </AnimatePresence>
       </motion.div>
       <DialogFooter>
-        <Button variant="outline" onClick={onClose}>Cancel</Button>
+        {!itemToEdit && <Button variant="outline" onClick={handleBack} disabled={isUploading}>Back</Button>}
+        <Button variant="outline" onClick={onClose} disabled={isUploading}>Cancel</Button>
+        <Button onClick={handleSave} disabled={isUploading}>
+            {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isUploading ? 'Uploading...' : 'Save to Wishlist'}
+        </Button>
       </DialogFooter>
     </div>
   );
@@ -402,6 +481,27 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
         )}
 
         <div className="space-y-2">
+          <Label htmlFor="category">Category</Label>
+          {isCategoriesLoading ? (
+            <div className="text-sm text-gray-500">Loading categories...</div>
+          ) : (
+            <Select onValueChange={setCategoryId} value={categoryId}>
+                <SelectTrigger>
+                <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent className="z-[9999]">
+                {categories?.map((cat: Category) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                    {cat.name}
+                    </SelectItem>
+                ))}
+                </SelectContent>
+            </Select>
+          )}
+          <p className="text-xs text-gray-500">Select the category this item belongs to.</p>
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="occasion">Occasion</Label>
           <Select onValueChange={setOccasion} value={occasion}>
             <SelectTrigger>
@@ -453,9 +553,12 @@ export const WishlistModal = ({ isOpen, onClose, onSave, itemToEdit, itemName }:
         </div>
       </div>
       <DialogFooter>
-        {!itemToEdit && <Button variant="outline" onClick={handleBack}>Back</Button>}
-        <Button variant="outline" onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSave}>Save to Wishlist</Button>
+        {!itemToEdit && <Button variant="outline" onClick={handleBack} disabled={isUploading}>Back</Button>}
+        <Button variant="outline" onClick={onClose} disabled={isUploading}>Cancel</Button>
+        <Button onClick={handleSave} disabled={isUploading}>
+            {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isUploading ? 'Uploading...' : 'Save to Wishlist'}
+        </Button>
       </DialogFooter>
     </div>
   );
