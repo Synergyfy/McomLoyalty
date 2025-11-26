@@ -2,16 +2,41 @@ import { RewardResponse } from "@/services/rewards/types";
 
 export interface PublicCampaign {
   id: string;
-  title: string;
-  description: string;
+  name: string;
+  campaignType: string;
+  campaignMessage: string;
   startDate: string;
   endDate: string;
-  banner_url: string;
-  logo_url: string | null;
-  campaign_type: string;
+  quantity: number;
+  audienceType: string;
+  bannerUrl: string;
+  logoUrl: string | null;
+  ctaText: string;
+  ctaBackgroundColor: string;
+  ctaTextColor: string;
+  disabled: boolean;
+  textColor: string;
+  backgroundColor: string;
+  signUpPoint: number | null;
+  totalPointsEarned: number;
+  totalPointsRedeemed: number;
+  rewardType: string;
+  regularPointsThreshold: number | null;
+  matchingPointsThreshold: number | null;
+  totalMatchingPointsEarned: number;
+  matchingPointsDisabledByAdmin: boolean;
+  uniqueCode: string | null;
+  earnPointPageTitle: string | null;
+  earnPointPageDescription: string | null;
+  redeemRewardPageTitle: string | null;
+  redeemRewardPageDescription: string | null;
+  contactUsPageTitle: string | null;
+  contactUsPageDescription: string | null;
+  contactEmail: string | null;
+  contactPhoneNumber: string | null;
+  footerText: string | null;
   rewards: RewardResponse[];
-  audience_type: string;
-  tagline?: string;
+  tagline?: string; // Keeping optional fields that might be computed or from other endpoints
   howToEarn?: string[];
   termsAndConditions?: string[];
   rewardsAvailable?: number;
@@ -19,13 +44,6 @@ export interface PublicCampaign {
   category?: string;
   badgeLevel?: string;
   wishlistItemId?: string;
-  contactUsPageTitle?: string;
-  contactUsPageDescription?: string;
-  contactEmail?: string;
-  contactPhoneNumber?: string;
-  redeemRewardPageTitle?: string;
-  redeemRewardPageDescription?: string;
-  campaignMessage?: string; // Added to support potential schema change
 }
 
 export interface PublicCampaignSummary {
@@ -87,6 +105,33 @@ export interface ParticipantBalance {
   campaignId: string;
   campaignName: string;
   balance: number;
+}
+
+export interface ParticipantGlobalBalanceResponse {
+  globalTotalPoints: number;
+  matchingPoints: number;
+  campaignBalances: ParticipantBalance[];
+}
+
+export interface ParticipantProfileResponse {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  uniqueCode: string;
+  global_total_points: number;
+  matching_points: number;
+  point_utilization: number;
+  total_points_earned: number;
+  total_points_redeemed: number;
+  isDisabled: boolean;
+  created_at: string;
+  updated_at: string;
+  campaign_balances: {
+    campaign_id: string;
+    campaign_name: string;
+    balance: number;
+  }[];
 }
 
 export interface ClaimCodePayload {
@@ -166,4 +211,48 @@ export interface SignUpResponse {
 
 export interface UniqueCodeResponse {
   uniqueCode: string;
+}
+
+export interface ParticipantHistoryItem {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  type: 'EARN' | 'REDEEM';
+  points: number;
+  redemptionCode: string | null;
+  description: string;
+  campaign: {
+    id: string;
+    name: string;
+  };
+  reward: {
+    title: string;
+  } | null;
+  business: {
+    name: string;
+  };
+}
+
+export interface ParticipantHistoryResponse {
+  data: ParticipantHistoryItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface MyCampaign {
+  id: string;
+  name: string;
+  campaignMessage: string;
+  balance: number;
+  regularPointsThreshold: number;
+  bannerUrl: string;
+}
+
+export interface MyCampaignsResponse {
+  data: MyCampaign[];
+  total: number;
+  page: number;
+  limit: number;
 }

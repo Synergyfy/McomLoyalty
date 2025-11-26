@@ -19,7 +19,9 @@ import {
   SignUpPayload,
   SignUpResponse,
   IsJoinedResponse,
-  UniqueCodeResponse
+  UniqueCodeResponse,
+  ParticipantGlobalBalanceResponse,
+  ParticipantProfileResponse
 } from './types';
 
 const PUBLIC_CAMPAIGNS_QUERY_KEY = 'publicCampaigns';
@@ -199,5 +201,81 @@ const dualScan = async (payload: DualScanPayload): Promise<DualScanResponse> => 
 export const useDualScan = () => {
   return useMutation({
     mutationFn: dualScan,
+  });
+};
+
+// Get Participant History
+import { ParticipantHistoryResponse } from './types';
+
+const getParticipantHistory = async (campaignId: string, page: number, limit: number): Promise<ParticipantHistoryResponse> => {
+  const { data } = await api.get<ParticipantHistoryResponse>(`/participant-campaign-balance/history/${campaignId}`, {
+    params: { page, limit },
+  });
+  return data;
+};
+
+export const useGetParticipantHistory = (campaignId: string, page: number = 1, limit: number = 10) => {
+  return useQuery({
+    queryKey: ['participantHistory', campaignId, page, limit],
+    queryFn: () => getParticipantHistory(campaignId, page, limit),
+    enabled: !!campaignId,
+  });
+};
+
+// Get Participant Global Balance
+const getParticipantGlobalBalance = async (): Promise<ParticipantGlobalBalanceResponse> => {
+  const { data } = await api.get<ParticipantGlobalBalanceResponse>('/participant-campaign-balance/my-balance');
+  return data;
+};
+
+export const useGetParticipantGlobalBalance = () => {
+  return useQuery({
+    queryKey: ['participantGlobalBalance'],
+    queryFn: getParticipantGlobalBalance,
+  });
+};
+
+// Get Participant Global History
+const getParticipantGlobalHistory = async (page: number, limit: number): Promise<ParticipantHistoryResponse> => {
+  const { data } = await api.get<ParticipantHistoryResponse>('/participant-campaign-balance/history', {
+    params: { page, limit },
+  });
+  return data;
+};
+
+export const useGetParticipantGlobalHistory = (page: number = 1, limit: number = 10) => {
+  return useQuery({
+    queryKey: ['participantGlobalHistory', page, limit],
+    queryFn: () => getParticipantGlobalHistory(page, limit),
+  });
+};
+
+// Get Participant Profile
+const getParticipantProfile = async (): Promise<ParticipantProfileResponse> => {
+  const { data } = await api.get<ParticipantProfileResponse>('/participant/me');
+  return data;
+};
+
+export const useGetParticipantProfile = () => {
+  return useQuery({
+    queryKey: ['participantProfile'],
+    queryFn: getParticipantProfile,
+  });
+};
+
+// Get My Campaigns
+import { MyCampaignsResponse } from './types';
+
+const getMyCampaigns = async (page: number, limit: number): Promise<MyCampaignsResponse> => {
+  const { data } = await api.get<MyCampaignsResponse>('/participant/campaigns', {
+    params: { page, limit },
+  });
+  return data;
+};
+
+export const useGetMyCampaigns = (page: number = 1, limit: number = 10) => {
+  return useQuery({
+    queryKey: ['myCampaigns', page, limit],
+    queryFn: () => getMyCampaigns(page, limit),
   });
 };

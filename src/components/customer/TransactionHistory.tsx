@@ -1,69 +1,40 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge'; // Assuming Badge component exists
+import { Badge } from '@/components/ui/badge';
 import { ArrowDown, ArrowUp, Star } from 'lucide-react';
-import { Transaction } from '@/lib/mock-data/wallet'; // Import the Transaction interface
-
-interface TransactionHistoryProps {
-  transactions: Transaction[];
-}
+import { useGetParticipantGlobalHistory } from '@/services/customer-campaigns/hook';
+import { ParticipantHistoryItem } from '@/services/customer-campaigns/types';
 
 const filterCategories = [
   'All',
-  'Regular',
-  'Matching',
   'Earned',
   'Spent',
-  'Purchase',
-  'Referral Bonus',
-  'Manual Adjustment',
-  'Deal Redemption'
 ];
 
-export function TransactionHistory({ transactions }: TransactionHistoryProps) {
+export function TransactionHistory() {
   const [page, setPage] = useState(1);
-  const [limit] = useState(5);
+  const [limit] = useState(10);
   const [activeFilter, setActiveFilter] = useState('All');
 
-  const filteredHistory = useMemo(() => {
-    let history = transactions;
+  const { data, isLoading } = useGetParticipantGlobalHistory(page, limit);
 
-    if (activeFilter === 'Regular') {
-      history = history.filter(record => record.type === 'regular');
-    } else if (activeFilter === 'Matching') {
-      history = history.filter(record => record.type === 'matching');
-    } else if (activeFilter === 'Earned') {
-      history = history.filter(record => record.points > 0);
-    } else if (activeFilter === 'Spent') {
-      history = history.filter(record => record.points < 0);
-    } else if (activeFilter === 'Purchase') {
-        history = history.filter(record => record.description.toLowerCase().includes('purchase'));
-    } else if (activeFilter === 'Referral Bonus') {
-        history = history.filter(record => record.description.toLowerCase().includes('referral bonus'));
-    } else if (activeFilter === 'Manual Adjustment') {
-        history = history.filter(record => record.description.toLowerCase().includes('admin bonus'));
-    } else if (activeFilter === 'Deal Redemption') {
-        history = history.filter(record => record.description.toLowerCase().includes('deal redemption'));
-    }
-    // 'All' filter is handled by default
+  const transactions = data?.data || [];
+  const totalPages = data ? Math.ceil(data.total / limit) : 0;
 
-    return history;
-  }, [transactions, activeFilter]);
+  const filteredTransactions = transactions.filter(record => {
+    if (activeFilter === 'Earned') return record.type === 'EARN';
+    if (activeFilter === 'Spent') return record.type === 'REDEEM';
+    return true;
+  });
 
-  const paginatedHistory = useMemo(() => {
-    const startIndex = (page - 1) * limit;
-    return filteredHistory.slice(startIndex, startIndex + limit);
-  }, [filteredHistory, page, limit]);
-
-  const totalPages = Math.ceil(filteredHistory.length / limit);
-
-  const getIconForTransaction = (transaction: Transaction) => {
-    if (transaction.type === 'matching') {
-      return <Star className="w-5 h-5 text-yellow-500" />;
-    }
-    if (transaction.points > 0) {
+  const getIconForTransaction = (transaction: ParticipantHistoryItem) => {
+    // Assuming 'matching' type might come in future or we identify it differently, 
+    // for now using EARN/REDEEM. 
+    // If there's a specific way to identify matching points in history, we'd add it here.
+    // Based on response, type is EARN/REDEEM.
+    if (transaction.type === 'EARN') {
       return <ArrowUp className="w-5 h-5 text-green-500" />;
     }
     return <ArrowDown className="w-5 h-5 text-red-500" />;
@@ -89,8 +60,10 @@ export function TransactionHistory({ transactions }: TransactionHistoryProps) {
         </div>
       </CardHeader>
       <CardContent>
-        {paginatedHistory.length === 0 ? (
-          <p className="text-center text-gray-500 py-8">No transactions found for this filter.</p>
+        {isLoading ? (
+          <div className="text-center py-8">Loading history...</div>
+        ) : filteredTransactions.length === 0 ? (
+          <p className="text-center text-gray-500 py-8">No transactions found.</p>
         ) : (
           <>
             <Table>
@@ -98,39 +71,40 @@ export function TransactionHistory({ transactions }: TransactionHistoryProps) {
                 <TableRow>
                   <TableHead className="w-1/12"></TableHead>
                   <TableHead className="w-4/12">Description</TableHead>
-                  <TableHead className="w-2/12">Type</TableHead> {/* New column for type */}
+                  <TableHead className="w-2/12">Type</TableHead>
                   <TableHead className="w-3/12">Date</TableHead>
                   <TableHead className="w-2/12 text-right">Points</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedHistory.map((record) => (
+                {filteredTransactions.map((record) => (
                   <TableRow key={record.id}>
                     <TableCell>{getIconForTransaction(record)}</TableCell>
                     <TableCell>
                       <p className="font-semibold">{record.description}</p>
+                      <p className="text-xs text-gray-500">{record.campaign?.name}</p>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={record.type === 'matching' ? 'secondary' : 'default'}>
-                        {record.type === 'matching' ? 'Matching' : 'Regular'}
+                      <Badge variant={record.type === 'EARN' ? 'default' : 'secondary'}>
+                        {record.type}
                       </Badge>
                     </TableCell>
-                    <TableCell>{new Date(record.date).toLocaleDateString()}</TableCell>
-                    <TableCell className={`text-right font-bold ${record.points > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {record.points > 0 ? '+' : ''}{record.points}
+                    <TableCell>{new Date(record.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell className={`text-right font-bold ${record.type === 'EARN' ? 'text-green-600' : 'text-red-600'}`}>
+                      {record.type === 'EARN' ? '+' : '-'}{record.points}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
             <div className="flex justify-center items-center mt-6 space-x-4 p-4 border-t">
-              <Button onClick={() => setPage(page - 1)} disabled={page === 1} variant="outline">
+              <Button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} variant="outline">
                 Previous
               </Button>
               <span className="text-sm text-gray-600">
-                Page {page} of {totalPages}
+                Page {page} of {totalPages || 1}
               </span>
-              <Button onClick={() => setPage(page + 1)} disabled={page === totalPages} variant="outline">
+              <Button onClick={() => setPage(p => p + 1)} disabled={page >= totalPages} variant="outline">
                 Next
               </Button>
             </div>

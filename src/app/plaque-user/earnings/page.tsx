@@ -17,7 +17,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { DollarSign, CreditCard, Download } from 'lucide-react';
+import { PoundSterling, CreditCard, Download } from 'lucide-react';
 
 export default function EarningsPage() {
     return (
@@ -28,7 +28,7 @@ export default function EarningsPage() {
                     <p className="text-muted-foreground">Track your earnings from plaque scans and sales.</p>
                 </div>
                 <Button>
-                    <DollarSign className="mr-2 h-4 w-4" /> Request Payout
+                    <PoundSterling className="mr-2 h-4 w-4" /> Request Payout
                 </Button>
             </div>
 
@@ -36,10 +36,10 @@ export default function EarningsPage() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Earned</CardTitle>
-                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        <PoundSterling className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">$1,245.50</div>
+                        <div className="text-2xl font-bold">£1,245.50</div>
                         <p className="text-xs text-muted-foreground">Lifetime earnings</p>
                     </CardContent>
                 </Card>
@@ -49,17 +49,17 @@ export default function EarningsPage() {
                         <CreditCard className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">$125.00</div>
+                        <div className="text-2xl font-bold">£125.00</div>
                         <p className="text-xs text-muted-foreground">Available for withdrawal</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Paid Out</CardTitle>
-                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        <PoundSterling className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">$1,120.50</div>
+                        <div className="text-2xl font-bold">£1,120.50</div>
                         <p className="text-xs text-muted-foreground">Successfully transferred</p>
                     </CardContent>
                 </Card>
@@ -93,7 +93,7 @@ export default function EarningsPage() {
                                         Pending
                                     </span>
                                 </TableCell>
-                                <TableCell className="text-right font-medium">+$5.00</TableCell>
+                                <TableCell className="text-right font-medium">+£5.00</TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell>Oct 22, 2024</TableCell>
@@ -104,7 +104,7 @@ export default function EarningsPage() {
                                         Paid
                                     </span>
                                 </TableCell>
-                                <TableCell className="text-right font-medium text-red-600">-$150.00</TableCell>
+                                <TableCell className="text-right font-medium text-red-600">-£150.00</TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell>Oct 20, 2024</TableCell>
@@ -115,7 +115,7 @@ export default function EarningsPage() {
                                         Approved
                                     </span>
                                 </TableCell>
-                                <TableCell className="text-right font-medium">+$50.00</TableCell>
+                                <TableCell className="text-right font-medium">+£50.00</TableCell>
                             </TableRow>
                         </TableBody>
                     </Table>
