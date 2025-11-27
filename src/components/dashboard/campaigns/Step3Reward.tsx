@@ -33,6 +33,7 @@ export default function Step3Reward({ rewardId, setRewardId, error }: Step3Rewar
         quantity: businessReward.quantity ?? businessReward.reward.quantity,
         pointsRequired: businessReward.pointRequired,
         // Default values for missing properties from BusinessReward
+        rewardType: 'standard',
         type: 'standard',
         status: 'active',
         expiry: new Date().toISOString(),
