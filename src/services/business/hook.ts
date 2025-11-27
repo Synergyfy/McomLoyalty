@@ -1,5 +1,5 @@
 import api, { setBearerToken } from '../api';
-import { Business, BusinessLoginDto, BusinessLoginResponse, BusinessSignUpDto, CreateBusinessDto, PaginatedResponse, Category, Subcategory } from './types';
+import { Business, BusinessLoginDto, BusinessLoginResponse, BusinessSignUpDto, CreateBusinessDto, PaginatedResponse, Category, Subcategory, BusinessProfile } from './types';
 import { SectorResponse } from '@/services/sectors/types';
 import Cookies from 'js-cookie';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -158,4 +158,19 @@ export const useBusinessSignIn = (options?: { skipRedirect?: boolean }) => {
       };
     },
   });
+};
+
+const BUSINESS_PROFILE_QUERY_KEY = 'businessProfile';
+
+// Get Business Profile
+const getBusinessProfile = async (): Promise<BusinessProfile> => {
+    const { data } = await api.get<BusinessProfile>('/business/profile');
+    return data;
+};
+
+export const useGetBusinessProfile = () => {
+    return useQuery({
+        queryKey: [BUSINESS_PROFILE_QUERY_KEY],
+        queryFn: getBusinessProfile,
+    });
 };
