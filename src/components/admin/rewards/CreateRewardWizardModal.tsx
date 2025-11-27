@@ -66,6 +66,7 @@ export default function CreateRewardWizardModal({
   const [selectedSector, setSelectedSector] = useState('');
   const [rewardSource, setRewardSource] = useState('mcom vault');
   const [audience, setAudience] = useState('all business');
+  const [newRewardId, setNewRewardId] = useState<string | null>(null);
 
   // Effect to reset sector when audience changes to 'all business'
   useEffect(() => {
@@ -191,7 +192,8 @@ export default function CreateRewardWizardModal({
       };
 
       createReward(payload, {
-        onSuccess: () => {
+        onSuccess: (newlyCreatedReward) => {
+          setNewRewardId(newlyCreatedReward.id);
           // First, close the main wizard dialog
           onClose();
           // Then, show the success prompt. A timeout ensures the first dialog has time to close.
@@ -212,7 +214,11 @@ export default function CreateRewardWizardModal({
 
   const handleCampaignYes = () => {
     setShowCampaignPrompt(false);
-    router.push('/dashboard/campaigns/create');
+    if (newRewardId) {
+      router.push(`/admin/campaigns/create?rewardId=${newRewardId}`);
+    } else {
+      router.push('/admin/campaigns/create');
+    }
   };
 
   const handleCampaignNo = () => {
