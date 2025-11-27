@@ -57,7 +57,7 @@ interface DisplayStatus {
 
 const getRewardDisplayStatus = (reward: RewardResponse): DisplayStatus => {
   const now = new Date();
-  const expiryDate = new Date(reward.expiry_datetime);
+  const expiryDate = new Date(reward.expiry);
 
   if (expiryDate < now) {
     return { text: 'Expired', variant: 'destructive' };

@@ -26,12 +26,14 @@ export interface BusinessSignUpDto {
 }
 
 export interface CreateBusinessDto {
-  businessName: string;
   sectorId: string;
-  categoryIds: string[];
-  subcategoryIds: string[];
-  address: string;
+  categoryId: string;
+  subCategoryId?: string | null;
   phone: string;
+  address: string;
+  website?: string;
+  socialMedia?: { name: string; link: string; }[];
+  referralCapacity: number;
 }
 
 export interface PaginatedResponse<T> {

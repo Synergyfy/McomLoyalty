@@ -10,13 +10,9 @@ import BillingHistoryTable from '@/components/dashboard/subscription/BillingHist
 import { useGetTiers, useGetMySubscription, useGetBillingHistory } from '@/services/tiers/hook';
 import { TierResponse } from '@/services/tiers/types';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Plan } from '@/types';
 
 type PlanFrequency = 'monthly' | 'quarterly' | 'annually';
-
-interface DisplayPlan extends TierResponse {
-  price: string;
-  isCurrent: boolean;
-}
 
 export default function SubscriptionPage() {
   const router = useRouter();
@@ -30,7 +26,7 @@ export default function SubscriptionPage() {
 
   const currentSubscriptionTier = useMemo(() => subscription?.tier, [subscription]);
 
-  const plans: DisplayPlan[] = useMemo(() => {
+  const plans: Plan[] = useMemo(() => {
     if (!tiersData) return [];
     return tiersData.map(tier => {
       let price;
@@ -48,14 +44,16 @@ export default function SubscriptionPage() {
           price = 'N/A';
       }
       return {
-        ...tier,
+        id: tier.id,
+        name: tier.name,
         price,
-        isCurrent: tier.id === currentSubscriptionTier?.id
+        isCurrent: tier.id === currentSubscriptionTier?.id,
+        features: tier.features || [],
       };
     });
   }, [tiersData, currentSubscriptionTier, planFrequency]);
 
-  const handleChoosePlan = (plan: DisplayPlan) => {
+  const handleChoosePlan = (plan: Plan) => {
     if (plan.isCurrent) return;
     const billingCycle = planFrequency === 'annually' ? 'annual' : 'quarterly';
     router.push(`/checkout?plan=${plan.name}&billing=${billingCycle}`);

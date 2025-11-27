@@ -183,12 +183,13 @@ export default function CreateRewardWizardModal({
         image: finalImageUrl,
         quantity: 100, // Default or add field if needed
         reward_type: rewardType,
+        badge_level: badgeLevel.length > 0 ? badgeLevel[0] : '', // Using first element or empty string
         reward_source: rewardSource,
         audience,
         expiry_datetime: expiry.toISOString(),
         status,
         sector_ids: selectedSector ? [selectedSector] : [],
-        tier_ids: badgeLevel, // badgeLevel now contains tier IDs
+        tier_ids: badgeLevel,
       };
 
       createReward(payload, {
@@ -206,9 +207,13 @@ export default function CreateRewardWizardModal({
           // Toast is handled in the hook
         }
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error submitting reward:', error);
-      toast.error(error.message || 'An unexpected error occurred during submission.');
+      let errorMessage = 'An unexpected error occurred during submission.';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
     }
   };
 
