@@ -180,35 +180,6 @@ export default function CampaignOverviewPage() {
               </div>
             </section>
 
-            {/* How to Earn Section (if data exists) */}
-            {campaign.howToEarn && campaign.howToEarn.length > 0 && (
-              <section className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">How to Participate</h2>
-                <ul className="space-y-4">
-                  {campaign.howToEarn.map((step, index) => (
-                    <li key={index} className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-sm">
-                        {index + 1}
-                      </div>
-                      <p className="text-gray-700 pt-1">{step}</p>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-
-            {/* Terms Section (if data exists) */}
-            {campaign.termsAndConditions && campaign.termsAndConditions.length > 0 && (
-              <section className="bg-gray-50 rounded-2xl p-8 border border-gray-200">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Terms & Conditions</h2>
-                <ul className="space-y-2 list-disc pl-5 text-gray-600 text-sm">
-                  {campaign.termsAndConditions.map((term, index) => (
-                    <li key={index}>{term}</li>
-                  ))}
-                </ul>
-              </section>
-            )}
-
           </div>
 
           {/* Sidebar Column: Rewards */}
@@ -234,7 +205,7 @@ export default function CampaignOverviewPage() {
                         />
                         <div className="absolute top-2 right-2">
                           <Badge className="bg-white/90 text-gray-900 hover:bg-white shadow-sm backdrop-blur-sm">
-                            {reward.points_required || reward.pointsRequired} Pts
+                            {reward.points_required} Pts
                           </Badge>
                         </div>
                       </div>
