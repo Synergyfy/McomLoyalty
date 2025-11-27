@@ -22,6 +22,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 // Import tiers service
 import { useGetSectors } from '@/services/sectors/hook';
 import { useGetTiers } from '@/services/tiers/hook';
+import toast from 'react-hot-toast';
 
 interface CreateRewardWizardModalProps {
   isOpen: boolean;
@@ -151,38 +152,62 @@ export default function CreateRewardWizardModal({
     if (step > 1) setStep(step - 1);
   };
 
-  const handleSubmit = () => {
-    // Get the first tier name for badge_level field
-    const payload: CreateRewardRequest = {
-      title: name,
-      points_required: Number(pointsRequired),
-      value: Number(value),
-      description,
-      image: imagePreviewUrl || '',
-      quantity: 100, // Default or add field if needed
-      reward_type: rewardType,
-      reward_source: rewardSource,
-      audience,
-      expiry_datetime: expiry.toISOString(),
-      status,
-      sector_ids: selectedSector ? [selectedSector] : [],
-      tier_ids: badgeLevel, // badgeLevel now contains tier IDs
-    };
+  const handleSubmit = async () => {
+    try {
+      let finalImageUrl = imagePreviewUrl || '';
 
-    createReward(payload, {
-      onSuccess: () => {
-        // First, close the main wizard dialog
-        onClose();
-        // Then, show the success prompt. A timeout ensures the first dialog has time to close.
-        setTimeout(() => {
-          setShowCampaignPrompt(true);
-        }, 150);
-      },
-      onError: (error: unknown) => {
-        console.error('Failed to create reward:', error);
-        // Toast is handled in the hook
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+
+        const uploadResponse = await fetch('/api/upload/rewards', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json();
+          throw new Error(errorData.error || 'Image upload failed');
+        }
+
+        const uploadResult = await uploadResponse.json();
+        finalImageUrl = uploadResult.secure_url;
       }
-    });
+
+      const payload: CreateRewardRequest = {
+        title: name,
+        points_required: Number(pointsRequired),
+        value: Number(value),
+        description,
+        image: finalImageUrl,
+        quantity: 100, // Default or add field if needed
+        reward_type: rewardType,
+        reward_source: rewardSource,
+        audience,
+        expiry_datetime: expiry.toISOString(),
+        status,
+        sector_ids: selectedSector ? [selectedSector] : [],
+        tier_ids: badgeLevel, // badgeLevel now contains tier IDs
+      };
+
+      createReward(payload, {
+        onSuccess: () => {
+          // First, close the main wizard dialog
+          onClose();
+          // Then, show the success prompt. A timeout ensures the first dialog has time to close.
+          setTimeout(() => {
+            setShowCampaignPrompt(true);
+          }, 150);
+        },
+        onError: (error: unknown) => {
+          console.error('Failed to create reward:', error);
+          // Toast is handled in the hook
+        }
+      });
+    } catch (error: any) {
+      console.error('Error submitting reward:', error);
+      toast.error(error.message || 'An unexpected error occurred during submission.');
+    }
   };
 
   const handleCampaignYes = () => {

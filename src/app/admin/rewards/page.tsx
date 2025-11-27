@@ -21,10 +21,11 @@ import LoadingSpinner from '@/components/ui/Loading';
 
 
 const typeLabels: { [key: string]: string } = {
-  'voucher': 'Voucher',
+  'Voucher': 'Voucher',
+  'gift card': 'Gift Card',
   'coupon': 'Coupon',
+  'point offer': 'Point Offer',
   'physical product': 'Physical Product',
-  'digital': 'Digital',
 };
 
 const audienceLabels: { [key: string]: string } = {
