@@ -390,7 +390,7 @@ export default function CreateRewardWizardModal({
               <div>
                 <label className="block text-sm font-medium mb-2">Expiry Date</label>
                 <p className="text-xs text-muted-foreground mb-2">Set when this reward offer expires and is no longer available</p>
-                <DateTimePicker date={expiry} setDate={setExpiry} />
+                <DateTimePicker date={expiry} setDate={setExpiry} minDate={new Date()} />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Reward Image</label>
