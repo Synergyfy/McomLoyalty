@@ -10,16 +10,14 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ClaimableCampaignsTicker } from '@/components/customer/ClaimableCampaignsTicker';
 import { PlusCircle, Pencil, ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useGetMyCreatedCampaigns, useGetMyClaimedCampaigns } from '@/services/campaigns/hook';
 import ClaimCampaignModal from '@/components/dashboard/campaigns/ClaimCampaignModal';
 import UpgradePlanModal from '@/components/dashboard/rewards/UpgradePlanModal';
 import { CampaignTemplate } from '@/lib/mock-data/template-campaigns';
 import { PublicCampaignResponse } from '@/services/campaigns/types';
 
-// Mock user data to simulate tier
-const currentUser = {
-  plan: 'starter', // 'starter', 'co-branded', 'white-label'
-};
+
 
 interface PaginationProps {
   currentPage: number;
@@ -159,6 +157,7 @@ const Pagination = ({
 };
 
 export default function CampaignsListPage() {
+  const router = useRouter();
   const [createdPage, setCreatedPage] = useState(1);
   const [claimedPage, setClaimedPage] = useState(1);
   const limit = 9; // Changed to 9 to match grid layout (3 cols)
@@ -185,11 +184,7 @@ export default function CampaignsListPage() {
 
   const handleCreateFromScratch = useCallback(() => {
     setIsClaimModalOpen(false);
-    if (currentUser.plan === 'white-label') {
-      // TODO: Handle campaign creation
-    } else {
-      setIsUpgradeModalOpen(true);
-    }
+    router.push('/dashboard/campaigns/create');
   }, []);
 
   const handleSelectTemplate = useCallback((template: CampaignTemplate) => {

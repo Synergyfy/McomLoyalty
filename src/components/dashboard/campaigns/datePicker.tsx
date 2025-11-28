@@ -6,9 +6,10 @@ interface DateTimePickerType {
   date: Date | undefined;
   setDate: (date: Date) => void;
   disabled?: boolean;
+  minDate?: Date;
 }
 
-const DateTimePicker: React.FC<DateTimePickerType> = ({ date, setDate, disabled }) => {
+const DateTimePicker: React.FC<DateTimePickerType> = ({ date, setDate, disabled, minDate }) => {
   return (
     <div>
       <DatePicker
@@ -22,6 +23,7 @@ const DateTimePicker: React.FC<DateTimePickerType> = ({ date, setDate, disabled 
         dateFormat="MMMM d, yyyy h:mm aa"
         className="w-full h-[2rem] border-b outline-blue-600 p-2"
         disabled={disabled}
+        minDate={minDate}
       />
     </div>
   );
