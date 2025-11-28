@@ -41,3 +41,20 @@ export interface CreateBusinessRewardDto {
   quantity?: number;
   point_required: number;
 }
+
+export enum RewardStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+}
+
+export interface UpdateBusinessRewardDto {
+  quantity?: number;
+  point_required?: number;
+  title?: string;
+  description?: string;
+  image?: string;
+  value?: number;
+  expiry_datetime?: Date;
+  status?: RewardStatus;
+  disabled?: boolean;
+}
