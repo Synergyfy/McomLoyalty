@@ -8,6 +8,7 @@ import Image from 'next/image';
 import {
   useGetBusinessRewards,
   useGetAllRewards,
+  useUpdateBusinessReward,
 } from '@/services/business-reward/hooks';
 import { BusinessReward, Reward, PaginationMeta } from '@/services/business-reward/types';
 import LoadingSpinner from '@/components/ui/Loading';
@@ -15,7 +16,10 @@ import ClaimRewardModal from '@/components/dashboard/rewards/ClaimRewardModal';
 import EditClaimedRewardModal from '@/components/dashboard/rewards/EditClaimedRewardModal';
 import UpgradePlanModal from '@/components/dashboard/rewards/UpgradePlanModal';
 import CreateRewardWizardModal from '@/components/dashboard/rewards/CreateRewardWizardModal';
-import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
+import TierLimitModal from '@/components/dashboard/campaigns/TierLimitModal';
+import { ChevronLeft, ChevronRight, MoreHorizontal, Edit } from 'lucide-react';
+import { toast } from 'sonner';
+import { AxiosError } from 'axios';
 
 const currentUser = {
   plan: 'white-label', // 'starter', 'co-branded', 'white-label'
@@ -165,6 +169,8 @@ export default function BusinessRewardsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<Reward | null>(null);
   const [editingReward, setEditingReward] = useState<Reward | null>(null);
+  const [isTierLimitModalOpen, setIsTierLimitModalOpen] = useState(false);
+  const [tierLimitMessage, setTierLimitMessage] = useState('');
 
   // Pagination state
   const [businessRewardsPage, setBusinessRewardsPage] = useState(1);
@@ -182,6 +188,9 @@ export default function BusinessRewardsPage() {
     isLoading: isLoadingAllRewards,
     isError: isErrorAllRewards,
   } = useGetAllRewards(allRewardsPage, limit);
+
+  const { mutate: updateBusinessReward } = useUpdateBusinessReward();
+  const [editingBusinessRewardId, setEditingBusinessRewardId] = useState<string | null>(null);
 
   const handleOpenCreateModal = useCallback((reward: Reward | null = null) => {
     setEditingReward(reward);
@@ -201,6 +210,7 @@ export default function BusinessRewardsPage() {
   const handleCreateFromScratch = useCallback(() => {
     setIsClaimModalOpen(false);
     if (currentUser.plan === 'white-label') {
+      setEditingBusinessRewardId(null);
       handleOpenCreateModal();
     } else {
       setIsUpgradeModalOpen(true);
@@ -208,12 +218,55 @@ export default function BusinessRewardsPage() {
   }, [handleOpenCreateModal]);
 
   const handleSaveReward = useCallback((rewardData: Reward) => {
-    // This is a mock implementation.
-    // In a real application, you would handle the save logic here.
-    console.log('Saving reward:', rewardData);
-    setIsCreateModalOpen(false);
-    setIsEditClaimedModalOpen(false);
-  }, []);
+    if (editingBusinessRewardId) {
+      updateBusinessReward({
+        rewardId: editingBusinessRewardId,
+        payload: {
+          title: rewardData.title,
+          description: rewardData.description,
+          point_required: rewardData.pointsRequired,
+          value: rewardData.value,
+          image: rewardData.image,
+          quantity: rewardData.quantity,
+          disabled: rewardData.disabled,
+        },
+      }, {
+        onSuccess: () => {
+          toast.success('Reward updated successfully');
+          setIsCreateModalOpen(false);
+          setEditingBusinessRewardId(null);
+        },
+        onError: (error: Error) => {
+          const axiosError = error as AxiosError<{ message: string }>;
+          const errorMessage = axiosError?.response?.data?.message || 'Failed to update reward';
+          if (errorMessage === 'Your tier does not allow updating rewards.') {
+            setTierLimitMessage(errorMessage);
+            setIsTierLimitModalOpen(true);
+            setIsCreateModalOpen(false); // Close the edit modal so the user sees the error clearly
+          } else {
+            toast.error(errorMessage);
+          }
+        }
+      });
+    } else {
+      // This is a mock implementation for create.
+      // In a real application, you would handle the save logic here.
+      console.log('Saving reward:', rewardData);
+      setIsCreateModalOpen(false);
+      setIsEditClaimedModalOpen(false);
+    }
+  }, [editingBusinessRewardId, updateBusinessReward]);
+
+  const handleEditBusinessReward = useCallback((businessReward: BusinessReward) => {
+    setEditingBusinessRewardId(businessReward.id);
+    const mergedReward: Reward = {
+      ...businessReward.reward,
+      pointsRequired: businessReward.pointRequired || businessReward.reward.pointsRequired,
+      quantity: businessReward.quantity || businessReward.reward.quantity || 0,
+      // Ensure other fields are correctly mapped if needed
+    };
+    handleOpenCreateModal(mergedReward);
+  }, [handleOpenCreateModal]);
 
   if (isLoadingBusinessRewards || isLoadingAllRewards) {
     return <LoadingSpinner />;
@@ -356,6 +409,14 @@ export default function BusinessRewardsPage() {
                             </Badge>
                           </div>
                         </div>
+
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditBusinessReward(businessReward)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
                       </div>
                     </CardHeader>
                     <CardContent className="flex-grow">
@@ -418,7 +479,13 @@ export default function BusinessRewardsPage() {
           reward={editingReward}
           onSave={handleSaveReward}
         />
+
+        <TierLimitModal
+          isOpen={isTierLimitModalOpen}
+          onClose={() => setIsTierLimitModalOpen(false)}
+          message={tierLimitMessage}
+        />
       </div>
-    </div>
+    </div >
   );
 }
