@@ -8,13 +8,27 @@ import { Label } from '@/components/ui/label';
 import ChangePasswordModal from '@/components/dashboard/account/ChangePasswordModal';
 import DeactivateAccountModal from '@/components/dashboard/account/DeactivateAccountModal';
 import { useGetBusinessProfile } from '@/services/business/hook'; // Import the hook
-
+import { useRouter } from 'next/navigation'; // Import useRouter
+import Cookies from 'js-cookie'; // Import Cookies
 
 export default function AccountPage() {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
 
   const { data: profile, isLoading: isLoadingProfile, isError: isErrorProfile } = useGetBusinessProfile();
+  const router = useRouter(); // Initialize useRouter
+
+  const handleLogout = () => {
+    // Clear any auth tokens/session data
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userName');
+    Cookies.remove('access');
+    Cookies.remove('refresh');
+    sessionStorage.clear();
+
+    // Redirect to login page
+    router.push('/login');
+  };
 
   if (isLoadingProfile) {
     return <div>Loading account data...</div>;
@@ -58,7 +72,7 @@ export default function AccountPage() {
               <h3 className="font-semibold">Logout</h3>
               <p className="text-sm text-gray-600">You will be logged out of your account.</p>
             </div>
-            <Button variant="outline">Logout</Button>
+            <Button variant="outline" onClick={handleLogout}>Logout</Button>
           </div>
           <div className="flex justify-between items-center p-4 border border-red-200 bg-red-50 rounded-lg">
             <div>
