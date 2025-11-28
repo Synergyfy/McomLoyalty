@@ -7,11 +7,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import ChangePasswordModal from '@/components/dashboard/account/ChangePasswordModal';
 import DeactivateAccountModal from '@/components/dashboard/account/DeactivateAccountModal';
-import { accountData } from '@/lib/mock-data/account';
+import { useGetBusinessProfile } from '@/services/business/hook'; // Import the hook
+
 
 export default function AccountPage() {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
+
+  const { data: profile, isLoading: isLoadingProfile, isError: isErrorProfile } = useGetBusinessProfile();
+
+  if (isLoadingProfile) {
+    return <div>Loading account data...</div>;
+  }
+
+  if (isErrorProfile) {
+    return <div>Error loading account data.</div>;
+  }
 
   return (
     <div className="space-y-8">
@@ -25,7 +36,7 @@ export default function AccountPage() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email Address</Label>
-            <Input id="email" value={accountData.email} disabled />
+            <Input id="email" value={profile?.email || ''} disabled />
           </div>
           <Button variant="outline" onClick={() => setIsPasswordModalOpen(true)}>
             Change Password
