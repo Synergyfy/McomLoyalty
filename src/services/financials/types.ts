@@ -1,6 +1,7 @@
 
 export interface TierQuotas {
   maxActiveCampaigns: number;
+  maxActiveRewards: number;
   maxRewardsPerCampaign: number;
   monthlyPointsAllowance: number;
 }
@@ -16,10 +17,26 @@ export interface TierProgressBonuses {
   [key: string]: number;
 }
 
+export interface TierVariant {
+  quotas?: Partial<TierQuotas>;
+  featureFlags?: Partial<TierFeatureFlags>;
+  progressBonuses?: Partial<TierProgressBonuses>;
+  monthly_price?: number;
+  annual_price?: number;
+  quaterly_price?: number;
+  stripe_monthly_price_id?: string;
+  stripe_annual_price_id?: string;
+  stripe_quarterly_price_id?: string;
+}
+
 export interface TierConfiguration {
   quotas: TierQuotas;
   featureFlags: TierFeatureFlags;
   progressBonuses?: TierProgressBonuses;
+  enablePro?: boolean;
+  enableProPlus?: boolean;
+  pro?: TierVariant;
+  pro_plus?: TierVariant;
 }
 
 export interface Tier {
