@@ -48,6 +48,6 @@ const mockCampaignData: CampaignFormData = {
 
 export default function ContactUsPreviewPage() {
   return (
-    <ContactUsPagePreview campaignData={mockCampaignData} />
+    <ContactUsPagePreview campaign={mockCampaignData} />
   );
 }
