@@ -39,9 +39,19 @@ export default function VouchersPage() {
     businessId,
   });
 
-  const vouchers: Voucher[] = voucherData?.data || [];
-  const totalPages = voucherData?.totalPages || 1;
-  const totalItems = voucherData?.total || 0;
+  const defaultPaginated: Paginated<Voucher> = {
+    data: [],
+    total: 0,
+    page: currentPage,
+    limit: itemsPerPage,
+    totalPages: 1,
+  };
+
+  const currentVoucherData = voucherData || defaultPaginated;
+
+  const vouchers: Voucher[] = currentVoucherData.data;
+  const totalPages = currentVoucherData.totalPages || 1;
+  const totalItems = currentVoucherData.total;
 
   const getTypeIcon = (type: string) => {
     switch (type) {
