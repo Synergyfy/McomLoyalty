@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,8 @@ import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BusinessUser, ConsumerUser } from '@/lib/mock-data/users';
 import { Building, User, Mail, MapPin, Award, Briefcase, Activity, Calendar, DollarSign, Star, Megaphone, Tag, Users } from 'lucide-react';
+import { PointsBalanceDisplay } from '@/components/customer/PointsBalanceDisplay';
+import { TransactionHistoryTable } from '@/components/customer/TransactionHistoryTable';
 
 interface ViewUserDetailsModalProps {
   isOpen: boolean;
@@ -24,10 +26,17 @@ export function ViewUserDetailsModal({
   onClose,
   user,
 }: ViewUserDetailsModalProps) {
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyFilter, setHistoryFilter] = useState('All');
+
   if (!user) return null;
 
   const isBusinessUser = (u: BusinessUser | ConsumerUser): u is BusinessUser => {
     return 'tier' in u;
+  };
+
+  const isConsumerUser = (u: BusinessUser | ConsumerUser): u is ConsumerUser => {
+    return !('tier' in u);
   };
 
   return (
@@ -94,17 +103,41 @@ export function ViewUserDetailsModal({
             </CardContent>
           </Card>
 
-          {/* Status & Levels Card */}
-          <Card className="shadow-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                <Award className="h-5 w-5 text-muted-foreground" /> Status & Levels
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
-                {isBusinessUser(user) ? (
-                  <>
+          {isConsumerUser(user) ? (
+            // Consumer specific view using Wallet components
+            <div className="space-y-6">
+               <PointsBalanceDisplay
+                  totalPoints={user.points}
+                  matchingPoints={user.matchingPoints}
+                  utilization={0} // Not available in list view
+                  badgeLevel={user.badgeLevel}
+                  isLoading={false}
+               />
+               <TransactionHistoryTable
+                  transactions={[]} // Not available in list view
+                  isLoading={false}
+                  page={historyPage}
+                  totalPages={1}
+                  onPageChange={setHistoryPage}
+                  activeFilter={historyFilter}
+                  onFilterChange={setHistoryFilter}
+                  filterCategories={['All', 'Earned', 'Spent']}
+               />
+               <div className="text-center text-sm text-muted-foreground italic">
+                 Transaction history is not currently available in the admin view.
+               </div>
+            </div>
+          ) : (
+            <>
+              {/* Status & Levels Card for Business */}
+              <Card className="shadow-lg">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <Award className="h-5 w-5 text-muted-foreground" /> Status & Levels
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
                     <div className="flex items-center gap-2">
                       <Award className="h-4 w-4 text-muted-foreground" />
                       <span className="font-medium">Tier:</span>
@@ -117,38 +150,19 @@ export function ViewUserDetailsModal({
                         {user.activityStatus}
                       </Badge>
                     </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-2">
-                      <Award className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">Badge Level:</span>
-                      <Badge className="text-gray-700">{user.badgeLevel}</Badge>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Activity className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">Activity:</span>
-                      <Badge variant={user.activity === 'High' ? 'default' : 'secondary'}>
-                        {user.activity}
-                      </Badge>
-                    </div>
-                  </>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  </div>
+                </CardContent>
+              </Card>
 
-          {/* Metrics Card */}
-          <Card className="shadow-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                <Star className="h-5 w-5 text-muted-foreground" /> Activity Metrics
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
-                {isBusinessUser(user) ? (
-                  <>
+              {/* Metrics Card for Business */}
+              <Card className="shadow-lg">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <Star className="h-5 w-5 text-muted-foreground" /> Activity Metrics
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
                     <div className="flex items-center gap-2">
                       <Megaphone className="h-4 w-4 text-muted-foreground" />
                       <span className="font-medium">Campaigns Created:</span>
@@ -164,34 +178,11 @@ export function ViewUserDetailsModal({
                       <span className="font-medium">Points Balance:</span>
                       <span className="text-gray-700">{new Intl.NumberFormat('en-US').format(user.pointsBalance)}</span>
                     </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-2">
-                      <Megaphone className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">Campaigns Joined:</span>
-                      <span className="text-gray-700">{user.campaignsJoined}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">Rewards Redeemed:</span>
-                      <span className="text-gray-700">{user.rewardsRedeemed}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">Points:</span>
-                      <span className="text-gray-700">{new Intl.NumberFormat('en-US').format(user.points)}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">Matching Points:</span>
-                      <span className="text-gray-700">{new Intl.NumberFormat('en-US').format(user.matchingPoints)}</span>
-                    </div>
-                  </>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
