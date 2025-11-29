@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import {
   ColumnDef,
   flexRender,
@@ -46,6 +47,7 @@ export function UserDataTable<TData extends BusinessUser | ConsumerUser, TValue>
   onAdjustUserPoints,
   onSuspendUser,
 }: DataTableProps<TData, TValue>) {
+  const router = useRouter();
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
   // State for Confirmation Dialog
@@ -123,8 +125,14 @@ export function UserDataTable<TData extends BusinessUser | ConsumerUser, TValue>
   };
 
   const handleOpenViewUserDetailsModal = (user: BusinessUser | ConsumerUser) => {
-    setSelectedUserForView(user);
-    setShowViewUserDetailsModal(true);
+    if ('tier' in user) {
+        // Business User -> Modal
+        setSelectedUserForView(user);
+        setShowViewUserDetailsModal(true);
+    } else {
+        // Consumer User -> Navigate to Details Page
+        router.push(`/admin/users/consumer/${user.id}`);
+    }
   };
 
   const handleSaveBusinessUser = (updatedUser: BusinessUser) => {
