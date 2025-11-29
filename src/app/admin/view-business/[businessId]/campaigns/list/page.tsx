@@ -16,6 +16,7 @@ import ClaimCampaignModal from '@/components/dashboard/campaigns/ClaimCampaignMo
 import UpgradePlanModal from '@/components/dashboard/rewards/UpgradePlanModal';
 import { CampaignTemplate } from '@/lib/mock-data/template-campaigns';
 import { PublicCampaignResponse } from '@/services/campaigns/types';
+import { toast } from 'sonner';
 
 
 interface PaginationProps {
@@ -342,7 +343,7 @@ export default function CampaignsListPage() {
                       <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                   ) : (
-                    <Copy className="h-4 w-4" /> {/* Changed to Copy icon */}
+                    <Copy className="h-4 w-4" />
                   )}
                 </Button>
               </div>
@@ -381,9 +382,9 @@ export default function CampaignsListPage() {
           <ClaimableCampaignsTicker />
 
           <Tabs defaultValue="created" className="w-full">
-            <TabsList className="mb-8" disabled={isImpersonating}> {/* Disable tab list */}
-              <TabsTrigger value="created">My Created Campaigns</TabsTrigger>
-              <TabsTrigger value="claimed">My Claimed Campaigns</TabsTrigger>
+            <TabsList className="mb-8"> {/* Disable tab list */}
+              <TabsTrigger value="created" disabled={isImpersonating}>My Created Campaigns</TabsTrigger>
+              <TabsTrigger value="claimed" disabled={isImpersonating}>My Claimed Campaigns</TabsTrigger>
             </TabsList>
             <TabsContent value="created">
               {renderCampaigns(filteredCreatedCampaigns, isLoadingCreated)}

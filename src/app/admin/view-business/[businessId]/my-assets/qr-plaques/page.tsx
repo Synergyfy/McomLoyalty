@@ -85,7 +85,7 @@ export default function QRPlaquesPage() {
             <div className="space-y-6">
                 {/* Filters */}
                 <div className="flex flex-col md:flex-row gap-4">
-                    <Select value={statusFilter} onValueChange={setStatusFilter} disabled={isImpersonating}>
+                    <Select value={statusFilter} onValueChange={(value: "active" | "inactive" | "pending" | "all" | "for-sale") => setStatusFilter(value)} disabled={isImpersonating}>
                         <SelectTrigger className="w-full md:w-[180px]"><SelectValue placeholder="Status" /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Statuses</SelectItem>

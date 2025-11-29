@@ -1,3 +1,4 @@
+"use client";
 import { redirect } from 'next/navigation';
 import { useParams } from 'next/navigation'; // Import useParams
 
