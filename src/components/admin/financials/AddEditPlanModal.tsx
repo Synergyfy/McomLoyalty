@@ -64,6 +64,7 @@ export function AddEditPlanModal({ isOpen, onClose, initialData, onSave, onShowF
       setFeatures(initialData.features.length > 0 ? initialData.features : ['']);
 
       // Helper to normalize configuration from API (camelCase) to Component (snake_case/specific keys)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const normalizeConfiguration = (config: any): TierConfiguration => {
         const normalizedFlags = {
           ...defaultConfiguration.featureFlags,
