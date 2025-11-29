@@ -39,7 +39,7 @@ export default function VouchersPage() {
     totalPages: 1,
   };
 
-  const { data: voucherData = defaultPaginated, isLoading, isError } = useGetVouchers({
+  const { data, isLoading, isError } = useGetVouchers({
     page: currentPage,
     limit: itemsPerPage,
     search,
@@ -47,9 +47,11 @@ export default function VouchersPage() {
     businessId,
   });
 
-  const vouchers: Voucher[] = voucherData.data;
-  const totalPages = voucherData.totalPages || 1;
-  const totalItems = voucherData.total;
+  const currentVoucherData: Paginated<Voucher> = data || defaultPaginated;
+
+  const vouchers: Voucher[] = currentVoucherData.data;
+  const totalPages = currentVoucherData.totalPages || 1;
+  const totalItems = currentVoucherData.total;
 
   const getTypeIcon = (type: string) => {
     switch (type) {
