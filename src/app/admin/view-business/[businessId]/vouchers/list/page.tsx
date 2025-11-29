@@ -47,7 +47,9 @@ export default function VouchersPage() {
     businessId,
   });
 
-  const currentVoucherData: Paginated<Voucher> = data || defaultPaginated;
+  const typedData = data as Paginated<Voucher> | undefined;
+
+  const currentVoucherData: Paginated<Voucher> = typedData || defaultPaginated;
 
   const vouchers: Voucher[] = currentVoucherData.data;
   const totalPages = currentVoucherData.totalPages || 1;
