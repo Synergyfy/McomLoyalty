@@ -181,7 +181,7 @@ export const useGetCampaignAnalytics = (page: number = 1, limit: number = 10) =>
 
 // Get Detailed Campaign Analytics
 const getDetailedCampaignAnalytics = async (campaignId: string): Promise<DetailedCampaignAnalytics> => {
-  const { data } = await api.get<DetailedCampaignAnalytics>(`/business/campaigns/analytics/${campaignId}`);
+  const { data } = await api.get<DetailedCampaignAnalytics>(`/business/campaigns/${campaignId}/analytics/detailed`);
   return data;
 };
 

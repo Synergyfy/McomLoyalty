@@ -93,7 +93,7 @@ export default function DealsPage() {
       <DealsTable deals={dealsData?.data || []} />
       <div className="flex items-center justify-between">
         <div className="text-sm text-gray-600">
-          Page {dealsData?.currentPage} of{' '}
+          Page {dealsData?.page} of{' '}
           {dealsData?.total ? Math.ceil(dealsData.total / limit) : 1}
         </div>
         <div className="flex items-center gap-2">
