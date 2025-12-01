@@ -51,6 +51,8 @@ export default function DealForm() {
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const router = useRouter();
   const [selectedSector, setSelectedSector] = useState<string>('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const { data: categories, isLoading: isLoadingCategories } =
     useGetCategories(selectedSector);
@@ -66,15 +68,58 @@ export default function DealForm() {
 
   const handleImageSelect = (file: File | null, previewUrl: string | null) => {
     setImagePreviewUrl(previewUrl);
-    setValue('imageUrl', previewUrl || '', { shouldValidate: true });
+    setSelectedFile(file);
+    // Clear the form value if file is removed, but don't set it yet if added
+    if (!file) {
+      setValue('imageUrl', '', { shouldValidate: true });
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('/api/upload/deals', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Image upload failed');
+    }
+
+    const data = await response.json();
+    return data.secure_url;
   };
 
   const onSubmit = async (data: CreateDealDto) => {
     try {
-      await createDeal(data);
+      let finalImageUrl = data.imageUrl;
+
+      if (selectedFile) {
+        setIsUploading(true);
+        try {
+          finalImageUrl = await uploadImage(selectedFile);
+        } catch (uploadError) {
+          console.error('Upload error:', uploadError);
+          toast.error('Failed to upload image. Please try again.');
+          setIsUploading(false);
+          return;
+        }
+        setIsUploading(false);
+      }
+
+      const dealData = {
+        ...data,
+        imageUrl: finalImageUrl,
+      };
+
+      await createDeal(dealData);
       toast.success('Deal created successfully!');
       router.push('/dashboard/deals');
     } catch (error) {
+      setIsUploading(false);
       toast.error('Failed to create deal. Please try again.');
       console.error('Create deal error:', error);
     }
@@ -296,8 +341,8 @@ export default function DealForm() {
             </div>
 
             <div className="flex justify-end">
-              <Button type="submit" disabled={isPending}>
-                {isPending ? 'Saving...' : 'Save Deal'}
+              <Button type="submit" disabled={isPending || isUploading}>
+                {isUploading ? 'Uploading Image...' : isPending ? 'Saving...' : 'Save Deal'}
               </Button>
             </div>
           </form>
