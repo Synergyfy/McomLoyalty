@@ -1,239 +1,237 @@
 'use client';
 
 import React from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import Image from "next/image";
-import { Trophy, Users, Calendar, Gift, Info } from "lucide-react";
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { format } from 'date-fns';
+import { Calendar as CalendarIcon, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
+import { useCreateDeal } from '@/services/deals/hook';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { useClaimCampaign } from '@/services/campaigns/hook';
-import { Badge } from "@/components/ui/badge";
-import { CampaignResponse, Reward } from '@/services/campaigns/types';
-import TierLimitModal from '../campaigns/TierLimitModal';
-import { AxiosError } from 'axios';
+import { useGetSectors } from '@/services/sectors/hook';
 
-interface CampaignPreviewProps {
-  campaign: CampaignResponse;
-}
+const dealSchema = z.object({
+  title: z.string().min(2, 'Title must be at least 2 characters'),
+  description: z.string().min(10, 'Description must be at least 10 characters'),
+  value: z.string().refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) >= 0, 'Value must be a positive number'),
+  startDate: z.date(),
+  endDate: z.date(),
+  termsAndConditions: z.string().min(10, 'Terms and conditions must be at least 10 characters'),
+  categoryId: z.string().min(1, 'Category is required'),
+});
 
-export default function CampaignPreview({ campaign }: CampaignPreviewProps) {
+type DealFormValues = z.infer<typeof dealSchema>;
+
+export default function DealForm() {
   const router = useRouter();
-  const { mutate: claimCampaign, isPending } = useClaimCampaign();
-  const [isTierLimitModalOpen, setIsTierLimitModalOpen] = React.useState(false);
-  const [tierLimitMessage, setTierLimitMessage] = React.useState('');
+  const { mutate: createDeal, isPending } = useCreateDeal();
+  const { data: sectors } = useGetSectors();
 
-  const handleClaim = () => {
-    claimCampaign(campaign.id, {
-      onSuccess: () => {
-        toast.success(`Campaign "${campaign.name}" has been successfully claimed!`);
-        router.push('/dashboard/campaigns/list');
+  // Flatten categories from sectors
+  const categories = React.useMemo(() => {
+    return sectors?.flatMap(sector => sector.categories) || [];
+  }, [sectors]);
+
+  const form = useForm<DealFormValues>({
+    resolver: zodResolver(dealSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      value: '',
+      termsAndConditions: '',
+      categoryId: '',
+    },
+  });
+
+  const onSubmit = (data: DealFormValues) => {
+    createDeal(
+      {
+        ...data,
+        value: parseFloat(data.value),
+        startDate: data.startDate.toISOString(),
+        endDate: data.endDate.toISOString(),
       },
-      onError: (error: Error | AxiosError<unknown>) => {
-        console.error('Failed to claim campaign:', error);
-
-        // Check for the specific error message regarding active campaigns limit
-        const errorMessage = (error as AxiosError<{ message: string }>)?.response?.data?.message || (error as Error)?.message || '';
-        if (errorMessage.includes('limit of 1 active campaigns') || errorMessage.includes('Upgrade or level up')) {
-          setTierLimitMessage(errorMessage);
-          setIsTierLimitModalOpen(true);
-          return;
-        }
-
-        toast.error('Failed to claim campaign. Please try again.');
+      {
+        onSuccess: () => {
+          toast.success('Deal created successfully');
+          router.push('/dashboard/deals'); // Adjust redirect as needed
+        },
+        onError: (error) => {
+          toast.error('Failed to create deal');
+          console.error(error);
+        },
       }
-    });
+    );
   };
 
-  // Helper to get points required from the first reward
-  const pointsRequired = campaign.rewards && campaign.rewards.length > 0 ? campaign.rewards[0].points_required : 0;
-
   return (
-    <div className="bg-gray-50 min-h-screen text-gray-900 pb-20">
-      {/* Hero Section */}
-      <div className="relative h-80 w-full overflow-hidden">
-        <Image
-          src={campaign.bannerUrl || 'https://via.placeholder.com/1920x700?text=Campaign+Hero'}
-          alt={campaign.name || 'Campaign Hero'}
-          layout="fill"
-          objectFit="cover"
-          className="brightness-50"
-          priority
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-2xl bg-white p-6 rounded-lg shadow-sm">
+      <div className="space-y-2">
+        <Label htmlFor="title">Title</Label>
+        <Input id="title" {...form.register('title')} placeholder="Deal Title" />
+        {form.formState.errors.title && (
+          <p className="text-sm text-red-500">{form.formState.errors.title.message}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="description">Description</Label>
+        <Textarea id="description" {...form.register('description')} placeholder="Deal Description" />
+        {form.formState.errors.description && (
+          <p className="text-sm text-red-500">{form.formState.errors.description.message}</p>
+        )}
+      </div>
+
+       <div className="space-y-2">
+        <Label htmlFor="categoryId">Category</Label>
+        <Controller
+          control={form.control}
+          name="categoryId"
+          render={({ field }) => (
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col justify-end pb-10 px-6 md:px-12">
-          <div className="max-w-5xl mx-auto w-full text-white">
-            <div className="flex items-center gap-3 mb-4">
-              <Badge className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 text-sm uppercase tracking-wide">
-                {campaign.campaignType?.replace('_', ' ') || 'Campaign'}
-              </Badge>
-              {campaign.audienceType && (
-                <Badge variant="outline" className="text-white border-white/50 px-3 py-1 text-sm uppercase tracking-wide">
-                  {campaign.audienceType} Only
-                </Badge>
-              )}
-            </div>
-            <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-4 drop-shadow-xl">
-              {campaign.name || '[Campaign Name]'}
-            </h1>
-            <div className="flex items-center gap-6 text-gray-200 text-sm md:text-base font-medium">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-orange-400" />
-                <span>
-                  {new Date(campaign.startDate).toLocaleDateString()} - {new Date(campaign.endDate).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+        {form.formState.errors.categoryId && (
+          <p className="text-sm text-red-500">{form.formState.errors.categoryId.message}</p>
+        )}
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 -mt-10 relative z-10 space-y-8">
+       <div className="space-y-2">
+        <Label htmlFor="value">Value ($)</Label>
+        <Input id="value" type="number" step="0.01" {...form.register('value')} placeholder="0.00" />
+        {form.formState.errors.value && (
+          <p className="text-sm text-red-500">{form.formState.errors.value.message}</p>
+        )}
+      </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-white shadow-lg border-none">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="p-3 bg-orange-100 rounded-full text-orange-600">
-                <Trophy className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 font-medium uppercase">Points Required</p>
-                <p className="text-2xl font-bold text-gray-900">{pointsRequired}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-white shadow-lg border-none">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="p-3 bg-blue-100 rounded-full text-blue-600">
-                <Gift className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 font-medium uppercase">Rewards Available</p>
-                <p className="text-2xl font-bold text-gray-900">{campaign.rewards?.length || 0}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-white shadow-lg border-none">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="p-3 bg-purple-100 rounded-full text-purple-600">
-                <Users className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 font-medium uppercase">Audience</p>
-                <p className="text-2xl font-bold text-gray-900 capitalize">{campaign.audienceType}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column: Description & Rewards */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* About Section */}
-            <section className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
-              <div className="flex items-center gap-3 mb-6">
-                <Info className="w-6 h-6 text-orange-600" />
-                <h2 className="text-2xl font-bold text-gray-800">About This Campaign</h2>
-              </div>
-              <p className="text-gray-700 leading-loose text-lg">
-                {campaign.campaignMessage || 'No description available for this campaign.'}
-              </p>
-            </section>
-
-            {/* Rewards Section */}
-            {campaign.rewards && campaign.rewards.length > 0 && (
-              <section>
-                <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-                  <Gift className="w-6 h-6 text-orange-600" />
-                  Campaign Rewards
-                </h2>
-                <div className="grid grid-cols-1 gap-6">
-                  {campaign.rewards.map((reward: Reward) => ( // Cast to Reward
-                    <Card key={reward.id} className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow duration-300">
-                      <div className="flex flex-col md:flex-row">
-                        {reward.image && (
-                          <div className="relative w-full md:w-48 h-48 md:h-auto shrink-0">
-                            <Image
-                              src={reward.image}
-                              alt={reward.title}
-                              layout="fill"
-                              objectFit="cover"
-                            />
-                          </div>
-                        )}
-                        <div className="p-6 flex flex-col justify-center flex-1">
-                          <div className="flex justify-between items-start mb-2">
-                            <h4 className="text-xl font-bold text-gray-900">{reward.title}</h4>
-                            <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-200 border-none">
-                              {reward.points_required} Points
-                            </Badge>
-                          </div>
-                          <p className="text-gray-600 mb-4 line-clamp-2">{reward.description}</p>
-                          <div className="mt-auto flex items-center justify-between text-sm text-gray-500">
-                            <span>Qty: {reward.quantity}</span>
-                            <span className="font-medium text-orange-600">Value: ${reward.value}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </section>
-            )}
-          </div>
-
-          {/* Right Column: CTA Card (Sticky on Desktop) */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-8 space-y-6">
-              <Card className="border-none shadow-xl bg-white overflow-hidden">
-                <div className="bg-orange-600 p-4 text-center">
-                  <h3 className="text-white font-bold text-lg">Ready to Launch?</h3>
-                </div>
-                <CardContent className="p-6 space-y-6">
-                  <p className="text-center text-gray-600">
-                    Claim this campaign to start engaging with your customers and rewarding their loyalty.
-                  </p>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Setup Cost</span>
-                      <span className="font-medium text-gray-900">Free</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Duration</span>
-                      <span className="font-medium text-gray-900">
-                        {Math.ceil((new Date(campaign.endDate).getTime() - new Date(campaign.startDate).getTime()) / (1000 * 60 * 60 * 24))} Days
-                      </span>
-                    </div>
-                    {campaign.quantity > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Available Claims</span>
-                        <span className="font-medium text-gray-900">{campaign.quantity}</span>
-                      </div>
-                    )}
-                  </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Start Date</Label>
+          <Controller
+            control={form.control}
+            name="startDate"
+            render={({ field }) => (
+              <Popover>
+                <PopoverTrigger asChild>
                   <Button
-                    onClick={handleClaim}
-                    disabled={true} // Always disabled for admin preview
-                    className="w-full bg-orange-600 hover:bg-orange-700 text-white text-lg py-6 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
-                    style={{ backgroundColor: campaign.ctaBackgroundColor || undefined, color: campaign.ctaTextColor || undefined }}
+                    variant={"outline"}
+                    className={cn(
+                      "w-full pl-3 text-left font-normal",
+                      !field.value && "text-muted-foreground"
+                    )}
                   >
-                    View Campaign Details {/* Changed text for preview */}
+                    {field.value ? (
+                      format(field.value, "PPP")
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                   </Button>
-                  <p className="text-xs text-center text-gray-400">
-                    By claiming, you agree to the campaign terms.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={field.onChange}
+                    disabled={(date) =>
+                      date < new Date()
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
+          />
+           {form.formState.errors.startDate && (
+            <p className="text-sm text-red-500">{form.formState.errors.startDate.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label>End Date</Label>
+          <Controller
+            control={form.control}
+            name="endDate"
+            render={({ field }) => (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full pl-3 text-left font-normal",
+                      !field.value && "text-muted-foreground"
+                    )}
+                  >
+                    {field.value ? (
+                      format(field.value, "PPP")
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={field.onChange}
+                    disabled={(date) =>
+                      date < new Date()
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
+          />
+           {form.formState.errors.endDate && (
+            <p className="text-sm text-red-500">{form.formState.errors.endDate.message}</p>
+          )}
         </div>
       </div>
 
-      <TierLimitModal
-        isOpen={isTierLimitModalOpen}
-        onClose={() => setIsTierLimitModalOpen(false)}
-        message={tierLimitMessage}
-      />
-    </div>
+      <div className="space-y-2">
+        <Label htmlFor="termsAndConditions">Terms and Conditions</Label>
+        <Textarea id="termsAndConditions" {...form.register('termsAndConditions')} placeholder="Terms..." className="h-32" />
+         {form.formState.errors.termsAndConditions && (
+          <p className="text-sm text-red-500">{form.formState.errors.termsAndConditions.message}</p>
+        )}
+      </div>
+
+      <Button type="submit" disabled={isPending} className="w-full">
+        {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        Create Deal
+      </Button>
+    </form>
   );
 }
