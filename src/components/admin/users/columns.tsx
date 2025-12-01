@@ -165,9 +165,9 @@ export const createBusinessColumns = (handlers: ActionHandlers): ColumnDef<Busin
     accessorKey: 'tier',
     header: 'Tier',
     cell: ({ row }) => {
-        const tier = row.getValue('tier') as string;
-        // Add color coding for tiers later
-        return <Badge variant="outline">{tier}</Badge>;
+      const tier = row.getValue('tier') as string;
+      // Add color coding for tiers later
+      return <Badge variant="outline">{tier}</Badge>;
     }
   },
   {
@@ -178,18 +178,18 @@ export const createBusinessColumns = (handlers: ActionHandlers): ColumnDef<Busin
     accessorKey: 'activityStatus',
     header: 'Status',
     cell: ({ row }) => {
-        const status = row.getValue('activityStatus') as string;
-        const variant: "default" | "secondary" | "destructive" = status === 'Active' ? 'default' : status === 'Suspended' ? 'destructive' : 'secondary';
-        return <Badge variant={variant}>{status}</Badge>;
+      const status = row.getValue('activityStatus') as string;
+      const variant: "default" | "secondary" | "destructive" = status === 'Active' ? 'default' : status === 'Disabled' ? 'destructive' : 'secondary';
+      return <Badge variant={variant}>{status}</Badge>;
     }
   },
   {
     accessorKey: 'pointsBalance',
     header: 'Points Balance',
     cell: ({ row }) => {
-        const amount = parseFloat(row.getValue('pointsBalance'));
-        const formatted = new Intl.NumberFormat('en-US').format(amount);
-        return <div className="text-right font-medium">{formatted}</div>;
+      const amount = parseFloat(row.getValue('pointsBalance'));
+      const formatted = new Intl.NumberFormat('en-US').format(amount);
+      return <div className="text-right font-medium">{formatted}</div>;
     }
   },
   createActionColumn<BusinessUser>('business', handlers),
@@ -212,8 +212,8 @@ export const createConsumerColumns = (handlers: ActionHandlers): ColumnDef<Consu
     accessorKey: 'badgeLevel',
     header: 'Badge Level',
     cell: ({ row }) => {
-        const badge = row.getValue('badgeLevel') as string;
-        return <Badge>{badge}</Badge>;
+      const badge = row.getValue('badgeLevel') as string;
+      return <Badge>{badge}</Badge>;
     }
   },
   {
@@ -224,18 +224,18 @@ export const createConsumerColumns = (handlers: ActionHandlers): ColumnDef<Consu
     accessorKey: 'activity',
     header: 'Activity',
     cell: ({ row }) => {
-        const activity = row.getValue('activity') as string;
-        const variant: "default" | "secondary" = activity === 'High' ? 'default' : 'secondary';
-        return <Badge variant={variant}>{activity}</Badge>;
+      const activity = row.getValue('activity') as string;
+      const variant: "default" | "secondary" = activity === 'High' ? 'default' : 'secondary';
+      return <Badge variant={variant}>{activity}</Badge>;
     }
   },
   {
     accessorKey: 'points',
     header: 'Points',
     cell: ({ row }) => {
-        const amount = parseFloat(row.getValue('points'));
-        const formatted = new Intl.NumberFormat('en-US').format(amount);
-        return <div className="text-right font-medium">{formatted}</div>;
+      const amount = parseFloat(row.getValue('points'));
+      const formatted = new Intl.NumberFormat('en-US').format(amount);
+      return <div className="text-right font-medium">{formatted}</div>;
     }
   },
   createActionColumn<ConsumerUser>('consumer', handlers),

@@ -1,375 +1,239 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import Image from 'next/image';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { CloudinaryUpload } from '@/components/ui/cloudinary-upload';
-import { useCreateDeal } from '@/services/deals/hook';
-import { CreateDealDto } from '@/services/deals/types';
-import { useGetCategories } from '@/services/business/hook';
-import { SectorSelect } from '@/components/SectorSelect';
-import { useUploadToCloudinary } from '@/services/upload/hook';
-import { format, parseISO, isBefore, isValid } from 'date-fns'; // Import date-fns utilities
-
-
+import React from 'react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import Image from "next/image";
+import { Trophy, Users, Calendar, Gift, Info } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useClaimCampaign } from '@/services/campaigns/hook';
+import { Badge } from "@/components/ui/badge";
+import { CampaignResponse, Reward } from '@/services/campaigns/types';
+import TierLimitModal from '../campaigns/TierLimitModal';
+import { AxiosError } from 'axios';
 
-export default function DealForm() {
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<CreateDealDto>();
-  
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const router = useRouter();
-  const [selectedSector, setSelectedSector] = useState<string>('');
-
-  const { data: categories, isLoading: isLoadingCategories } = useGetCategories(selectedSector);
-  const { mutateAsync: createDeal, isPending: isCreatingDeal } = useCreateDeal();
-  const { mutateAsync: uploadImage, isPending: isUploadingImage } = useUploadToCloudinary();
-
-  const currentImageUrl = watch('imageUrl');
-  const startDate = watch('startDate'); // Watch the start date for validation
-
-  useEffect(() => {
-    // This is useful for pre-populating the form in an "edit" scenario
-    if (currentImageUrl) {
-      setImagePreviewUrl(currentImageUrl);
-    }
-  }, [currentImageUrl]);
-
-  const handleImageSelect = (file: File | null, previewUrl: string | null) => {
-    setImagePreviewUrl(previewUrl);
-    setSelectedFile(file);
-    // Clear the field value so react-hook-form knows it's empty if no file is selected
-    setValue('imageUrl', '', { shouldValidate: !!file });
-  };
-
-  const onSubmit = async (data: CreateDealDto) => {
-    let finalImageUrl = data.imageUrl; // Use existing URL if any
-
-    if (selectedFile) {
-      try {
-        const uploadResult = await uploadImage({ file: selectedFile, folder: 'deals' });
-        finalImageUrl = uploadResult.secure_url;
-      } catch (error) {
-        toast.error('Image upload failed. Please try again.');
-        console.error('Cloudinary upload error:', error);
-        return; // Stop submission if upload fails
-      }
-    }
-
-    if (!finalImageUrl) {
-      toast.error('Please select an image for the deal.');
-      return;
-    }
-
-    const finalData = { ...data, imageUrl: finalImageUrl };
-
-    try {
-      await createDeal(finalData);
-      toast.success('Deal created successfully!');
-      router.push('/dashboard/deals');
-    } catch (error) {
-      toast.error('Failed to create deal. Please try again.');
-      console.error('Create deal error:', error);
-    }
-  };
-
-  const isSaving = isCreatingDeal || isUploadingImage;
-
-  return (
-    <TooltipProvider>
-      <Card>
-        <CardHeader>
-          <CardTitle>Deal Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="title">Deal Title</Label>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Input
-                    id="title"
-                    {...register('title', { required: 'Title is required' })}
-                  />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
-                    Enter a concise title for your deal (e.g., &quot;20% Off
-                    Coffee&quot;).
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-              {errors.title && (
-                <p className="text-red-500 text-sm">{errors.title.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Textarea
-                    id="description"
-                    {...register('description', {
-                      required: 'Description is required',
-                    })}
-                  />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
-                    Provide a detailed description of what the deal offers.
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-              {errors.description && (
-                <p className="text-red-500 text-sm">
-                  {errors.description.message}
-                </p>
-              )}
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <Label htmlFor="imageUrl" className="shrink-0">
-                Deal Image
-              </Label>
-              <CloudinaryUpload onFileSelect={handleImageSelect} />
-              {errors.imageUrl && (
-                <p className="text-red-500 text-sm">
-                  {errors.imageUrl.message}
-                </p>
-              )}
-            </div>
-            {imagePreviewUrl && (
-              <div className="mt-4">
-                <p className="text-sm font-medium">Image Preview:</p>
-                <div className="relative h-32 w-full rounded-lg overflow-hidden bg-gray-200">
-                  <Image
-                    src={imagePreviewUrl}
-                    alt="Deal Image Preview"
-                    layout="fill"
-                    objectFit="cover"
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="sectorId">Sector</Label>
-                <SectorSelect
-                  value={selectedSector}
-                  onChange={setSelectedSector}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="categoryId">Category</Label>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Select
-                      onValueChange={value => setValue('categoryId', value)}
-                      disabled={!selectedSector || isLoadingCategories}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {isLoadingCategories ? (
-                          <SelectItem value="loading" disabled>
-                            Loading...
-                          </SelectItem>
-                        ) : (
-                          categories?.data?.map(category => (
-                            <SelectItem key={category.id} value={category.id}>
-                              {category.name}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Select the category that best fits your deal.</p>
-                  </TooltipContent>
-                </Tooltip>
-                {errors.categoryId && (
-                  <p className="text-red-500 text-sm">
-                    {errors.categoryId.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="value">Value (£)</Label>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Input
-                      id="value"
-                      type="number"
-                      placeholder="e.g., 20"
-                      {...register('value', {
-                        required: 'Value is required',
-                        valueAsNumber: true,
-                      })}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>
-                      Enter the monetary value or percentage of the deal (e.g.,
-                      &quot;20&quot;, &quot;10.50&quot;).
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-                {errors.value && (
-                  <p className="text-red-500 text-sm">
-                    {errors.value.message}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="startDate">Start Date</Label>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Input
-                      type="date"
-                      id="startDate"
-                      {...register('startDate', {
-                        required: 'Start date is required',
-                      })}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Select the date when your deal becomes active.</p>
-                  </TooltipContent>
-                </Tooltip>
-                {errors.startDate && (
-                  <p className="text-red-500 text-sm">
-                    {errors.startDate.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="endDate">End Date</Label>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Input
-                      type="date"
-                      id="endDate"
-                      {...register('endDate', {
-                        required: 'End date is required',
-                        validate: (value) => {
-                            if (!value || !startDate) {
-                                return true; // Let required rule handle empty values
-                            }
-                            const parsedEndDate = parseISO(value);
-                            const parsedStartDate = parseISO(startDate);
-
-                            if (!isValid(parsedEndDate)) {
-                                return 'Invalid end date';
-                            }
-                            if (!isValid(parsedStartDate)) {
-                                return 'Invalid start date';
-                            }
-
-                            return isBefore(parsedEndDate, parsedStartDate) ? 'End date cannot be before start date' : true;
-                        },
-                      })}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Select the date when your deal expires.</p>
-                  </TooltipContent>
-                </Tooltip>
-                {errors.endDate && (
-                  <p className="text-red-500 text-sm">
-                    {errors.endDate.message}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="termsAndConditions">Terms & Conditions</Label>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Textarea
-                    id="termsAndConditions"
-                    {...register('termsAndConditions')}
-                  />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
-                    Outline any specific terms and conditions for this deal.
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-
-            <div className="flex justify-end">
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? 'Saving...' : 'Save Deal'}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-
-        {/* This dialog is no longer used, as we use toast notifications now */}
-        {/* Keeping it here in case it's needed for other purposes */}
-        <Dialog>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Success!</DialogTitle>
-            </DialogHeader>
-            <DialogDescription>
-              This is a placeholder success dialog.
-            </DialogDescription>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button type="button">
-                  Close
-                </Button>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </Card>
-    </TooltipProvider>
-  );
+interface CampaignPreviewProps {
+  campaign: CampaignResponse;
 }
 
+export default function CampaignPreview({ campaign }: CampaignPreviewProps) {
+  const router = useRouter();
+  const { mutate: claimCampaign, isPending } = useClaimCampaign();
+  const [isTierLimitModalOpen, setIsTierLimitModalOpen] = React.useState(false);
+  const [tierLimitMessage, setTierLimitMessage] = React.useState('');
+
+  const handleClaim = () => {
+    claimCampaign(campaign.id, {
+      onSuccess: () => {
+        toast.success(`Campaign "${campaign.name}" has been successfully claimed!`);
+        router.push('/dashboard/campaigns/list');
+      },
+      onError: (error: Error | AxiosError<unknown>) => {
+        console.error('Failed to claim campaign:', error);
+
+        // Check for the specific error message regarding active campaigns limit
+        const errorMessage = (error as AxiosError<{ message: string }>)?.response?.data?.message || (error as Error)?.message || '';
+        if (errorMessage.includes('limit of 1 active campaigns') || errorMessage.includes('Upgrade or level up')) {
+          setTierLimitMessage(errorMessage);
+          setIsTierLimitModalOpen(true);
+          return;
+        }
+
+        toast.error('Failed to claim campaign. Please try again.');
+      }
+    });
+  };
+
+  // Helper to get points required from the first reward
+  const pointsRequired = campaign.rewards && campaign.rewards.length > 0 ? campaign.rewards[0].points_required : 0;
+
+  return (
+    <div className="bg-gray-50 min-h-screen text-gray-900 pb-20">
+      {/* Hero Section */}
+      <div className="relative h-80 w-full overflow-hidden">
+        <Image
+          src={campaign.bannerUrl || 'https://via.placeholder.com/1920x700?text=Campaign+Hero'}
+          alt={campaign.name || 'Campaign Hero'}
+          layout="fill"
+          objectFit="cover"
+          className="brightness-50"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col justify-end pb-10 px-6 md:px-12">
+          <div className="max-w-5xl mx-auto w-full text-white">
+            <div className="flex items-center gap-3 mb-4">
+              <Badge className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 text-sm uppercase tracking-wide">
+                {campaign.campaignType?.replace('_', ' ') || 'Campaign'}
+              </Badge>
+              {campaign.audienceType && (
+                <Badge variant="outline" className="text-white border-white/50 px-3 py-1 text-sm uppercase tracking-wide">
+                  {campaign.audienceType} Only
+                </Badge>
+              )}
+            </div>
+            <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-4 drop-shadow-xl">
+              {campaign.name || '[Campaign Name]'}
+            </h1>
+            <div className="flex items-center gap-6 text-gray-200 text-sm md:text-base font-medium">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-orange-400" />
+                <span>
+                  {new Date(campaign.startDate).toLocaleDateString()} - {new Date(campaign.endDate).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-6 -mt-10 relative z-10 space-y-8">
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="bg-white shadow-lg border-none">
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="p-3 bg-orange-100 rounded-full text-orange-600">
+                <Trophy className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 font-medium uppercase">Points Required</p>
+                <p className="text-2xl font-bold text-gray-900">{pointsRequired}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-white shadow-lg border-none">
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="p-3 bg-blue-100 rounded-full text-blue-600">
+                <Gift className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 font-medium uppercase">Rewards Available</p>
+                <p className="text-2xl font-bold text-gray-900">{campaign.rewards?.length || 0}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-white shadow-lg border-none">
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="p-3 bg-purple-100 rounded-full text-purple-600">
+                <Users className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 font-medium uppercase">Audience</p>
+                <p className="text-2xl font-bold text-gray-900 capitalize">{campaign.audienceType}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column: Description & Rewards */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* About Section */}
+            <section className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3 mb-6">
+                <Info className="w-6 h-6 text-orange-600" />
+                <h2 className="text-2xl font-bold text-gray-800">About This Campaign</h2>
+              </div>
+              <p className="text-gray-700 leading-loose text-lg">
+                {campaign.campaignMessage || 'No description available for this campaign.'}
+              </p>
+            </section>
+
+            {/* Rewards Section */}
+            {campaign.rewards && campaign.rewards.length > 0 && (
+              <section>
+                <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                  <Gift className="w-6 h-6 text-orange-600" />
+                  Campaign Rewards
+                </h2>
+                <div className="grid grid-cols-1 gap-6">
+                  {campaign.rewards.map((reward: Reward) => ( // Cast to Reward
+                    <Card key={reward.id} className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow duration-300">
+                      <div className="flex flex-col md:flex-row">
+                        {reward.image && (
+                          <div className="relative w-full md:w-48 h-48 md:h-auto shrink-0">
+                            <Image
+                              src={reward.image}
+                              alt={reward.title}
+                              layout="fill"
+                              objectFit="cover"
+                            />
+                          </div>
+                        )}
+                        <div className="p-6 flex flex-col justify-center flex-1">
+                          <div className="flex justify-between items-start mb-2">
+                            <h4 className="text-xl font-bold text-gray-900">{reward.title}</h4>
+                            <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-200 border-none">
+                              {reward.points_required} Points
+                            </Badge>
+                          </div>
+                          <p className="text-gray-600 mb-4 line-clamp-2">{reward.description}</p>
+                          <div className="mt-auto flex items-center justify-between text-sm text-gray-500">
+                            <span>Qty: {reward.quantity}</span>
+                            <span className="font-medium text-orange-600">Value: ${reward.value}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+
+          {/* Right Column: CTA Card (Sticky on Desktop) */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-8 space-y-6">
+              <Card className="border-none shadow-xl bg-white overflow-hidden">
+                <div className="bg-orange-600 p-4 text-center">
+                  <h3 className="text-white font-bold text-lg">Ready to Launch?</h3>
+                </div>
+                <CardContent className="p-6 space-y-6">
+                  <p className="text-center text-gray-600">
+                    Claim this campaign to start engaging with your customers and rewarding their loyalty.
+                  </p>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Setup Cost</span>
+                      <span className="font-medium text-gray-900">Free</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Duration</span>
+                      <span className="font-medium text-gray-900">
+                        {Math.ceil((new Date(campaign.endDate).getTime() - new Date(campaign.startDate).getTime()) / (1000 * 60 * 60 * 24))} Days
+                      </span>
+                    </div>
+                    {campaign.quantity > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Available Claims</span>
+                        <span className="font-medium text-gray-900">{campaign.quantity}</span>
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    onClick={handleClaim}
+                    disabled={true} // Always disabled for admin preview
+                    className="w-full bg-orange-600 hover:bg-orange-700 text-white text-lg py-6 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
+                    style={{ backgroundColor: campaign.ctaBackgroundColor || undefined, color: campaign.ctaTextColor || undefined }}
+                  >
+                    View Campaign Details {/* Changed text for preview */}
+                  </Button>
+                  <p className="text-xs text-center text-gray-400">
+                    By claiming, you agree to the campaign terms.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <TierLimitModal
+        isOpen={isTierLimitModalOpen}
+        onClose={() => setIsTierLimitModalOpen(false)}
+        message={tierLimitMessage}
+      />
+    </div>
+  );
+}
