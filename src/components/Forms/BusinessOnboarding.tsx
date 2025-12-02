@@ -75,8 +75,13 @@ export default function BusinessOnboardingWizard() {
   const goBack = () => setStep((prev) => prev - 1);
 
   const onSubmit = async (data: OnboardingFormInputs) => {
+    const payload: Partial<OnboardingFormInputs> = { ...data };
+    if (payload.website === "") {
+      delete payload.website;
+    }
+
     try {
-      await onboardBusiness(data);
+      await onboardBusiness(payload as CreateBusinessDto);
       toast.success("Business account created successfully!");
       router.push("/pricing");
     } catch (error) {
