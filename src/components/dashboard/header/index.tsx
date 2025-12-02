@@ -77,7 +77,7 @@ export default function BusinessHeader({ onMenuClick }: BusinessHeaderProps) {
             ) : isError ? (
               <span className='text-red-500'>Error</span>
             ) : (
-              <span>
+              <span className='whitespace-nowrap'>
                 {monthlyBalance?.remaining?.toLocaleString() ?? 0} / {monthlyBalance?.monthlyLimit?.toLocaleString() ?? 0}
               </span>
             )}
