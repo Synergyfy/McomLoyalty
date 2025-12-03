@@ -29,8 +29,8 @@ const pointPackageSchema = z.object({
 interface PointPackageFormData {
   name: string;
   description?: string;
-  points: number;
-  price: number;
+  points: string | number;
+  price: string | number;
   currency?: string;
   tier_ids?: string[];
   is_active?: boolean;
