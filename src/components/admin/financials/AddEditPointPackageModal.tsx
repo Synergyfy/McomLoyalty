@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, ReactNode } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -66,7 +66,7 @@ export const AddEditPointPackageModal: React.FC<AddEditPointPackageModalProps> =
     register,
     reset,
     formState: { errors },
-  } = useForm<FormInput, any, PointPackageOutput>({
+  } = useForm<FormInput, unknown, PointPackageOutput>({
     resolver: zodResolver(pointPackageSchema),
     defaultValues: {
       name: '',
@@ -111,6 +111,7 @@ export const AddEditPointPackageModal: React.FC<AddEditPointPackageModalProps> =
       let savedPackage: PointPackage;
       const payload: PointPackageCreateInput = {
           ...data,
+          tier_ids: data.tier_ids || [],
       }
 
       if (initialData) {
@@ -119,8 +120,14 @@ export const AddEditPointPackageModal: React.FC<AddEditPointPackageModalProps> =
         savedPackage = await createMutation.mutateAsync(payload);
       }
       onSave(savedPackage);
-    } catch (error: AxiosError) {
-      onShowFeedback('Error', error.response?.data?.message || error.message || 'There was an error saving the package.', 'OK');
+    } catch (error: unknown) {
+      let errorMessage = 'An unknown error occurred.';
+      if (error instanceof AxiosError) {
+        errorMessage = error.response?.data?.message || error.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      onShowFeedback('Error', errorMessage, 'OK');
     }
   };
 

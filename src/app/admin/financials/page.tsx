@@ -30,7 +30,7 @@ export default function FinancialsPage() {
   const { data: plans, isLoading: isLoadingPlans, error: plansError } = useGetTiers();
   const deleteTierMutation = useDeleteTier();
 
-  const { data: pointPackages, isLoading: isLoadingPointPackages, error: pointPackagesError } = useGetPointPackages();
+  const { data: pointPackages, isLoading: isLoadingPointPackages, error: pointPackagesError } = useGetPointPackages(1, 10);
   const deletePointPackageMutation = useDeletePointPackage();
 
   // State for Feedback Dialog

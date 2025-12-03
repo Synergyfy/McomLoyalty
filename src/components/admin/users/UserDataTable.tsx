@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation'; 
 import {
   ColumnDef,
   flexRender,
@@ -128,12 +129,18 @@ export function UserDataTable<TData extends BusinessUser | ConsumerUser, TValue>
     handleCloseModals();
   };
 
+  // New handler to conform to ActionHandlers' onOpenViewUserDetailsModal signature
+  const handleOpenViewUserDetailsModal = (user: BusinessUser | ConsumerUser) => {
+    onViewDetails(user.id); // Call the existing prop with the user's ID
+  };
+
   const tableColumns = React.useMemo(() => {
     const handlers: ActionHandlers = {
       onOpenConfirmationDialog: handleOpenConfirmationDialog,
       onOpenAdjustPointsModal: handleOpenAdjustPointsModal,
       onOpenEditBusinessUserModal: handleOpenEditBusinessUserModal,
       onOpenEditConsumerUserModal: handleOpenEditConsumerUserModal,
+      onOpenViewUserDetailsModal: handleOpenViewUserDetailsModal, // Map the new handler here
       onViewDetails: onViewDetails, // Use the prop directly
       onDeleteUser: onDeleteUser,
       onAdjustUserPoints: onAdjustUserPoints,
