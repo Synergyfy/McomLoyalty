@@ -2,6 +2,7 @@ export interface Reward {
   id: string;
   title: string;
   pointsRequired: number;
+  maxPoints: number;
   value: number;
   description: string;
   image: string;

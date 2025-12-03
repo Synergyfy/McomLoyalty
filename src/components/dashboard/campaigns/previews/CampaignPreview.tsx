@@ -15,15 +15,17 @@ import { AxiosError } from 'axios';
 
 interface CampaignPreviewProps {
   campaign: CampaignResponse;
+  isClaimable?: boolean;
 }
 
-export default function CampaignPreview({ campaign }: CampaignPreviewProps) {
+export default function CampaignPreview({ campaign, isClaimable = false }: CampaignPreviewProps) {
   const router = useRouter();
   const { mutate: claimCampaign, isPending } = useClaimCampaign();
   const [isTierLimitModalOpen, setIsTierLimitModalOpen] = React.useState(false);
   const [tierLimitMessage, setTierLimitMessage] = React.useState('');
 
   const handleClaim = () => {
+    if (!isClaimable) return;
     claimCampaign(campaign.id, {
       onSuccess: () => {
         toast.success(`Campaign "${campaign.name}" has been successfully claimed!`);
@@ -213,11 +215,11 @@ export default function CampaignPreview({ campaign }: CampaignPreviewProps) {
                   </div>
                   <Button
                     onClick={handleClaim}
-                    disabled={true} // Always disabled for admin preview
+                    disabled={!isClaimable || isPending}
                     className="w-full bg-orange-600 hover:bg-orange-700 text-white text-lg py-6 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
                     style={{ backgroundColor: campaign.ctaBackgroundColor || undefined, color: campaign.ctaTextColor || undefined }}
                   >
-                    View Campaign Details {/* Changed text for preview */}
+                    {isClaimable ? (isPending ? 'Claiming...' : 'Claim Campaign') : 'Preview Only'}
                   </Button>
                   <p className="text-xs text-center text-gray-400">
                     By claiming, you agree to the campaign terms.

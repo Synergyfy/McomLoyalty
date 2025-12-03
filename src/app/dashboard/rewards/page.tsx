@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import {
   useGetBusinessRewards,
-  useGetAllRewards,
   useUpdateBusinessReward,
 } from '@/services/business-reward/hooks';
 import { BusinessReward, Reward, PaginationMeta } from '@/services/business-reward/types';
@@ -174,7 +173,6 @@ export default function BusinessRewardsPage() {
 
   // Pagination state
   const [businessRewardsPage, setBusinessRewardsPage] = useState(1);
-  const [allRewardsPage, setAllRewardsPage] = useState(1);
   const limit = 9; // Grid friendly limit
 
   const {
@@ -182,12 +180,6 @@ export default function BusinessRewardsPage() {
     isLoading: isLoadingBusinessRewards,
     isError: isErrorBusinessRewards,
   } = useGetBusinessRewards(businessRewardsPage, limit);
-
-  const {
-    data: allRewardsData,
-    isLoading: isLoadingAllRewards,
-    isError: isErrorAllRewards,
-  } = useGetAllRewards(allRewardsPage, limit);
 
   const { mutate: updateBusinessReward } = useUpdateBusinessReward();
   const [editingBusinessRewardId, setEditingBusinessRewardId] = useState<string | null>(null);
@@ -272,99 +264,24 @@ export default function BusinessRewardsPage() {
     handleOpenCreateModal(mergedReward);
   }, [handleOpenCreateModal]);
 
-  if (isLoadingBusinessRewards || isLoadingAllRewards) {
+  if (isLoadingBusinessRewards) {
     return <LoadingSpinner />;
   }
 
-  if (isErrorBusinessRewards || isErrorAllRewards) {
+  if (isErrorBusinessRewards) {
     return <div>Error fetching rewards</div>;
   }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              All Rewards
-            </h1>
-            <p className="text-gray-600">
-              Browse all available rewards and add them to your business.
-            </p>
-          </div>
-          <Button onClick={handleOpenClaimModal}> Add Reward</Button>
-        </div>
-
-        {allRewardsData?.data.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No rewards found.</p>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {allRewardsData?.data.map((reward: Reward) => (
-                <Card
-                  key={reward.id}
-                  className="flex flex-col hover:shadow-lg transition-shadow duration-200"
-                >
-                  <CardHeader className="pb-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-200">
-                          {reward.image && (
-                            <Image
-                              src={reward.image}
-                              alt={reward.title}
-                              layout="fill"
-                              objectFit="cover"
-                            />
-                          )}
-                        </div>
-                        <div>
-                          <CardTitle className="text-lg">{reward.title}</CardTitle>
-                          <Badge
-                            variant={!reward.disabled ? 'default' : 'secondary'}
-                          >
-                            {!reward.disabled ? 'Active' : 'Expired'}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="flex-grow">
-                    <p className="text-sm text-gray-600 mb-3">
-                      {reward.description}
-                    </p>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="font-medium">Value:</span>
-                        <span>£{reward.value}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="font-medium">Points:</span>
-                        <span>{reward.pointsRequired}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            {allRewardsData && (
-              <Pagination
-                currentPage={allRewardsPage}
-                totalPages={allRewardsData.totalPages || 1}
-                totalItems={allRewardsData.total || 0}
-                limit={limit}
-                onPageChange={setAllRewardsPage}
-              />
-            )}
-          </>
-        )}
-
         <div className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            My Added Rewards
-          </h2>
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              My Added Rewards
+            </h2>
+            <Button onClick={handleOpenClaimModal}> Add Reward</Button>
+          </div>
           <p className="text-gray-600 mb-8">
             These are the rewards you have added to your business.
           </p>
