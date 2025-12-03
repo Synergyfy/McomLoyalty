@@ -10,7 +10,7 @@ import {
 
 const fetchBusinessRewards = async (page: number, limit: number, businessId?: string) => {
   const { data } = await api.get<GetBusinessRewardsResponse>(
-    `/rewards/business/my-added-rewards`, { params: { page, limit, businessId } }
+    `/business/rewards`, { params: { page, limit, businessId } }
   );
   return data;
 };
