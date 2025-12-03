@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { BusinessUser, ConsumerUser } from '@/lib/mock-data/users';
+import Link from 'next/link';
 
 // Define types for the action handlers
 export type ActionHandlers = {
@@ -29,13 +30,14 @@ export type ActionHandlers = {
   ) => void;
   onOpenEditBusinessUserModal: (user: BusinessUser) => void;
   onOpenEditConsumerUserModal: (user: ConsumerUser) => void;
-  onOpenViewUserDetailsModal: (user: BusinessUser | ConsumerUser) => void;
-  onDeleteUser: (userId: string, userType: 'business' | 'consumer') => void; // New handler
-  onAdjustUserPoints: (userId: string, userType: 'business' | 'consumer', amount: number, reason: string) => void; // New handler
-  onSuspendUser: (userId: string, userType: 'business' | 'consumer') => void; // New handler
-  onViewDetails: (userId: string) => void;
+  onOpenViewUserDetailsModal: (user: BusinessUser | ConsumerUser) => void; // This handler is for modals, might be deprecated for navigation
+  onDeleteUser: (userId: string, userType: 'business' | 'consumer') => void;
+  onAdjustUserPoints: (userId: string, userType: 'business' | 'consumer', amount: number, reason: string) => void;
+  onSuspendUser: (userId: string, userType: 'business' | 'consumer') => void;
+  onViewDetails: (userId: string) => void; // This handler is now for navigation
 };
 
+// ActionsCell component to correctly use useRouter hook
 const ActionsCell = <T extends BusinessUser | ConsumerUser>({
   row,
   itemType,
@@ -45,8 +47,8 @@ const ActionsCell = <T extends BusinessUser | ConsumerUser>({
   itemType: 'business' | 'consumer';
   handlers: ActionHandlers;
 }) => {
-  const router = useRouter(); // Initialize useRouter
   const item = row.original;
+  const router = useRouter();
 
   const handleAdjustPoints = (amount: number, reason: string) => {
     handlers.onAdjustUserPoints(item.id, itemType, amount, reason);
@@ -70,21 +72,24 @@ const ActionsCell = <T extends BusinessUser | ConsumerUser>({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-        <DropdownMenuItem
-          onClick={() => navigator.clipboard.writeText(item.id)}
-        >
+        <DropdownMenuItem onClick={() => navigator.clipboard.writeText(item.id)}>
           Copy {itemType === 'business' ? 'Business' : 'Consumer'} ID
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        {itemType === 'business' && ( // Only show "View Dashboard" for business users
+        {itemType === 'consumer' ? (
+          <DropdownMenuItem asChild>
+            <Link href={`/admin/users/consumer/${item.id}`}>View Details</Link>
+          </DropdownMenuItem>
+        ) : (
+          // Business user actions
           <>
             <DropdownMenuItem
-              onClick={() => router.push(`/admin/view-business/${item.id}`)}
+              onClick={() => router.push(`/admin/users/business/${item.id}`)}
             >
               View Dashboard
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => handlers.onViewDetails(item.id)}
+              onClick={() => handlers.onViewDetails(item.id)} // This now triggers navigation
             >
               View Details
             </DropdownMenuItem>
@@ -151,9 +156,7 @@ const createActionColumn: <T extends BusinessUser | ConsumerUser>(
   handlers: ActionHandlers
 ) => ColumnDef<T> = (itemType, handlers) => ({
   id: 'actions',
-  cell: ({ row }) => (
-    <ActionsCell row={row} itemType={itemType} handlers={handlers} />
-  ),
+  cell: ({ row }) => <ActionsCell row={row} itemType={itemType} handlers={handlers} />,
 });
 
 // Columns for Business Users

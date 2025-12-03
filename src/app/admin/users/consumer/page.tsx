@@ -48,11 +48,6 @@ export default function AdminConsumerUsersPage() {
     console.log('Suspend user', userId);
   };
 
-  const handleViewDetails = (userId: string) => {
-    // Implement view details logic, e.g., navigate to a details page or open a modal
-    console.log('View details for user', userId);
-  };
-
   if (isLoading) {
     return (
       <div className="flex h-96 items-center justify-center">
@@ -144,6 +139,11 @@ export default function AdminConsumerUsersPage() {
     }
 
     return items;
+  };
+
+  const handleViewDetails = (userId: string) => {
+    // Implement view details logic, e.g., navigate to a user detail page
+    console.log('View details for user', userId);
   };
 
   return (

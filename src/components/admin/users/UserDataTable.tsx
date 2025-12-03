@@ -25,7 +25,6 @@ import { ConfirmationDialog } from './ConfirmationDialog';
 import { AdjustPointsModal } from './AdjustPointsModal';
 import { EditBusinessUserModal } from './EditBusinessUserModal';
 import { EditConsumerUserModal } from './EditConsumerUserModal';
-import { BusinessUserDetailsModal } from './BusinessUserDetailsModal';
 import { BusinessUser, ConsumerUser } from '@/lib/mock-data/users';
 import { ActionHandlers } from './columns'; // Import ActionHandlers type
 
@@ -79,23 +78,12 @@ export function UserDataTable<TData extends BusinessUser | ConsumerUser, TValue>
   const [showEditConsumerUserModal, setShowEditConsumerUserModal] = React.useState(false);
   const [selectedUserForEdit, setSelectedUserForEdit] = React.useState<BusinessUser | ConsumerUser | null>(null);
 
-  // State for View Details Modal
-  const [showViewUserDetailsModal, setShowViewUserDetailsModal] = React.useState(false);
-  const [selectedUserIdForView, setSelectedUserIdForView] = React.useState<string | null>(null);
-
   const handleCloseModals = () => {
     setShowConfirmationDialog(false);
     setShowAdjustPointsModal(false);
     setShowEditBusinessUserModal(false);
     setShowEditConsumerUserModal(false);
     setSelectedUserForEdit(null);
-    setShowViewUserDetailsModal(false);
-    setSelectedUserIdForView(null);
-  };
-
-  const handleOpenViewUserDetailsModal = (user: BusinessUser | ConsumerUser) => {
-    setSelectedUserIdForView(user.id);
-    setShowViewUserDetailsModal(true);
   };
 
   const handleOpenConfirmationDialog = (
@@ -144,7 +132,6 @@ export function UserDataTable<TData extends BusinessUser | ConsumerUser, TValue>
       onOpenAdjustPointsModal: handleOpenAdjustPointsModal,
       onOpenEditBusinessUserModal: handleOpenEditBusinessUserModal,
       onOpenEditConsumerUserModal: handleOpenEditConsumerUserModal,
-      onOpenViewUserDetailsModal: handleOpenViewUserDetailsModal,
       onViewDetails: onViewDetails, // Use the prop directly
       onDeleteUser: onDeleteUser,
       onAdjustUserPoints: onAdjustUserPoints,
@@ -265,13 +252,7 @@ export function UserDataTable<TData extends BusinessUser | ConsumerUser, TValue>
           user={selectedUserForEdit as ConsumerUser}
         />
       )}
-      {showViewUserDetailsModal && (
-        <BusinessUserDetailsModal
-          isOpen={showViewUserDetailsModal}
-          onClose={handleCloseModals}
-          businessId={selectedUserIdForView}
-        />
-      )}
+
     </div>
   );
 }
