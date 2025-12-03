@@ -36,7 +36,7 @@ export default function CampaignPreviewPage() {
       ctaTextColor: campaignData.cta_text_color,
       textColor: campaignData.text_color,
       backgroundColor: campaignData.background_color,
-      rewards: campaignData.rewards.map(reward => ({
+      rewards: (campaignData.rewards || []).map(reward => ({
         id: reward.id,
         title: reward.title,
         points_required: reward.points_required,
@@ -83,7 +83,7 @@ export default function CampaignPreviewPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <CampaignPreview campaign={campaign} />
+      <CampaignPreview campaign={campaign} isClaimable={true} />
     </div>
   );
 }
