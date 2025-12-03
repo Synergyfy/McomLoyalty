@@ -376,23 +376,37 @@ export default function FinancialsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {isLoadingPointPackages && <TableRow><TableCell colSpan={6}>Loading packages...</TableCell></TableRow>}
-                  {pointPackagesError && <TableRow><TableCell colSpan={6}>Error loading packages.</TableCell></TableRow>}
-                  {packagesToRender.map((pkg: PointPackage) => (
-                    <TableRow key={pkg.id}>
-                      <TableCell>{pkg.name}</TableCell>
-                      <TableCell>{pkg.points}</TableCell>
-                      <TableCell>£{pkg.price.toFixed(2)}</TableCell>
-                      <TableCell>{pkg.tiers.map((t: Tier) => t.name).join(', ') || 'All'}</TableCell>
-                      <TableCell><Badge variant={pkg.is_active ? 'default' : 'secondary'}>{pkg.is_active ? 'Active' : 'Inactive'}</Badge></TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                            <Button size="sm" onClick={() => handleAddEditPointPackage(pkg)}>Edit</Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleDeletePointPackage(pkg.id)}>Delete</Button>
-                        </div>
+                  {isLoadingPointPackages ? (
+                    <TableRow>
+                      <TableCell colSpan={6}>Loading packages...</TableCell>
+                    </TableRow>
+                  ) : pointPackagesError ? (
+                    <TableRow>
+                      <TableCell colSpan={6}>Error loading packages.</TableCell>
+                    </TableRow>
+                  ) : packagesToRender.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                        No packages found.
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    packagesToRender.map((pkg: PointPackage) => (
+                      <TableRow key={pkg.id}>
+                        <TableCell>{pkg.name}</TableCell>
+                        <TableCell>{pkg.points}</TableCell>
+                        <TableCell>£{pkg.price.toFixed(2)}</TableCell>
+                        <TableCell>{pkg.tiers.map((t: Tier) => t.name).join(', ') || 'All'}</TableCell>
+                        <TableCell><Badge variant={pkg.is_active ? 'default' : 'secondary'}>{pkg.is_active ? 'Active' : 'Inactive'}</Badge></TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                              <Button size="sm" onClick={() => handleAddEditPointPackage(pkg)}>Edit</Button>
+                              <Button size="sm" variant="destructive" onClick={() => handleDeletePointPackage(pkg.id)}>Delete</Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
