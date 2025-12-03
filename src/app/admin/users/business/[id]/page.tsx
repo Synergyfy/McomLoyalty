@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
-import BusinessSidebar from '@/components/dashboard/sidebar';
+import BusinessSidebar from '@/components/dashboard/sidebar/index';
 import BusinessHeader from '@/components/dashboard/header';
 
 import { StatCard } from '@/components/ui/StatCard';

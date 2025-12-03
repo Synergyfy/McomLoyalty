@@ -27,6 +27,7 @@ import { EditBusinessUserModal } from './EditBusinessUserModal';
 import { EditConsumerUserModal } from './EditConsumerUserModal';
 import { BusinessUser, ConsumerUser } from '@/lib/mock-data/users';
 import { ActionHandlers } from './columns'; // Import ActionHandlers type
+import { useRouter } from 'next/navigation';
 
 interface DataTableProps<TData, TValue> {
   columns: (handlers: ActionHandlers, router: ReturnType<typeof useRouter>) => ColumnDef<TData, TValue>[];

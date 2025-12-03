@@ -30,7 +30,6 @@ export type ActionHandlers = {
   ) => void;
   onOpenEditBusinessUserModal: (user: BusinessUser) => void;
   onOpenEditConsumerUserModal: (user: ConsumerUser) => void;
-  onOpenViewUserDetailsModal: (user: BusinessUser | ConsumerUser) => void; // This handler is for modals, might be deprecated for navigation
   onDeleteUser: (userId: string, userType: 'business' | 'consumer') => void;
   onAdjustUserPoints: (userId: string, userType: 'business' | 'consumer', amount: number, reason: string) => void;
   onSuspendUser: (userId: string, userType: 'business' | 'consumer') => void;

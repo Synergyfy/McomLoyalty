@@ -66,7 +66,7 @@ export const AddEditPointPackageModal: React.FC<AddEditPointPackageModalProps> =
     register,
     reset,
     formState: { errors },
-  } = useForm<FormInput, any, PointPackageOutput>({
+  } = useForm<FormInput, unknown, PointPackageOutput>({
     resolver: zodResolver(pointPackageSchema),
     defaultValues: {
       name: '',
@@ -111,6 +111,7 @@ export const AddEditPointPackageModal: React.FC<AddEditPointPackageModalProps> =
       let savedPackage: PointPackage;
       const payload: PointPackageCreateInput = {
           ...data,
+          tier_ids: data.tier_ids || [],
       }
 
       if (initialData) {
@@ -119,7 +120,8 @@ export const AddEditPointPackageModal: React.FC<AddEditPointPackageModalProps> =
         savedPackage = await createMutation.mutateAsync(payload);
       }
       onSave(savedPackage);
-    } catch (error: AxiosError) {
+    } catch (err) {
+      const error = err as AxiosError<{ message: string }>;
       onShowFeedback('Error', error.response?.data?.message || error.message || 'There was an error saving the package.', 'OK');
     }
   };
