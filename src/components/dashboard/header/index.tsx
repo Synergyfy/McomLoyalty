@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, Bell, Coins, Menu, Shield, User } from 'lucide-react';
+import { Loader2, Bell, Coins, Menu, Shield, User, TrendingDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useGetMySubscription } from '@/services/tiers/hook';
-import { useGetBusinessProfile } from '@/services/business/hook';
+import { useGetBusinessProfile, useGetBusinessMonthlyBalance } from '@/services/business/hook';
 import { useRouter } from 'next/navigation';
 import { useLogout } from '@/services/auth/hook'; // Import useLogout hook
 import { toast } from 'sonner';
@@ -25,15 +25,15 @@ export default function BusinessHeader({ onMenuClick }: BusinessHeaderProps) {
   const router = useRouter();
   const { data: subscription, isLoading: isLoadingSubscription, isError: isErrorSubscription } = useGetMySubscription();
   const { data: profile, isLoading: isLoadingProfile, isError: isErrorProfile } = useGetBusinessProfile();
+  const { data: monthlyBalance, isLoading: isLoadingMonthlyBalance, isError: isErrorMonthlyBalance } = useGetBusinessMonthlyBalance();
   const { mutate: logoutMutation, isPending: isLoggingOut } = useLogout(); // Use the useLogout hook
 
   const tierName = subscription?.tier?.name;
-  const userPoints = profile?.totalPointsEarned;
   const userBadge = profile?.role;
   const userInitials = profile?.name ? profile.name.charAt(0).toUpperCase() : '...';
 
-  const isLoading = isLoadingSubscription || isLoadingProfile;
-  const isError = isErrorSubscription || isErrorProfile;
+  const isLoading = isLoadingSubscription || isLoadingProfile || isLoadingMonthlyBalance;
+  const isError = isErrorSubscription || isErrorProfile || isErrorMonthlyBalance;
 
   const notificationsCount = 3; // Leaving as mock.
 
@@ -72,7 +72,21 @@ export default function BusinessHeader({ onMenuClick }: BusinessHeaderProps) {
           {/* Points Balance */}
           <div className="flex items-center gap-2">
             <Coins className="h-5 w-5 text-yellow-500" />
-            <span>{isLoading ? '...' : (userPoints?.toLocaleString() ?? 0)} Points</span>
+            {isLoading ? (
+              <span>...</span>
+            ) : isError ? (
+              <span className='text-red-500'>Error</span>
+            ) : (
+              <span className='whitespace-nowrap'>
+                {monthlyBalance?.remaining?.toLocaleString() ?? 0} / {monthlyBalance?.monthlyLimit?.toLocaleString() ?? 0}
+              </span>
+            )}
+          </div>
+
+          {/* Used Points */}
+          <div className="flex items-center gap-2">
+             <TrendingDown className="h-5 w-5 text-orange-500" />
+             <span>Used: {isLoading ? '...' : isError ? 'N/A' : monthlyBalance?.used?.toLocaleString() ?? 0}</span>
           </div>
 
           {/* Badge Status */}

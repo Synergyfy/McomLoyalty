@@ -34,6 +34,7 @@ export type ActionHandlers = {
   onDeleteUser: (userId: string, userType: 'business' | 'consumer') => void; // New handler
   onAdjustUserPoints: (userId: string, userType: 'business' | 'consumer', amount: number, reason: string) => void; // New handler
   onSuspendUser: (userId: string, userType: 'business' | 'consumer') => void; // New handler
+  onViewDetails: (userId: string) => void;
 };
 
 const ActionsCell = <T extends BusinessUser | ConsumerUser>({
@@ -77,11 +78,18 @@ const ActionsCell = <T extends BusinessUser | ConsumerUser>({
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         {itemType === 'business' && ( // Only show "View Dashboard" for business users
-          <DropdownMenuItem
-            onClick={() => router.push(`/admin/view-business/${item.id}`)}
-          >
-            View Dashboard
-          </DropdownMenuItem>
+          <>
+            <DropdownMenuItem
+              onClick={() => router.push(`/admin/view-business/${item.id}`)}
+            >
+              View Dashboard
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => handlers.onViewDetails(item.id)}
+            >
+              View Details
+            </DropdownMenuItem>
+          </>
         )}
         <DropdownMenuItem
           onClick={() => {

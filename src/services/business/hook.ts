@@ -1,5 +1,5 @@
 import api, { setBearerToken } from '../api';
-import { Business, BusinessLoginDto, BusinessLoginResponse, BusinessSignUpDto, CreateBusinessDto, PaginatedResponse, Category, Subcategory, BusinessProfile, UpdateBusinessProfileDto } from './types';
+import { Business, BusinessLoginDto, BusinessLoginResponse, BusinessSignUpDto, CreateBusinessDto, PaginatedResponse, Category, Subcategory, BusinessProfile, UpdateBusinessProfileDto, BusinessMonthlyBalance } from './types';
 import { SectorResponse } from '@/services/sectors/types';
 import Cookies from 'js-cookie';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -189,6 +189,21 @@ export const useUpdateBusinessProfile = (businessId?: string) => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: [BUSINESS_PROFILE_QUERY_KEY, businessId] });
         },
+    });
+};
+
+const BUSINESS_MONTHLY_BALANCE_QUERY_KEY = 'businessMonthlyBalance';
+
+// Get Business Monthly Points Balance
+const getBusinessMonthlyBalance = async (): Promise<BusinessMonthlyBalance> => {
+    const { data } = await api.get<BusinessMonthlyBalance>('/business/points/balance/monthly');
+    return data;
+};
+
+export const useGetBusinessMonthlyBalance = () => {
+    return useQuery({
+        queryKey: [BUSINESS_MONTHLY_BALANCE_QUERY_KEY],
+        queryFn: getBusinessMonthlyBalance,
     });
 };
 

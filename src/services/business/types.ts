@@ -105,3 +105,11 @@ export interface UpdateBusinessProfileDto {
   socialMedia?: { name: string; link: string }[];
 }
 
+export interface BusinessMonthlyBalance {
+  monthlyLimit: number;
+  used: number;
+  remaining: number;
+  extraPoints: number;
+  maxBuyable: number;
+}
+
