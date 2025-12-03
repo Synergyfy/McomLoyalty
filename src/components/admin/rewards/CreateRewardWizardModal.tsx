@@ -23,6 +23,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useGetSectors } from '@/services/sectors/hook';
 import { useGetTiers } from '@/services/tiers/hook';
 import toast from 'react-hot-toast';
+import { useTour } from '@/hooks/useTour';
+import { rewardCreationSteps } from '@/lib/tour-steps';
 
 interface CreateRewardWizardModalProps {
   isOpen: boolean;
@@ -30,6 +32,7 @@ interface CreateRewardWizardModalProps {
   mode?: 'create' | 'edit' | 'duplicate';
   reward?: RewardResponse | null;
   onSuccess?: () => void;
+  startTour?: boolean;
 }
 
 const rewardTypes = [
@@ -46,8 +49,10 @@ export default function CreateRewardWizardModal({
   onSuccess,
   mode = 'create',
   reward,
+  startTour = false,
 }: CreateRewardWizardModalProps) {
   const router = useRouter();
+  const { driver } = useTour({ steps: rewardCreationSteps });
   const { mutate: createReward, isPending: isCreating } = useCreateReward();
   const { data: sectors = [] } = useGetSectors();
   const { data: tiers = [] } = useGetTiers();
@@ -120,8 +125,19 @@ export default function CreateRewardWizardModal({
       } else {
         resetForm();
       }
+
+      // Start tour if requested
+      if (startTour && mode === 'create') {
+        // Small delay to ensure modal is rendered
+        setTimeout(() => {
+          driver?.drive();
+        }, 500);
+      }
+    } else {
+        // Ensure driver is destroyed if modal closes
+        driver?.destroy();
     }
-  }, [isOpen, mode, reward]);
+  }, [isOpen, mode, reward, startTour, driver]);
 
 
   const handleFileSelect = (file: File | null, previewUrl: string | null) => {
@@ -218,11 +234,12 @@ export default function CreateRewardWizardModal({
 
   const handleCampaignYes = () => {
     setShowCampaignPrompt(false);
-    if (newRewardId) {
-      router.push(`/admin/campaigns/create?rewardId=${newRewardId}`);
-    } else {
-      router.push('/admin/campaigns/create');
-    }
+    // If we were in a tour, continue it
+    const queryParams = new URLSearchParams();
+    if (newRewardId) queryParams.set('rewardId', newRewardId);
+    if (startTour) queryParams.set('tour', 'true');
+
+    router.push(`/admin/campaigns/create?${queryParams.toString()}`);
   };
 
   const handleCampaignNo = () => {
@@ -242,13 +259,13 @@ export default function CreateRewardWizardModal({
           </DialogHeader>
 
           {step === 1 && (
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-4 py-4" id="create-reward-modal-content">
               {/* Reward Type */}
               <div>
                 <label className="block text-sm font-medium mb-2">Reward Type</label>
                 <p className="text-xs text-muted-foreground mb-2">Choose the type of reward you're offering (voucher, physical item, or digital product)</p>
                 <Select value={rewardType} onValueChange={setRewardType}>
-                  <SelectTrigger><SelectValue placeholder="Select reward type" /></SelectTrigger>
+                  <SelectTrigger id="reward-type-select-trigger"><SelectValue placeholder="Select reward type" /></SelectTrigger>
                   <SelectContent position="popper" className="z-[10000]">
                     {rewardTypes.map((type) => (
                       <SelectItem key={type.value} value={type.value}>{type.icon} {type.label}</SelectItem>
@@ -261,14 +278,14 @@ export default function CreateRewardWizardModal({
               <div>
                 <label htmlFor="name" className="block text-sm font-medium mb-1">Name</label>
                 <p className="text-xs text-muted-foreground mb-2">Enter a clear, descriptive name for this reward</p>
-                <Input id="name" placeholder="e.g., £10 Coffee Voucher" value={name} onChange={(e) => setName(e.target.value)} />
+                <Input id="reward-name-input" placeholder="e.g., £10 Coffee Voucher" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
 
               {/* Description */}
               <div>
                 <label htmlFor="description" className="block text-sm font-medium mb-1">Description</label>
                 <p className="text-xs text-muted-foreground mb-2">Provide details about what this reward includes and how to use it</p>
-                <Textarea id="description" placeholder="e.g., Enjoy a £10 voucher redeemable at any participating coffee shop" value={description} onChange={(e) => setDescription(e.target.value)} />
+                <Textarea id="reward-description-input" placeholder="e.g., Enjoy a £10 voucher redeemable at any participating coffee shop" value={description} onChange={(e) => setDescription(e.target.value)} />
               </div>
 
               {/* Audience - moved to be directly after Description */}
@@ -276,7 +293,7 @@ export default function CreateRewardWizardModal({
                 <label className="block text-sm font-medium mb-1">Audience</label>
                 <p className="text-xs text-muted-foreground mb-2">Select who can access this reward - all businesses or specific sectors only</p>
                 <Select value={audience} onValueChange={setAudience}>
-                  <SelectTrigger><SelectValue placeholder="Select Audience" /></SelectTrigger>
+                  <SelectTrigger id="reward-audience-select-trigger"><SelectValue placeholder="Select Audience" /></SelectTrigger>
                   <SelectContent position="popper" className="z-[10000]">
                     <SelectItem value="all business">All Businesses</SelectItem>
                     <SelectItem value="specific sectors">Specific Sectors</SelectItem>
@@ -305,12 +322,12 @@ export default function CreateRewardWizardModal({
                 <div>
                   <label htmlFor="value" className="block text-sm font-medium mb-1">Value (£)</label>
                   <p className="text-xs text-muted-foreground mb-2">Monetary value of the reward</p>
-                  <Input id="value" type="number" placeholder="0" value={value} onChange={(e) => setValue(e.target.value === '' ? '' : Number(e.target.value))} />
+                  <Input id="reward-value-input" type="number" placeholder="0" value={value} onChange={(e) => setValue(e.target.value === '' ? '' : Number(e.target.value))} />
                 </div>
                 <div>
                   <label htmlFor="points" className="block text-sm font-medium mb-1">Points Required</label>
                   <p className="text-xs text-muted-foreground mb-2">Points needed to redeem this reward</p>
-                  <Input id="points" type="number" placeholder="0" value={pointsRequired} onChange={(e) => setPointsRequired(e.target.value === '' ? '' : Number(e.target.value))} />
+                  <Input id="reward-points-input" type="number" placeholder="0" value={pointsRequired} onChange={(e) => setPointsRequired(e.target.value === '' ? '' : Number(e.target.value))} />
                 </div>
               </div>
 
@@ -452,7 +469,7 @@ export default function CreateRewardWizardModal({
               Back
             </Button>
             {step < totalSteps ? (
-              <Button onClick={handleNext} disabled={!isStep1Valid}>Next</Button>
+              <Button id="reward-next-btn" onClick={handleNext} disabled={!isStep1Valid}>Next</Button>
             ) : (
               <Button onClick={handleSubmit} disabled={isCreating}>
                 {isCreating ? 'Creating...' : (mode === 'edit' ? 'Save Changes' : 'Create Reward')}
