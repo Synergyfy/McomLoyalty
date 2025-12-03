@@ -32,3 +32,49 @@ export interface PaginatedResponse<T> {
   limit: number;
   totalPages: number;
 }
+
+export interface AdminBusinessDetails {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  sector: {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+    name: string;
+  };
+  category: {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+    name: string;
+  };
+  subCategory: {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+    name: string;
+  };
+  website: string;
+  socialMedia: Record<string, string>;
+  uniqueCode: string;
+  role: string;
+  referralCapacity: number;
+  affiliateCode: string;
+  referralPoints: number;
+  reputation_points: number;
+  isDisabled: boolean;
+  stripe_customer_id: string;
+  total_points_earned: number;
+  total_points_redeemed: number;
+  remainingPointBalance: number;
+  extraPoints: number;
+}

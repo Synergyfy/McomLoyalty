@@ -91,6 +91,7 @@ export default function CreateRewardWizardModal({ isOpen, onClose, reward, onSav
       description,
       value: Number(value),
       pointsRequired: Number(pointsRequired),
+      maxPoints: Number(pointsRequired), // Assuming maxPoints defaults to pointsRequired for user-created rewards
       image: imagePreviewUrl || '',
       quantity: Number(quantity),
       disabled,

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { UserDataTable } from '@/components/admin/users/UserDataTable';
 import { createBusinessColumns } from '@/components/admin/users/columns';
 import { BusinessUser, ConsumerUser } from '@/lib/mock-data/users';
@@ -9,11 +10,11 @@ import { Loader2, ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react
 import { Button } from '@/components/ui/button';
 
 export default function AdminBusinessUsersPage() {
+  const router = useRouter();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const { data: response, isLoading, isError } = useAdminBusinesses(page, limit);
 
-  // Map API data to BusinessUser type
   // Map API data to BusinessUser type
   const businessUsers: BusinessUser[] = response?.data.map((business) => ({
     id: business.id,
@@ -42,6 +43,10 @@ export default function AdminBusinessUsersPage() {
 
   const handleSuspendUser = (userId: string, userType: 'business' | 'consumer') => {
     console.log('Suspend user', userId);
+  };
+
+  const handleViewDetails = (userId: string) => {
+    router.push(`/admin/users/business/${userId}`);
   };
 
   if (isLoading) {
@@ -154,6 +159,8 @@ export default function AdminBusinessUsersPage() {
             onDeleteUser={handleDeleteUser}
             onAdjustUserPoints={handleAdjustUserPoints}
             onSuspendUser={handleSuspendUser}
+            onViewDetails={handleViewDetails}
+            router={router}
           />
         </div>
 

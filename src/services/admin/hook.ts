@@ -1,6 +1,6 @@
 import api from '../api';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import { AdminParticipant, AdminBusiness, PaginatedResponse } from './types';
+import { AdminParticipant, AdminBusiness, PaginatedResponse, AdminBusinessDetails } from './types';
 import type { ParticipantHistoryItem } from '../customer-campaigns/types';
 
 // Admin Participants
@@ -71,5 +71,19 @@ export const useAdminBusinesses = (page = 1, limit = 10, search = '') => {
     queryKey: ['admin-businesses', page, limit, search],
     queryFn: () => getAdminBusinesses(page, limit, search),
     placeholderData: keepPreviousData,
+  });
+};
+
+// Get a single Admin Business by ID
+const getAdminBusinessById = async (id: string): Promise<AdminBusinessDetails> => {
+  const { data } = await api.get<AdminBusinessDetails>(`/admin/businesses/${id}`);
+  return data;
+};
+
+export const useAdminBusinessById = (id: string | null) => {
+  return useQuery<AdminBusinessDetails>({
+    queryKey: ['admin-business', id],
+    queryFn: () => getAdminBusinessById(id!),
+    enabled: !!id, // Only run query if id is not null
   });
 };

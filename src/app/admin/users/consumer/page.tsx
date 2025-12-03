@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { UserDataTable } from '@/components/admin/users/UserDataTable';
 import { createConsumerColumns } from '@/components/admin/users/columns';
 import { BusinessUser, ConsumerUser } from '@/lib/mock-data/users';
@@ -9,6 +10,7 @@ import { Loader2, ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react
 import { Button } from '@/components/ui/button';
 
 export default function AdminConsumerUsersPage() {
+  const router = useRouter();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const { data: response, isLoading, isError } = useAdminParticipants(page, limit);
@@ -141,6 +143,11 @@ export default function AdminConsumerUsersPage() {
     return items;
   };
 
+  const handleViewDetails = (userId: string) => {
+    // Implement view details logic, e.g., navigate to a user detail page
+    console.log('View details for user', userId);
+  };
+
   return (
     <div className="p-4 md:p-6 2xl:p-10">
       <div className="mb-8">
@@ -157,6 +164,8 @@ export default function AdminConsumerUsersPage() {
             onDeleteUser={handleDeleteUser}
             onAdjustUserPoints={handleAdjustUserPoints}
             onSuspendUser={handleSuspendUser}
+            onViewDetails={handleViewDetails}
+            router={router}
           />
         </div>
         
