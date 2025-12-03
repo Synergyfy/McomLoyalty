@@ -44,7 +44,7 @@ interface Reward {
   // Assuming totalRedeemed is a number here for consistency
 }
 
-function ImpersonationDataTable({ title, data, columns }: { title: string, data: any[], columns: { key: string, label: string }[] }) {
+function ImpersonationDataTable<T>({ title, data, columns }: { title: string, data: T[], columns: { key: keyof T, label: string }[] }) {
     if (!data || data.length === 0) {
         return (
             <div className="bg-white p-4 rounded-lg shadow">
@@ -61,13 +61,13 @@ function ImpersonationDataTable({ title, data, columns }: { title: string, data:
                 <table className="w-full text-sm text-left">
                     <thead className="bg-gray-50">
                         <tr>
-                            {columns.map(col => <th key={col.key} className="px-4 py-2">{col.label}</th>)}
+                            {columns.map(col => <th key={col.key as string} className="px-4 py-2">{col.label}</th>)}
                         </tr>
                     </thead>
                     <tbody>
                         {data.map((item, index) => (
                             <tr key={index} className="border-b">
-                                {columns.map(col => <td key={col.key} className="px-4 py-2">{item[col.key] ?? 'N/A'}</td>)}
+                                {columns.map(col => <td key={col.key as string} className="px-4 py-2">{String(item[col.key]) ?? 'N/A'}</td>)}
                             </tr>
                         ))}
                     </tbody>
@@ -136,8 +136,8 @@ export default function AdminBusinessImpersonationPage() {
   };
 
 
-  const campaigns: Campaign[] = campaignsData?.data || [];
-  const rewards: Reward[] = rewardsData?.data || [];
+  const campaigns: Campaign[] = [];
+  const rewards: Reward[] = [];
   
   return (
     <div className="fixed inset-0 z-[100] overflow-y-auto bg-gray-100">
@@ -149,7 +149,6 @@ export default function AdminBusinessImpersonationPage() {
 
             <BusinessSidebar
                 isOpen={isSidebarOpen}
-                activePath="/dashboard"
                 profile={impersonatedProfile}
                 isLoading={isLoading}
             />

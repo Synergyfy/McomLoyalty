@@ -133,9 +133,7 @@ export default function FinancialsPage() {
   // Determine the actual array of point packages to render
   const packagesToRender: PointPackage[] = Array.isArray(pointPackages)
     ? pointPackages
-    : (pointPackages && typeof pointPackages === 'object' && 'data' in pointPackages && Array.isArray((pointPackages as any).data))
-      ? (pointPackages as any).data as PointPackage[]
-      : [];
+    : [];
 
   return (
     <div className="space-y-8">
@@ -384,7 +382,7 @@ export default function FinancialsPage() {
                     <TableRow key={pkg.id}>
                       <TableCell>{pkg.name}</TableCell>
                       <TableCell>{pkg.points}</TableCell>
-                      <TableCell>£{parseFloat(pkg.price as any).toFixed(2)}</TableCell>
+                      <TableCell>£{pkg.price.toFixed(2)}</TableCell>
                       <TableCell>{pkg.tiers.map((t: Tier) => t.name).join(', ') || 'All'}</TableCell>
                       <TableCell><Badge variant={pkg.is_active ? 'default' : 'secondary'}>{pkg.is_active ? 'Active' : 'Inactive'}</Badge></TableCell>
                       <TableCell className="text-right">

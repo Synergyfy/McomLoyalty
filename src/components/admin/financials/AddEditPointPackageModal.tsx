@@ -62,7 +62,7 @@ export const AddEditPointPackageModal: React.FC<AddEditPointPackageModalProps> =
     reset,
     formState: { errors },
   } = useForm<PointPackageFormData>({
-    resolver: zodResolver(pointPackageSchema as z.ZodSchema<PointPackageFormData>),
+    resolver: zodResolver(pointPackageSchema),
     defaultValues: {
       name: '',
       description: '',

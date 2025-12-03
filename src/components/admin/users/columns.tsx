@@ -40,12 +40,12 @@ export type ActionHandlers = {
 // Reusable Action Column
 const createActionColumn: <T extends BusinessUser | ConsumerUser>(
   itemType: 'business' | 'consumer',
-  handlers: ActionHandlers
-) => ColumnDef<T> = (itemType, handlers) => ({
+  handlers: ActionHandlers,
+  router: ReturnType<typeof useRouter>
+) => ColumnDef<T> = (itemType, handlers, router) => ({
   id: 'actions',
   cell: ({ row }) => {
     const item = row.original;
-    const router = useRouter(); // Initialize useRouter here
 
     const handleAdjustPoints = (amount: number, reason: string) => {
       handlers.onAdjustUserPoints(item.id, itemType, amount, reason);
@@ -152,7 +152,7 @@ const createActionColumn: <T extends BusinessUser | ConsumerUser>(
 });
 
 // Columns for Business Users
-export const createBusinessColumns = (handlers: ActionHandlers): ColumnDef<BusinessUser>[] => [
+export const createBusinessColumns = (handlers: ActionHandlers, router: ReturnType<typeof useRouter>): ColumnDef<BusinessUser>[] => [
   {
     accessorKey: 'name',
     header: 'Business Name',
@@ -195,11 +195,11 @@ export const createBusinessColumns = (handlers: ActionHandlers): ColumnDef<Busin
       return <div className="text-right font-medium">{formatted}</div>;
     }
   },
-  createActionColumn<BusinessUser>('business', handlers),
+  createActionColumn<BusinessUser>('business', handlers, router),
 ];
 
 // Columns for Consumer Users
-export const createConsumerColumns = (handlers: ActionHandlers): ColumnDef<ConsumerUser>[] => [
+export const createConsumerColumns = (handlers: ActionHandlers, router: ReturnType<typeof useRouter>): ColumnDef<ConsumerUser>[] => [
   {
     accessorKey: 'name',
     header: 'Consumer Name',
@@ -241,5 +241,5 @@ export const createConsumerColumns = (handlers: ActionHandlers): ColumnDef<Consu
       return <div className="text-right font-medium">{formatted}</div>;
     }
   },
-  createActionColumn<ConsumerUser>('consumer', handlers),
+  createActionColumn<ConsumerUser>('consumer', handlers, router),
 ];

@@ -160,6 +160,7 @@ export default function AdminBusinessUsersPage() {
             onAdjustUserPoints={handleAdjustUserPoints}
             onSuspendUser={handleSuspendUser}
             onViewDetails={handleViewDetails}
+            router={router}
           />
         </div>
 
