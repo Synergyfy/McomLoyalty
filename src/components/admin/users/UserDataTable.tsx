@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import {
   ColumnDef,
   flexRender,
@@ -25,17 +26,18 @@ import { ConfirmationDialog } from './ConfirmationDialog';
 import { AdjustPointsModal } from './AdjustPointsModal';
 import { EditBusinessUserModal } from './EditBusinessUserModal';
 import { EditConsumerUserModal } from './EditConsumerUserModal';
-import { ViewUserDetailsModal } from './ViewUserDetailsModal';
 import { BusinessUser, ConsumerUser } from '@/lib/mock-data/users';
 import { ActionHandlers } from './columns'; // Import ActionHandlers type
 
 interface DataTableProps<TData, TValue> {
-  columns: (handlers: ActionHandlers) => ColumnDef<TData, TValue>[]; // Updated signature
+  columns: (handlers: ActionHandlers, router: ReturnType<typeof useRouter>) => ColumnDef<TData, TValue>[];
   data: TData[];
   onUpdateUser: (updatedUser: BusinessUser | ConsumerUser) => void;
   onDeleteUser: (userId: string, userType: 'business' | 'consumer') => void;
   onAdjustUserPoints: (userId: string, userType: 'business' | 'consumer', amount: number, reason: string) => void;
   onSuspendUser: (userId: string, userType: 'business' | 'consumer') => void;
+  onViewDetails: (userId: string) => void;
+  router: ReturnType<typeof useRouter>; // Add router prop
 }
 
 export function UserDataTable<TData extends BusinessUser | ConsumerUser, TValue>({
@@ -45,6 +47,8 @@ export function UserDataTable<TData extends BusinessUser | ConsumerUser, TValue>
   onDeleteUser,
   onAdjustUserPoints,
   onSuspendUser,
+  onViewDetails,
+  router,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
@@ -77,19 +81,12 @@ export function UserDataTable<TData extends BusinessUser | ConsumerUser, TValue>
   const [showEditConsumerUserModal, setShowEditConsumerUserModal] = React.useState(false);
   const [selectedUserForEdit, setSelectedUserForEdit] = React.useState<BusinessUser | ConsumerUser | null>(null);
 
-  // State for View Details Modal
-  const [showViewUserDetailsModal, setShowViewUserDetailsModal] = React.useState(false);
-  const [selectedUserForView, setSelectedUserForView] = React.useState<BusinessUser | ConsumerUser | null>(null);
-
-
   const handleCloseModals = () => {
     setShowConfirmationDialog(false);
     setShowAdjustPointsModal(false);
     setShowEditBusinessUserModal(false);
     setShowEditConsumerUserModal(false);
-    setShowViewUserDetailsModal(false);
     setSelectedUserForEdit(null);
-    setSelectedUserForView(null);
   };
 
   const handleOpenConfirmationDialog = (
@@ -122,11 +119,6 @@ export function UserDataTable<TData extends BusinessUser | ConsumerUser, TValue>
     setShowEditConsumerUserModal(true);
   };
 
-  const handleOpenViewUserDetailsModal = (user: BusinessUser | ConsumerUser) => {
-    setSelectedUserForView(user);
-    setShowViewUserDetailsModal(true);
-  };
-
   const handleSaveBusinessUser = (updatedUser: BusinessUser) => {
     onUpdateUser(updatedUser); // Propagate update to parent
     handleCloseModals();
@@ -137,30 +129,25 @@ export function UserDataTable<TData extends BusinessUser | ConsumerUser, TValue>
     handleCloseModals();
   };
 
-
-  // Define the actual columns using the handler functions
   const tableColumns = React.useMemo(() => {
     const handlers: ActionHandlers = {
       onOpenConfirmationDialog: handleOpenConfirmationDialog,
       onOpenAdjustPointsModal: handleOpenAdjustPointsModal,
       onOpenEditBusinessUserModal: handleOpenEditBusinessUserModal,
       onOpenEditConsumerUserModal: handleOpenEditConsumerUserModal,
-      onOpenViewUserDetailsModal: handleOpenViewUserDetailsModal,
+      onViewDetails: onViewDetails, // Use the prop directly
       onDeleteUser: onDeleteUser,
       onAdjustUserPoints: onAdjustUserPoints,
       onSuspendUser: onSuspendUser,
     };
-    return columns(handlers); // Pass the single handlers object
+    return columns(handlers, router); // Pass the single handlers object AND router
   }, [
     columns,
-    handleOpenConfirmationDialog,
-    handleOpenAdjustPointsModal,
-    handleOpenEditBusinessUserModal,
-    handleOpenEditConsumerUserModal,
-    handleOpenViewUserDetailsModal,
+    onViewDetails,
     onDeleteUser,
     onAdjustUserPoints,
     onSuspendUser,
+    router, // Add router to the dependency array
   ]);
 
 
@@ -269,13 +256,7 @@ export function UserDataTable<TData extends BusinessUser | ConsumerUser, TValue>
           user={selectedUserForEdit as ConsumerUser}
         />
       )}
-      {selectedUserForView && showViewUserDetailsModal && (
-        <ViewUserDetailsModal
-          isOpen={showViewUserDetailsModal}
-          onClose={handleCloseModals}
-          user={selectedUserForView}
-        />
-      )}
+
     </div>
   );
 }

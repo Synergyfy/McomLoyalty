@@ -9,17 +9,35 @@ import {
   useGetBusinessRewards,
   useGetAllRewards,
   useUpdateBusinessReward,
+  useCreateBusinessReward,
+  useRemoveBusinessReward,
 } from '@/services/business-reward/hooks';
-import { BusinessReward, Reward, PaginationMeta } from '@/services/business-reward/types';
+import { BusinessReward, Reward, PaginationMeta, CreateBusinessRewardDto, RewardStatus } from '@/services/business-reward/types';
 import LoadingSpinner from '@/components/ui/Loading';
 import ClaimRewardModal from '@/components/dashboard/rewards/ClaimRewardModal';
 import EditClaimedRewardModal from '@/components/dashboard/rewards/EditClaimedRewardModal';
 import UpgradePlanModal from '@/components/dashboard/rewards/UpgradePlanModal';
 import CreateRewardWizardModal from '@/components/dashboard/rewards/CreateRewardWizardModal';
 import TierLimitModal from '@/components/dashboard/campaigns/TierLimitModal';
-import { ChevronLeft, ChevronRight, MoreHorizontal, Edit } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MoreHorizontal, Edit, Trash2, MoreVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const currentUser = {
   plan: 'white-label', // 'starter', 'co-branded', 'white-label'
@@ -171,10 +189,11 @@ export default function BusinessRewardsPage() {
   const [editingReward, setEditingReward] = useState<Reward | null>(null);
   const [isTierLimitModalOpen, setIsTierLimitModalOpen] = useState(false);
   const [tierLimitMessage, setTierLimitMessage] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [rewardToDelete, setRewardToDelete] = useState<BusinessReward | null>(null);
 
   // Pagination state
   const [businessRewardsPage, setBusinessRewardsPage] = useState(1);
-  const [allRewardsPage, setAllRewardsPage] = useState(1);
   const limit = 9; // Grid friendly limit
 
   const {
@@ -183,13 +202,9 @@ export default function BusinessRewardsPage() {
     isError: isErrorBusinessRewards,
   } = useGetBusinessRewards(businessRewardsPage, limit);
 
-  const {
-    data: allRewardsData,
-    isLoading: isLoadingAllRewards,
-    isError: isErrorAllRewards,
-  } = useGetAllRewards(allRewardsPage, limit);
-
   const { mutate: updateBusinessReward } = useUpdateBusinessReward();
+  const { mutateAsync: createBusinessReward } = useCreateBusinessReward();
+  const { mutate: removeBusinessReward, isPending: isDeletingReward } = useRemoveBusinessReward();
   const [editingBusinessRewardId, setEditingBusinessRewardId] = useState<string | null>(null);
 
   const handleOpenCreateModal = useCallback((reward: Reward | null = null) => {
@@ -217,7 +232,7 @@ export default function BusinessRewardsPage() {
     }
   }, [handleOpenCreateModal]);
 
-  const handleSaveReward = useCallback((rewardData: Reward) => {
+  const handleSaveReward = useCallback(async (rewardData: Reward) => {
     if (editingBusinessRewardId) {
       updateBusinessReward({
         rewardId: editingBusinessRewardId,
@@ -225,7 +240,6 @@ export default function BusinessRewardsPage() {
           title: rewardData.title,
           description: rewardData.description,
           point_required: rewardData.pointsRequired,
-          value: rewardData.value,
           image: rewardData.image,
           quantity: rewardData.quantity,
           disabled: rewardData.disabled,
@@ -249,13 +263,30 @@ export default function BusinessRewardsPage() {
         }
       });
     } else {
-      // This is a mock implementation for create.
-      // In a real application, you would handle the save logic here.
-      console.log('Saving reward:', rewardData);
-      setIsCreateModalOpen(false);
-      setIsEditClaimedModalOpen(false);
+      try {
+        const payload: CreateBusinessRewardDto = {
+          title: rewardData.title,
+          description: rewardData.description,
+          point_required: rewardData.pointsRequired,
+          image: rewardData.image,
+          quantity: rewardData.quantity,
+          disabled: rewardData.disabled,
+          reward_type: 'voucher', // Defaulting to voucher as per typical flow, or could be dynamic
+          status: RewardStatus.ACTIVE,
+        };
+
+        await createBusinessReward(payload);
+        toast.success('Reward created successfully');
+        setIsCreateModalOpen(false);
+      } catch (error) {
+        console.error("Error creating reward:", error);
+        const axiosError = error as AxiosError<{ message: string }>;
+        const errorMessage = axiosError?.response?.data?.message || 'Failed to create reward';
+        toast.error(errorMessage);
+        throw error;
+      }
     }
-  }, [editingBusinessRewardId, updateBusinessReward]);
+  }, [editingBusinessRewardId, updateBusinessReward, createBusinessReward]);
 
   const handleEditBusinessReward = useCallback((businessReward: BusinessReward) => {
     setEditingBusinessRewardId(businessReward.id);
@@ -272,99 +303,46 @@ export default function BusinessRewardsPage() {
     handleOpenCreateModal(mergedReward);
   }, [handleOpenCreateModal]);
 
-  if (isLoadingBusinessRewards || isLoadingAllRewards) {
+  const handleDeleteClick = useCallback((businessReward: BusinessReward) => {
+    setRewardToDelete(businessReward);
+    setDeleteDialogOpen(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback(() => {
+    if (!rewardToDelete) return;
+
+    removeBusinessReward(rewardToDelete.id, {
+      onSuccess: () => {
+        toast.success('Reward deleted successfully');
+        setDeleteDialogOpen(false);
+        setRewardToDelete(null);
+      },
+      onError: (error: Error) => {
+        const axiosError = error as AxiosError<{ message: string }>;
+        const errorMessage = axiosError?.response?.data?.message || 'Failed to delete reward';
+        toast.error(errorMessage);
+      },
+    });
+  }, [rewardToDelete, removeBusinessReward]);
+
+  if (isLoadingBusinessRewards) {
     return <LoadingSpinner />;
   }
 
-  if (isErrorBusinessRewards || isErrorAllRewards) {
+  if (isErrorBusinessRewards) {
     return <div>Error fetching rewards</div>;
   }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              All Rewards
-            </h1>
-            <p className="text-gray-600">
-              Browse all available rewards and add them to your business.
-            </p>
-          </div>
-          <Button onClick={handleOpenClaimModal}> Add Reward</Button>
-        </div>
-
-        {allRewardsData?.data.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No rewards found.</p>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {allRewardsData?.data.map((reward: Reward) => (
-                <Card
-                  key={reward.id}
-                  className="flex flex-col hover:shadow-lg transition-shadow duration-200"
-                >
-                  <CardHeader className="pb-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-200">
-                          {reward.image && (
-                            <Image
-                              src={reward.image}
-                              alt={reward.title}
-                              layout="fill"
-                              objectFit="cover"
-                            />
-                          )}
-                        </div>
-                        <div>
-                          <CardTitle className="text-lg">{reward.title}</CardTitle>
-                          <Badge
-                            variant={!reward.disabled ? 'default' : 'secondary'}
-                          >
-                            {!reward.disabled ? 'Active' : 'Expired'}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="flex-grow">
-                    <p className="text-sm text-gray-600 mb-3">
-                      {reward.description}
-                    </p>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="font-medium">Value:</span>
-                        <span>£{reward.value}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="font-medium">Points:</span>
-                        <span>{reward.pointsRequired}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            {allRewardsData && (
-              <Pagination
-                currentPage={allRewardsPage}
-                totalPages={allRewardsData.totalPages || 1}
-                totalItems={allRewardsData.total || 0}
-                limit={limit}
-                onPageChange={setAllRewardsPage}
-              />
-            )}
-          </>
-        )}
-
         <div className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            My Added Rewards
-          </h2>
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              My Added Rewards
+            </h2>
+            <Button onClick={handleOpenClaimModal}> Add Reward</Button>
+          </div>
           <p className="text-gray-600 mb-8">
             These are the rewards you have added to your business.
           </p>
@@ -414,13 +392,32 @@ export default function BusinessRewardsPage() {
                           </div>
                         </div>
 
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEditBusinessReward(businessReward)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => handleEditBusinessReward(businessReward)}
+                            >
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteClick(businessReward)}
+                              className="text-red-600 focus:text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </CardHeader>
                     <CardContent className="flex-grow">
@@ -488,6 +485,27 @@ export default function BusinessRewardsPage() {
           onClose={() => setIsTierLimitModalOpen(false)}
           message={tierLimitMessage}
         />
+
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Reward</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete &quot;{rewardToDelete?.title}&quot;? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeletingReward}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleConfirmDelete}
+                disabled={isDeletingReward}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {isDeletingReward ? 'Deleting...' : 'Delete'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div >
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { UserDataTable } from '@/components/admin/users/UserDataTable';
 import { createBusinessColumns } from '@/components/admin/users/columns';
 import { BusinessUser, ConsumerUser } from '@/lib/mock-data/users';
@@ -11,11 +12,17 @@ import { useSearchParams } from 'next/navigation';
 import { useGuide } from '@/context/GuideContext';
 import { Suspense, useEffect } from 'react';
 
+<<<<<<< HEAD
 function BusinessUsersContent() {
+=======
+export default function AdminBusinessUsersPage() {
+  const router = useRouter();
+>>>>>>> 94f632025b569a210ba0ec32f6615fdfeaf4c930
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const { data: response, isLoading, isError } = useAdminBusinesses(page, limit);
 
+<<<<<<< HEAD
   const searchParams = useSearchParams();
   const shouldStartTour = searchParams.get('tour') === 'true';
   const { startGuide } = useGuide();
@@ -26,6 +33,8 @@ function BusinessUsersContent() {
     }
   }, [shouldStartTour, startGuide]);
 
+=======
+>>>>>>> 94f632025b569a210ba0ec32f6615fdfeaf4c930
   // Map API data to BusinessUser type
   const businessUsers: BusinessUser[] = response?.data.map((business) => ({
     id: business.id,
@@ -33,6 +42,7 @@ function BusinessUsersContent() {
     email: business.email,
     tier: business.tier || '-', // Handle null tier
     sector: business.sector,
+    referralCapacity: business.referralCapacity || 0,
     activityStatus: (business.activityStatus as 'Active' | 'Disabled') || 'Active',
     campaignsCreated: business.campaignsCreated || 0, // Default to 0 if missing
     rewardsAttached: business.rewardsAttached || 0, // Default to 0 if missing
@@ -54,6 +64,10 @@ function BusinessUsersContent() {
 
   const handleSuspendUser = (userId: string, userType: 'business' | 'consumer') => {
     console.log('Suspend user', userId);
+  };
+
+  const handleViewDetails = (userId: string) => {
+    router.push(`/admin/users/business/${userId}`);
   };
 
   if (isLoading) {
@@ -166,6 +180,8 @@ function BusinessUsersContent() {
             onDeleteUser={handleDeleteUser}
             onAdjustUserPoints={handleAdjustUserPoints}
             onSuspendUser={handleSuspendUser}
+            onViewDetails={handleViewDetails}
+            router={router}
           />
         </div>
 

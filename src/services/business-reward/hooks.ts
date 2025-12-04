@@ -43,11 +43,30 @@ const fetchUnaddedRewards = async (page: number, limit: number) => {
   return data;
 };
 
-export const useGetUnaddedRewards = (page: number, limit: number) => {
+export const useGetUnaddedRewards = (page: number, limit: number, options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: ['unaddedRewards', page, limit],
     queryFn: () => fetchUnaddedRewards(page, limit),
-    enabled: false, // Initially disabled, will be enabled in the modal
+    enabled: options?.enabled, // Controlled by the component
+  });
+};
+
+const createBusinessReward = async (payload: CreateBusinessRewardDto) => {
+  const { data } = await api.post<BusinessReward>(
+    `/rewards/business/rewards/create`,
+    payload
+  );
+  return data;
+};
+
+export const useCreateBusinessReward = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createBusinessReward,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['businessRewards'] });
+      queryClient.invalidateQueries({ queryKey: ['unaddedRewards'] });
+    },
   });
 };
 

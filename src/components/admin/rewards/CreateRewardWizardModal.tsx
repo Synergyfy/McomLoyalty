@@ -187,7 +187,7 @@ export default function CreateRewardWizardModal({
 
       const payload: CreateRewardRequest = {
         title: name,
-        points_required: Number(pointsRequired),
+        max_points: Number(pointsRequired),
         value: Number(value),
         description,
         image: finalImageUrl,
@@ -322,7 +322,7 @@ export default function CreateRewardWizardModal({
                   <Input id="reward-value-input" type="number" placeholder="0" value={value} onChange={(e) => setValue(e.target.value === '' ? '' : Number(e.target.value))} />
                 </div>
                 <div>
-                  <label htmlFor="points" className="block text-sm font-medium mb-1">Points Required</label>
+                  <label htmlFor="points" className="block text-sm font-medium mb-1">Maximum point</label>
                   <p className="text-xs text-muted-foreground mb-2">Points needed to redeem this reward</p>
                   <Input id="reward-points-input" type="number" placeholder="0" value={pointsRequired} onChange={(e) => setPointsRequired(e.target.value === '' ? '' : Number(e.target.value))} />
                 </div>

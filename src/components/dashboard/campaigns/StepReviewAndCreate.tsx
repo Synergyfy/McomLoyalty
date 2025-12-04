@@ -23,17 +23,19 @@ import RedeemPointsPagePreview from './previews/RedeemPointsPagePreview';
 import ContactUsPagePreview from './previews/ContactUsPagePreview';
 
 import FooterPreview from './previews/FooterPreview';
-import { useCreateCampaign } from '@/services/campaigns/hook';
+import { useCreateCampaign, useUpdateCampaign } from '@/services/campaigns/hook';
 import { useCreateCampaignFromWishlist } from '@/services/campaigns/hook_wishlist';
-import { CreateCampaignPayload, CampaignResponse } from '@/services/campaigns/types';
+import { CreateCampaignPayload, CampaignResponse, UpdateCampaignPayload } from '@/services/campaigns/types';
 import { CreateCampaignFromWishlistDto } from '@/services/campaigns/types_wishlist';
 import { toast } from 'sonner';
 
 interface StepProps {
   onBack: () => void;
+  campaignId?: string;
+  isClaimed?: boolean;
 }
 
-export default function StepReviewAndCreate({ onBack }: StepProps) {
+export default function StepReviewAndCreate({ onBack, campaignId, isClaimed = false }: StepProps) {
   const router = useRouter();
   const { formData, resetFormData } = useCampaignForm();
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
@@ -41,6 +43,7 @@ export default function StepReviewAndCreate({ onBack }: StepProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const createCampaignMutation = useCreateCampaign();
+  const updateCampaignMutation = useUpdateCampaign();
   const createCampaignFromWishlistMutation = useCreateCampaignFromWishlist();
 
   const transformedCampaign: CampaignResponse = useMemo(() => {
@@ -48,7 +51,7 @@ export default function StepReviewAndCreate({ onBack }: StepProps) {
     const toISOString = (date?: Date) => date ? date.toISOString() : '';
 
     return {
-      id: 'preview-campaign-id', // Mock ID for preview purposes
+      id: campaignId || 'preview-campaign-id', // Use real ID if editing, else mock
       name: formData.campaignName,
       campaignType: formData.campaignType,
       campaignMessage: formData.campaignMessage,
@@ -87,9 +90,9 @@ export default function StepReviewAndCreate({ onBack }: StepProps) {
       totalMatchingPointsEarned: 0,
       matchingPointsDisabledByAdmin: false,
     };
-  }, [formData]);
+  }, [formData, campaignId]);
 
-  const handleCreateCampaign = async () => {
+  const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
       let bannerUrl = formData.imageUrl;
@@ -136,72 +139,79 @@ export default function StepReviewAndCreate({ onBack }: StepProps) {
         'wishlist_target': 'target_wishlist'
       };
 
-      if (formData.wishlistAggregateId && formData.audienceType.includes('wishlist_target')) {
-        // Create campaign from wishlist
-        const wishlistPayload: CreateCampaignFromWishlistDto = {
-          wishlistAggregateId: formData.wishlistAggregateId,
-          name: formData.campaignName,
-          campaign_type: campaignTypeMap[formData.campaignType] || 'qr_code',
-          campaign_message: formData.campaignMessage,
-          start_date: formData.startDate?.toISOString() || new Date().toISOString(),
-          end_date: formData.endDate?.toISOString() || new Date().toISOString(),
-          quantity: Number(formData.rewardsAvailable) || 0,
-          audience_type: 'target_wishlist',
-          banner_url: bannerUrl || '',
-          logo_url: logoUrl || '',
-          cta_text: formData.ctaButtonText,
-          cta_background_color: formData.ctaBgColor,
-          cta_text_color: formData.ctaTextColor,
-          text_color: formData.bgColorTextColor,
-          background_color: formData.bgColor,
-          signUpPoint: 0,
-          reward_type: 'regular',
-          regular_points_threshold: 0,
-          matching_points_threshold: 0,
-          business_reward_ids: formData.rewardIds,
-          reward_ids: [],
-        };
+      const commonPayload = {
+        name: formData.campaignName,
+        campaign_type: campaignTypeMap[formData.campaignType] || 'qr_code',
+        campaign_message: formData.campaignMessage,
+        start_date: formData.startDate?.toISOString() || new Date().toISOString(),
+        end_date: formData.endDate?.toISOString() || new Date().toISOString(),
+        quantity: Number(formData.rewardsAvailable) || 0,
+        audience_type: formData.audienceType.map(t => audienceTypeMap[t] || t).join(','),
+        signUpPoint: 0,
+        banner_url: bannerUrl || '',
+        logo_url: logoUrl || '',
+        cta_text: formData.ctaButtonText,
+        cta_background_color: formData.ctaBgColor,
+        cta_text_color: formData.ctaTextColor,
+        text_color: formData.bgColorTextColor,
+        background_color: formData.bgColor,
+        reward_type: 'regular',
+        regular_points_threshold: 0,
+        matching_points_threshold: 0,
+        earn_point_page_title: formData.earnTitle || '',
+        earn_point_page_description: formData.earnText || '',
+        redeem_reward_page_title: formData.redeemTitle || '',
+        redeem_reward_page_description: formData.redeemText || '',
+        contact_us_page_title: formData.contactTitle || '',
+        contact_us_page_description: formData.contactText || '',
+        contact_email: formData.contactEmail || '',
+        contact_phone_number: formData.contactPhone || '',
+        footer_text: formData.footerText || '',
+        // We handle reward linkage specifically below for updates
+      };
 
-        await createCampaignFromWishlistMutation.mutateAsync(wishlistPayload);
+      if (campaignId) {
+        // Update existing campaign
+        const updatePayload: UpdateCampaignPayload = { ...commonPayload };
+        
+        if (isClaimed) {
+           // Claimed campaigns (Admin Templates) must use reward_ids
+           updatePayload.reward_ids = formData.rewardIds;
+           delete updatePayload.business_reward_ids;
+        } else {
+           // Custom campaigns must use business_reward_ids
+           updatePayload.business_reward_ids = formData.rewardIds;
+           delete updatePayload.reward_ids;
+        }
+
+        await updateCampaignMutation.mutateAsync({
+          id: campaignId,
+          data: updatePayload
+        });
+        toast.success("Campaign updated successfully");
       } else {
-        // Create regular campaign
-        const regularPayload: CreateCampaignPayload = {
-          name: formData.campaignName,
-          campaign_type: campaignTypeMap[formData.campaignType] || 'qr_code',
-          campaign_message: formData.campaignMessage,
-          start_date: formData.startDate?.toISOString() || new Date().toISOString(),
-          end_date: formData.endDate?.toISOString() || new Date().toISOString(),
-          quantity: Number(formData.rewardsAvailable) || 0,
-          audience_type: formData.audienceType.map(t => audienceTypeMap[t] || t).join(','),
-          signUpPoint: 0,
-          banner_url: bannerUrl || '',
-          logo_url: logoUrl || '',
-          cta_text: formData.ctaButtonText,
-          cta_background_color: formData.ctaBgColor,
-          cta_text_color: formData.ctaTextColor,
-          text_color: formData.bgColorTextColor,
-          background_color: formData.bgColor,
-          reward_type: 'regular',
-          regular_points_threshold: 0,
-          matching_points_threshold: 0,
-          earn_point_page_title: formData.earnTitle || '',
-          earn_point_page_description: formData.earnText || '',
-          redeem_reward_page_title: formData.redeemTitle || '',
-          redeem_reward_page_description: formData.redeemText || '',
-          contact_us_page_title: formData.contactTitle || '',
-          contact_us_page_description: formData.contactText || '',
-          contact_email: formData.contactEmail || '',
-          contact_phone_number: formData.contactPhone || '',
-          footer_text: formData.footerText || '',
-          business_reward_ids: formData.rewardIds,
-        };
-        await createCampaignMutation.mutateAsync(regularPayload);
+        // Create new campaign
+        const createPayload = { ...commonPayload, business_reward_ids: formData.rewardIds };
+        
+        if (formData.wishlistAggregateId && formData.audienceType.includes('wishlist_target')) {
+          // Create campaign from wishlist
+          const wishlistPayload: CreateCampaignFromWishlistDto = {
+            ...createPayload,
+            wishlistAggregateId: formData.wishlistAggregateId,
+            audience_type: 'target_wishlist',
+            reward_ids: [],
+          };
+          await createCampaignFromWishlistMutation.mutateAsync(wishlistPayload);
+        } else {
+          // Create regular campaign
+          await createCampaignMutation.mutateAsync(createPayload);
+        }
       }
 
       setShowSuccessDialog(true);
     } catch (error) {
-      console.error("Failed to create campaign:", error);
-      toast.error("Failed to create campaign. Please try again.");
+      console.error(campaignId ? "Failed to update campaign:" : "Failed to create campaign:", error);
+      toast.error(campaignId ? "Failed to update campaign. Please try again." : "Failed to create campaign. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -217,7 +227,7 @@ export default function StepReviewAndCreate({ onBack }: StepProps) {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Step 9: Review and Create Campaign</CardTitle>
+          <CardTitle>Step 9: Review and {campaignId ? 'Update' : 'Create'} Campaign</CardTitle>
         </CardHeader>
         <CardContent>
           {/* New Comprehensive Preview Section */}
@@ -270,8 +280,8 @@ export default function StepReviewAndCreate({ onBack }: StepProps) {
 
           <div className="flex justify-between mt-6">
             <Button variant="outline" onClick={onBack} disabled={isSubmitting}>Back</Button>
-            <Button onClick={handleCreateCampaign} disabled={isSubmitting}>
-              {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating...</> : 'Create Campaign'}
+            <Button onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {campaignId ? 'Updating...' : 'Creating...'}</> : (campaignId ? 'Update Campaign' : 'Create Campaign')}
             </Button>
           </div>
         </CardContent>
@@ -279,9 +289,9 @@ export default function StepReviewAndCreate({ onBack }: StepProps) {
       <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Campaign Created Successfully!</AlertDialogTitle>
+            <AlertDialogTitle>Campaign {campaignId ? 'Updated' : 'Created'} Successfully!</AlertDialogTitle>
             <AlertDialogDescription>
-              Your new campaign has been created.
+              Your campaign has been {campaignId ? 'updated' : 'created'}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -75,10 +75,15 @@ export default function BusinessOnboardingWizard() {
   const goBack = () => setStep((prev) => prev - 1);
 
   const onSubmit = async (data: OnboardingFormInputs) => {
+    const payload: Partial<OnboardingFormInputs> = { ...data };
+    if (payload.website === "") {
+      delete payload.website;
+    }
+
     try {
-      await onboardBusiness(data);
+      await onboardBusiness(payload as CreateBusinessDto);
       toast.success("Business account created successfully!");
-      router.push("/pricing");
+      router.push("/dashboard/subscription");
     } catch (error) {
       toast.error("Failed to create business account. Please try again.");
       console.error("Onboarding error:", error);
@@ -100,9 +105,8 @@ export default function BusinessOnboardingWizard() {
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className={`h-2 w-12 rounded-full transition-all ${
-                  i <= step ? "bg-white" : "bg-orange-400"
-                }`}
+                className={`h-2 w-12 rounded-full transition-all ${i <= step ? "bg-white" : "bg-orange-400"
+                  }`}
               />
             ))}
           </div>

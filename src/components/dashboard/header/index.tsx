@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, Bell, Coins, Menu, Shield, User } from 'lucide-react';
+import { Loader2, Bell, Coins, Menu, Shield, User, TrendingDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -12,28 +12,69 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useGetMySubscription } from '@/services/tiers/hook';
-import { useGetBusinessProfile } from '@/services/business/hook';
+import { useGetBusinessProfile, useGetBusinessMonthlyBalance } from '@/services/business/hook';
 import { useRouter } from 'next/navigation';
 import { useLogout } from '@/services/auth/hook'; // Import useLogout hook
 import { toast } from 'sonner';
 
-interface BusinessHeaderProps {
-  onMenuClick: () => void;
+// TODO: Replace these with actual imported types (e.g., from services/business/types.ts, services/tiers/types.ts)
+interface BusinessProfileType {
+  id: string;
+  name: string;
+  email: string;
+  role?: string; // Assuming role might be part of it
 }
 
-export default function BusinessHeader({ onMenuClick }: BusinessHeaderProps) {
+interface SubscriptionType {
+  tier?: { name: string };
+  // Add other relevant properties from your Subscription type
+}
+
+interface MonthlyBalanceType {
+  remaining?: number;
+  monthlyLimit?: number;
+  used?: number;
+  // Add other relevant properties from your MonthlyBalance type
+}
+
+interface BusinessHeaderProps {
+  onMenuClick: () => void;
+  // Optional props for impersonation mode
+  profile?: BusinessProfileType;
+  subscription?: SubscriptionType;
+  monthlyBalance?: MonthlyBalanceType;
+  isLoading?: boolean; // Unified loading prop for impersonation
+  isError?: boolean; // Unified error prop for impersonation
+}
+
+export default function BusinessHeader({
+  onMenuClick,
+  profile: propProfile,
+  subscription: propSubscription,
+  monthlyBalance: propMonthlyBalance,
+  isLoading: propIsLoading,
+  isError: propIsError,
+}: BusinessHeaderProps) {
   const router = useRouter();
-  const { data: subscription, isLoading: isLoadingSubscription, isError: isErrorSubscription } = useGetMySubscription();
-  const { data: profile, isLoading: isLoadingProfile, isError: isErrorProfile } = useGetBusinessProfile();
-  const { mutate: logoutMutation, isPending: isLoggingOut } = useLogout(); // Use the useLogout hook
+
+  // Conditionally use hooks or props
+  const { data: hookSubscription, isLoading: hookIsLoadingSubscription, isError: hookIsErrorSubscription } = useGetMySubscription();
+  const { data: hookProfile, isLoading: hookIsLoadingProfile, isError: hookIsErrorProfile } = useGetBusinessProfile();
+  const { data: hookMonthlyBalance, isLoading: hookIsLoadingMonthlyBalance, isError: hookIsErrorMonthlyBalance } = useGetBusinessMonthlyBalance();
+  const { mutate: logoutMutation, isPending: isLoggingOut } = useLogout();
+
+  // Prioritize props data if provided
+  const subscription = propSubscription ?? hookSubscription;
+  const profile = propProfile ?? hookProfile;
+  const monthlyBalance = propMonthlyBalance ?? hookMonthlyBalance;
+
+  // Unify loading and error states
+  const isLoading = propIsLoading ?? (hookIsLoadingSubscription || hookIsLoadingProfile || hookIsLoadingMonthlyBalance);
+  const isError = propIsError ?? (hookIsErrorSubscription || hookIsErrorProfile || hookIsErrorMonthlyBalance);
 
   const tierName = subscription?.tier?.name;
-  const userPoints = profile?.totalPointsEarned;
   const userBadge = profile?.role;
   const userInitials = profile?.name ? profile.name.charAt(0).toUpperCase() : '...';
-
-  const isLoading = isLoadingSubscription || isLoadingProfile;
-  const isError = isErrorSubscription || isErrorProfile;
 
   const notificationsCount = 3; // Leaving as mock.
 
@@ -72,7 +113,21 @@ export default function BusinessHeader({ onMenuClick }: BusinessHeaderProps) {
           {/* Points Balance */}
           <div className="flex items-center gap-2">
             <Coins className="h-5 w-5 text-yellow-500" />
-            <span>{isLoading ? '...' : (userPoints?.toLocaleString() ?? 0)} Points</span>
+            {isLoading ? (
+              <span>...</span>
+            ) : isError ? (
+              <span className='text-red-500'>Error</span>
+            ) : (
+              <span className='whitespace-nowrap'>
+                {monthlyBalance?.remaining?.toLocaleString() ?? 0} / {monthlyBalance?.monthlyLimit?.toLocaleString() ?? 0}
+              </span>
+            )}
+          </div>
+
+          {/* Used Points */}
+          <div className="flex items-center gap-2">
+             <TrendingDown className="h-5 w-5 text-orange-500" />
+             <span>Used: {isLoading ? '...' : isError ? 'N/A' : monthlyBalance?.used?.toLocaleString() ?? 0}</span>
           </div>
 
           {/* Badge Status */}
