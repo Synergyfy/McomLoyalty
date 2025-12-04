@@ -164,7 +164,11 @@ const BUSINESS_PROFILE_QUERY_KEY = 'businessProfile';
 
 // Get Business Profile
 const getBusinessProfile = async (businessId?: string): Promise<BusinessProfile> => {
-    const { data } = await api.get<BusinessProfile>('/business/profile', { params: { businessId } });
+    if (businessId) {
+        const { data } = await api.get<BusinessProfile>('/business/profile', { params: { businessId } });
+        return data;
+    }
+    const { data } = await api.get<BusinessProfile>('/business/me');
     return data;
 };
 
