@@ -1,5 +1,5 @@
 import api, { setBearerToken } from '../api';
-import { Business, BusinessLoginDto, BusinessLoginResponse, BusinessSignUpDto, CreateBusinessDto, PaginatedResponse, Category, Subcategory, BusinessProfile, UpdateBusinessProfileDto, BusinessMonthlyBalance } from './types';
+import { Business, BusinessLoginDto, BusinessLoginResponse, BusinessSignUpDto, CreateBusinessDto, PaginatedResponse, Category, Subcategory, BusinessProfile, UpdateBusinessProfileDto, BusinessMonthlyBalance, TierUsageResponse } from './types';
 import { SectorResponse } from '@/services/sectors/types';
 import Cookies from 'js-cookie';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -207,3 +207,16 @@ export const useGetBusinessMonthlyBalance = () => {
     });
 };
 
+const BUSINESS_TIER_USAGE_KEY = 'businessTierUsage';
+
+const getBusinessTierUsage = async (): Promise<TierUsageResponse> => {
+  const { data } = await api.get<TierUsageResponse>('/business/tier-usage');
+  return data;
+};
+
+export const useGetBusinessTierUsage = () => {
+  return useQuery({
+    queryKey: [BUSINESS_TIER_USAGE_KEY],
+    queryFn: getBusinessTierUsage,
+  });
+};

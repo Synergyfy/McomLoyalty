@@ -113,3 +113,18 @@ export interface BusinessMonthlyBalance {
   maxBuyable: number;
 }
 
+export interface TierUsageFeature {
+  limit: number;
+  used: number;
+  remaining: number;
+}
+
+export interface TierUsageResponse {
+  tierName: string;
+  features: {
+    campaigns: TierUsageFeature;
+    rewards: TierUsageFeature;
+    teamMembers: TierUsageFeature;
+    monthlyPoints: TierUsageFeature;
+  };
+}

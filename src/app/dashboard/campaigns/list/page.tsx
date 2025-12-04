@@ -168,6 +168,7 @@ export default function CampaignsListPage() {
   const { data: createdCampaignsData, isLoading: isLoadingCreated } = useGetMyCreatedCampaigns(createdPage, limit);
   const { data: claimedCampaignsData, isLoading: isLoadingClaimed } = useGetMyClaimedCampaigns(claimedPage, limit);
   const { data: claimableCampaignsData } = useGetClaimableCampaigns(1, 20);
+  const { data: tierUsageData } = useGetBusinessTierUsage();
 
   const handleCopyLink = (campaignId: string) => {
     const campaignUrl = `${window.location.origin}/campaigns/${campaignId}`;
@@ -380,6 +381,15 @@ export default function CampaignsListPage() {
           </div>
 
           <ClaimableCampaignsTicker />
+
+          {tierUsageData && (
+            <div className="mb-8 max-w-md">
+              <UsageCard
+                title="Campaign Usage"
+                usage={tierUsageData.features.campaigns}
+              />
+            </div>
+          )}
 
           <Tabs defaultValue="created" className="w-full">
             <TabsList className="mb-8">
