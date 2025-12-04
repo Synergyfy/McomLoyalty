@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo } from 'react';
 
 export interface CampaignFormData {
   campaignType: string;
@@ -109,16 +109,22 @@ const CampaignFormContext = createContext<CampaignFormContextType | undefined>(u
 export const CampaignFormProvider = ({ children }: { children: ReactNode }) => {
   const [formData, setFormData] = useState<CampaignFormData>(defaultFormData);
 
-  const updateFormData = (fields: Partial<CampaignFormData>) => {
+  const updateFormData = useCallback((fields: Partial<CampaignFormData>) => {
     setFormData((prev) => ({ ...prev, ...fields }));
-  };
+  }, []);
 
-  const resetFormData = () => {
+  const resetFormData = useCallback(() => {
     setFormData(defaultFormData);
-  };
+  }, []);
+
+  const value = useMemo(() => ({
+    formData,
+    updateFormData,
+    resetFormData
+  }), [formData, updateFormData, resetFormData]);
 
   return (
-    <CampaignFormContext.Provider value={{ formData, updateFormData, resetFormData }}>
+    <CampaignFormContext.Provider value={value}>
       {children}
     </CampaignFormContext.Provider>
   );

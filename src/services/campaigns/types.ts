@@ -1,5 +1,14 @@
 
 
+import { BusinessReward } from '../business-reward/types';
+
+export interface UpdateCampaignPayload extends Partial<CreateCampaignPayload> {
+  // reward_ids for claimed campaigns (Admin Rewards)
+  reward_ids?: string[];
+  // business_reward_ids for custom campaigns (Business Rewards)
+  business_reward_ids?: string[];
+}
+
 export interface CreateCampaignRequest {
   title: string;
   description: string;
@@ -72,6 +81,8 @@ export interface CampaignResponse {
   contactPhoneNumber: string;
   footerText: string;
   rewards: Reward[];
+  // Added to detect if it is a claimed campaign (has parent campaign)
+  campaign?: { id: string }; 
   uniqueCode: string | null;
   createdAt: string;
   updatedAt: string;
@@ -93,6 +104,14 @@ export enum CampaignType {
 export enum AudienceType {
   ALL = 'all',
   MEMBERS = 'members',
+  BADGE_LEVEL = 'badge_level',
+  TARGET_WISHLIST = 'target_wishlist',
+}
+
+export enum RewardType {
+  REGULAR = 'regular',
+  MATCHING = 'matching',
+  BOTH = 'both',
 }
 
 export interface Reward {
@@ -116,7 +135,10 @@ export interface PublicCampaignResponse {
   quantity: number;
   audience_type: string;
   banner_url: string;
+  // Adding camelCase alternatives as potential fix for display issues if API returns camelCase
+  bannerUrl?: string; 
   logo_url: string | null;
+  logoUrl?: string | null;
   cta_text: string;
   cta_background_color: string;
   cta_text_color: string;
@@ -135,8 +157,55 @@ export interface Business {
 export interface BusinessCampaign {
   id: string;
   uniqueCode: string;
-  business: Business;
-  campaign: PublicCampaignResponse;
+  
+  // --- Relations ---
+  business: Business; 
+  campaign?: { id: string }; // Null for campaigns created from scratch
+  businessRewards: BusinessReward[]; // The linked business rewards
+  rewards: Reward[]; // Admin rewards
+  
+  // --- Copied/Set Fields ---
+  name: string;
+  campaign_type: CampaignType; // Map to CampaignType enum
+  campaign_message: string;
+  start_date: string;
+  end_date: string;
+  quantity: number;
+  audience_type: AudienceType; // Map to AudienceType enum
+  banner_url: string;
+  logo_url: string;
+  cta_text: string;
+  cta_background_color: string;
+  cta_text_color: string;
+  text_color: string;
+  background_color: string;
+  
+  signUpPoint: number;
+  reward_type: RewardType; // Map to RewardType enum
+  regular_points_threshold: number;
+  matching_points_threshold: number;
+  
+  // --- Statistics & Status ---
+  total_points_earned: number;
+  total_points_redeemed: number;
+  total_matching_points_earned: number;
+  matching_points_disabled_by_admin: boolean;
+  disabled: boolean;
+  
+  // --- Page Details ---
+  earn_point_page_title: string;
+  earn_point_page_description: string;
+  redeem_reward_page_title: string;
+  redeem_reward_page_description: string;
+  contact_us_page_title: string;
+  contact_us_page_description: string;
+  contact_email: string;
+  contact_phone_number: string;
+  footer_text: string;
+  
+  // --- Timestamps ---
+  created_at: string;
+  updated_at: string;
 }
 
 export interface PaginationMeta {

@@ -4,9 +4,10 @@ import api from '../api';
 import {
   CreateCampaignRequest,
   CreateCampaignPayload,
+  UpdateCampaignPayload,
   CampaignResponse,
-  PaginatedCampaignsResponse,
   BusinessCampaign,
+  PaginatedCampaignsResponse,
   PaginatedCampaignAnalyticsResponse,
   DetailedCampaignAnalytics,
   PaginatedAdminCampaignsResponse,
@@ -21,15 +22,15 @@ const ANALYTICS_QUERY_KEY = 'campaign-analytics';
 const CUSTOMER_ACTIVITIES_QUERY_KEY = 'customer-activities';
 
 // Create Campaign
-const createCampaign = async (campaignData: CreateCampaignPayload): Promise<CampaignResponse> => {
-  const { data } = await api.post<CampaignResponse>('/campaigns', campaignData);
+const createCampaign = async (campaignData: CreateCampaignPayload): Promise<BusinessCampaign> => {
+  const { data } = await api.post<BusinessCampaign>('/campaigns', campaignData);
   return data;
 };
 
-// TODO: Add update campaign
-const updateCampaign = async (campaignData: CreateCampaignPayload): Promise<CampaignResponse> => {
-  const { data } = await api.put<CampaignResponse>('/campaigns', campaignData);
-  return data;
+// Update Business Campaign
+const updateBusinessCampaign = async ({ id, data }: { id: string; data: UpdateCampaignPayload }): Promise<BusinessCampaign> => {
+  const { data: response } = await api.patch<BusinessCampaign>(`/business/campaigns/${id}`, data);
+  return response;
 };
 
 export const useCreateCampaign = () => {
@@ -47,6 +48,17 @@ export const useCreateCampaign = () => {
       }
       return createCampaign(payload);
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [CAMPAIGNS_QUERY_KEY] });
+    },
+  });
+};
+
+export const useUpdateCampaign = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateBusinessCampaign,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [CAMPAIGNS_QUERY_KEY] });
     },
@@ -245,13 +257,13 @@ export const useGetParticipantActivity = (participantId: string, page: number = 
 };
 
 // Get Campaign By ID
-const getCampaignById = async (id: string, businessId?: string): Promise<CampaignResponse> => {
-  const { data } = await api.get<CampaignResponse>(`/campaigns/${id}`, { params: { businessId } });
+const getCampaignById = async (id: string, businessId?: string): Promise<CampaignResponse | BusinessCampaign> => {
+  const { data } = await api.get<CampaignResponse | BusinessCampaign>(`/campaigns/${id}`, { params: { businessId } });
   return data;
 };
 
 export const useGetCampaignById = (id: string, businessId?: string) => {
-  return useQuery({
+  return useQuery<CampaignResponse | BusinessCampaign>({
     queryKey: [CAMPAIGNS_QUERY_KEY, id, businessId],
     queryFn: () => getCampaignById(id, businessId),
     enabled: !!id,
