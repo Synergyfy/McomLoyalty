@@ -5,13 +5,15 @@ import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Award, Medal, Trophy, Crown, Target, BadgePercent, Loader2, CreditCard, LucideIcon } from "lucide-react"
 import { applyCoupon, findCoupon, type BillingCycle } from "@/lib/content"
-import { useGetTiers, useStripeInitiate, usePayPalInitiate, useStripeVerify } from "@/services/payment/hook"
-import { PlanType, PaymentProvider } from "@/services/payment/types"
+import { useGetTiers, useStripeInitiate, usePayPalInitiate, useStripeVerify, useGetAvailablePointPackages } from "@/services/payment/hook"
+import { PlanType, PaymentProvider, PointPackage } from "@/services/payment/types"
 import { toast } from "sonner"
 import { Elements } from '@stripe/react-stripe-js';
 import PayPalButton from "@/components/paypal-button"
 import { stripePromise } from "@/components/stripe-provider"
 import StripePaymentForm from "@/components/stripe-payment-form"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Sparkles } from "lucide-react"
 
 const iconByTier: Record<string, LucideIcon> = {
   Trial: Target,
@@ -37,9 +39,11 @@ function CheckoutContent() {
   const [couponError, setCouponError] = useState<string | null>(null)
   const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>(PaymentProvider.STRIPE)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
+  const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
 
-  // Fetch tiers from backend
+  // Fetch tiers and point packages from backend
   const { data: tiers, isLoading: isLoadingTiers } = useGetTiers();
+  const { data: pointPackages } = useGetAvailablePointPackages();
   const { mutate: initiateStripe, isPending: isInitiatingStripe } = useStripeInitiate();
   const { mutate: initiatePayPal, isPending: isInitiatingPayPal } = usePayPalInitiate();
   const { mutate: verifyStripe, isPending: isVerifyingStripe } = useStripeVerify();
@@ -61,6 +65,25 @@ function CheckoutContent() {
   }, [tier, billing]);
 
   const { final, discount } = useMemo(() => applyCoupon(basePrice, appliedCoupon), [basePrice, appliedCoupon])
+
+  // Calculate add-ons total
+  const addOnsTotal = useMemo(() => {
+    if (!pointPackages || selectedAddOns.length === 0) return 0;
+    return selectedAddOns.reduce((total, packageId) => {
+      const pkg = pointPackages.find(p => p.id === packageId);
+      return total + (pkg ? parseFloat(pkg.price) : 0);
+    }, 0);
+  }, [pointPackages, selectedAddOns]);
+
+  const grandTotal = final + addOnsTotal;
+
+  const toggleAddOn = (packageId: string) => {
+    setSelectedAddOns(prev =>
+      prev.includes(packageId)
+        ? prev.filter(id => id !== packageId)
+        : [...prev, packageId]
+    );
+  };
 
   useEffect(() => {
     const qs = new URLSearchParams()
@@ -112,6 +135,7 @@ function CheckoutContent() {
       plan_type: planType,
       coupon_code: appliedCoupon?.code || "",
       is_trial: isTrialMode, // Pass trial flag to backend
+      point_package_ids: selectedAddOns, // Pass selected add-ons
     };
 
     if (paymentProvider === PaymentProvider.STRIPE) {
@@ -210,6 +234,49 @@ function CheckoutContent() {
         )}
       </section>
 
+      {/* Add-ons Section */}
+      {pointPackages && pointPackages.length > 0 && (
+        <section className="rounded-3xl border-2 border-border p-6 mb-8 bg-card">
+          <div className="flex items-center gap-3 mb-4">
+            <Sparkles className="w-5 h-5 text-primary" />
+            <div className="font-semibold">Add-ons (Optional)</div>
+          </div>
+          <div className="space-y-4">
+            {pointPackages.map((pkg) => (
+              <div
+                key={pkg.id}
+                className={`flex items-start gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${selectedAddOns.includes(pkg.id)
+                  ? 'border-primary bg-primary/5'
+                  : 'border-border hover:border-primary/30'
+                  }`}
+                onClick={() => toggleAddOn(pkg.id)}
+              >
+                <Checkbox
+                  checked={selectedAddOns.includes(pkg.id)}
+                  onCheckedChange={() => toggleAddOn(pkg.id)}
+                  className="mt-1"
+                />
+                <div className="flex-1">
+                  <div className="flex justify-between items-start">
+                    <div className="font-semibold">{pkg.name}</div>
+                    <div className="font-bold">
+                      {pkg.currency === 'GBP' ? '£' : '$'}
+                      {parseFloat(pkg.price).toFixed(2)}
+                    </div>
+                  </div>
+                  <div className="text-sm text-foreground/70 mt-1">
+                    {pkg.points.toLocaleString()} points
+                  </div>
+                  {pkg.description && (
+                    <div className="text-xs text-foreground/50 mt-1">{pkg.description}</div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="rounded-3xl border-2 border-border p-6 mb-8 bg-card">
         <div className="flex items-center gap-3 mb-4">
           <CreditCard className="w-5 h-5 text-primary" />
@@ -301,6 +368,12 @@ function CheckoutContent() {
             <span>-£{discount}</span>
           </div>
         )}
+        {addOnsTotal > 0 && (
+          <div className="flex items-center justify-between py-2 text-foreground/70">
+            <span>Add-ons</span>
+            <span>+£{addOnsTotal.toFixed(2)}</span>
+          </div>
+        )}
         {isTrialMode && (
           <div className="flex items-center justify-between py-2 text-green-600 dark:text-green-400">
             <span>Trial Period Discount</span>
@@ -309,7 +382,7 @@ function CheckoutContent() {
         )}
         <div className="flex items-center justify-between py-2 text-xl font-bold border-t mt-2 pt-3">
           <span>Total due {isTrialMode ? "today" : billing === "annual" ? "(per year)" : "(per quarter)"}</span>
-          <span>£{isTrialMode ? "0.00" : final}</span>
+          <span>£{isTrialMode ? addOnsTotal.toFixed(2) : grandTotal.toFixed(2)}</span>
         </div>
         {isTrialMode ? (
           <p className="text-sm text-foreground/70 mt-3">

@@ -78,59 +78,6 @@ export interface TierFeatureFlags {
     canUpdateReward?: boolean;
 }
 
-export interface UpdateTierProgressionDto {
-    pro?: TierProgressionLevel;
-    pro_plus?: TierProgressionLevel;
-}
-
-export enum PlanType {
-    MONTHLY = 'monthly',
-    QUARTERLY = 'quarterly',
-    ANNUALLY = 'annual',
-}
-
-export enum PaymentProvider {
-    STRIPE = 'stripe',
-    PAYPAL = 'paypal',
-}
-
-// Stripe Payment Types
-export interface StripeInitiateRequest {
-    tier_id: string;
-    plan_type: string; // "monthly" | "quarterly" | "annual"
-    coupon_code?: string;
-    is_trial?: boolean; // Indicates if this is a trial subscription
-}
-
-export interface StripeInitiateResponse {
-    clientSecret: string;
-}
-
-export interface StripeVerifyRequest {
-    transaction_id: string;
-}
-
-export interface StripeVerifyResponse {
-    status: string;
-}
-
-// PayPal Payment Types
-export interface PayPalInitiateRequest {
-    tier_id: string;
-    plan_type: string; // "monthly" | "quarterly" | "annual"
-    coupon_code?: string;
-    is_trial?: boolean; // Indicates if this is a trial subscription
-}
-
-export interface PayPalInitiateResponse {
-    orderId: string;
-    approveLink?: string; // PayPal approval URL to redirect user to
-}
-
-export interface PayPalVerifyRequest {
-    transaction_id: string;
-}
-
 export interface PayPalVerifyResponse {
     status: string;
 }
