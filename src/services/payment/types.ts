@@ -146,3 +146,51 @@ export enum PaymentProvider {
     STRIPE = 'stripe',
     PAYPAL = 'paypal',
 }
+
+export enum PlanType {
+    MONTHLY = 'monthly',
+    QUARTERLY = 'quarterly',
+    ANNUALLY = 'annual',
+}
+
+// Payment Request/Response Types
+export interface StripeInitiateRequest {
+    tier_id: string;
+    plan_type: string;
+    coupon_code?: string;
+    is_trial?: boolean;
+    point_package_ids?: string[];
+}
+
+export interface StripeInitiateResponse {
+    clientSecret: string;
+}
+
+export interface StripeVerifyRequest {
+    transactionId: string;
+}
+
+export interface StripeVerifyResponse {
+    status: string;
+}
+
+export interface PayPalInitiateRequest {
+    tier_id: string;
+    plan_type: string;
+    coupon_code?: string;
+    is_trial?: boolean;
+    point_package_ids?: string[];
+}
+
+export interface PayPalInitiateResponse {
+    orderId: string;
+    approveLink?: string;
+}
+
+export interface PayPalVerifyRequest {
+    transactionId: string;
+}
+
+export interface UpdateTierProgressionDto {
+    configuration: TierConfiguration;
+}
