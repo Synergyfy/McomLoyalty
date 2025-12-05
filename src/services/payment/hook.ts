@@ -15,7 +15,9 @@ import {
   BuyPackageDto,
   ConfirmPurchaseDto,
   BusinessPointPackage,
-  PointPackageListResponse
+  PointPackageListResponse,
+  JoinTrialDto,
+  TrialSubscriptionResponse
 } from './types';
 
 const PAYMENT_QUERY_KEY = 'payment';
@@ -90,6 +92,24 @@ const verifyPayPalPayment = async (payload: PayPalVerifyRequest): Promise<PayPal
 export const usePayPalVerify = () => {
   return useMutation({
     mutationFn: verifyPayPalPayment,
+  });
+};
+
+// Trial Subscription Hook
+const joinTrial = async (payload: JoinTrialDto): Promise<TrialSubscriptionResponse> => {
+  const { data } = await api.post<TrialSubscriptionResponse>('/membership/join-trial', payload);
+  return data;
+};
+
+export const useJoinTrial = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: joinTrial,
+    onSuccess: () => {
+      // Invalidate subscription queries to refresh user's subscription status
+      queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      queryClient.invalidateQueries({ queryKey: ['mySubscription'] });
+    },
   });
 };
 

@@ -82,6 +82,28 @@ export interface PayPalVerifyResponse {
     status: string;
 }
 
+// Trial Subscription Types
+export interface JoinTrialDto {
+    tier_id: string;
+}
+
+export interface TrialSubscriptionResponse {
+    id: string;
+    status: string;
+    planType: string;
+    startsAt: string;
+    expiresAt: string;
+    isTrial: boolean;
+    variant: string;
+    progressionLevel: string;
+    business: {
+        id: string;
+    };
+    tier: Tier;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+}
 
 // Point Package Types
 export interface PointPackage {
@@ -107,7 +129,7 @@ export interface BuyPackageDto {
 
 export interface ConfirmPurchaseDto {
     /** Transaction ID from the payment provider */
-    transactionId: string;
+    transaction_id: string;
 
     /** Payment provider ('stripe' or 'paypal') */
     provider: string;
@@ -169,7 +191,7 @@ export interface StripeInitiateResponse {
 }
 
 export interface StripeVerifyRequest {
-    transactionId: string;
+    transaction_id: string;
 }
 
 export interface StripeVerifyResponse {
