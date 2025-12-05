@@ -99,7 +99,7 @@ export interface UpdateBusinessProfileDto {
   phone?: string;
   address?: string;
   website?: string;
-  logoUrl?: string;
+  profile_image?: string;
   bannerUrl?: string;
   description?: string;
   socialMedia?: { name: string; link: string }[];
