@@ -130,11 +130,16 @@ export default function CreateRewardWizardModal({ isOpen, onClose, reward, onSav
       };
 
       await onSave(rewardData);
+      // The modal should ONLY close if onSave resolves successfully.
+      // If onSave rejects (e.g. error in page.tsx), we catch it here and keep the modal open.
       setShowConfirmation(false);
       onClose();
     } catch (error) {
-      console.error("Error creating reward:", error);
-      toast.error('Failed to create reward. Please try again.');
+      console.error("Error creating/updating reward:", error);
+      // We don't need to show another toast here if page.tsx already did, 
+      // but keeping the specific error handling in page.tsx effectively stops the flow here.
+      // If the error was allowed to propagate, we want to stop loading state but keep modal open.
+      setShowConfirmation(false); // Close the confirmation dialog
     } finally {
       setIsSubmitting(false);
     }
@@ -265,8 +270,8 @@ export default function CreateRewardWizardModal({ isOpen, onClose, reward, onSav
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isSubmitting}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={(e) => {
-               e.preventDefault(); 
-               handleConfirmSave();
+              e.preventDefault();
+              handleConfirmSave();
             }} disabled={isSubmitting}>
               {isSubmitting ? 'Processing...' : 'Continue'}
             </AlertDialogAction>
