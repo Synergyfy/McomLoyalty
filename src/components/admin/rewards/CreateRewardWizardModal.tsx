@@ -23,6 +23,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useGetSectors } from '@/services/sectors/hook';
 import { useGetTiers } from '@/services/tiers/hook';
 import toast from 'react-hot-toast';
+import { useGuide } from '@/context/GuideContext';
 
 interface CreateRewardWizardModalProps {
   isOpen: boolean;
@@ -30,6 +31,7 @@ interface CreateRewardWizardModalProps {
   mode?: 'create' | 'edit' | 'duplicate';
   reward?: RewardResponse | null;
   onSuccess?: () => void;
+  startTour?: boolean;
 }
 
 const rewardTypes = [
@@ -46,8 +48,10 @@ export default function CreateRewardWizardModal({
   onSuccess,
   mode = 'create',
   reward,
+  startTour = false,
 }: CreateRewardWizardModalProps) {
   const router = useRouter();
+  const { startGuide, goToStep } = useGuide();
   const { mutate: createReward, isPending: isCreating } = useCreateReward();
   const { data: sectors = [] } = useGetSectors();
   const { data: tiers = [] } = useGetTiers();
@@ -62,6 +66,8 @@ export default function CreateRewardWizardModal({
   const [expiry, setExpiry] = useState(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+  const [galleryPreviewUrls, setGalleryPreviewUrls] = useState<string[]>([]);
   const [status, setStatus] = useState<RewardResponse['status']>('draft');
   const [selectedSector, setSelectedSector] = useState('');
   const [rewardSource, setRewardSource] = useState('mcom vault');
@@ -91,6 +97,8 @@ export default function CreateRewardWizardModal({
     setExpiry(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
     setSelectedFile(null);
     setImagePreviewUrl(null);
+    setGalleryFiles([]);
+    setGalleryPreviewUrls([]);
     setStatus('draft');
     setSelectedSector('');
     setRewardSource('mcom vault');
@@ -108,6 +116,11 @@ export default function CreateRewardWizardModal({
         setPointsRequired(reward.pointsRequired);
         setExpiry(reward.expiry ? new Date(reward.expiry) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
         setImagePreviewUrl(reward.image);
+        if (reward.gallery && Array.isArray(reward.gallery)) {
+            setGalleryPreviewUrls(reward.gallery);
+        } else {
+            setGalleryPreviewUrls([]);
+        }
         setStatus(reward.status);
         // Handle badgeLevel - convert string to array if needed
         if (reward.badgeLevel) {
@@ -120,13 +133,44 @@ export default function CreateRewardWizardModal({
       } else {
         resetForm();
       }
+
+      // Start tour if requested
+      if (startTour && mode === 'create') {
+        startGuide('REWARD');
+      }
     }
-  }, [isOpen, mode, reward]);
+  }, [isOpen, mode, reward, startTour, startGuide]);
 
 
   const handleFileSelect = (file: File | null, previewUrl: string | null) => {
     setSelectedFile(file);
     setImagePreviewUrl(previewUrl);
+  };
+
+  const handleGallerySelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      if (files.length + galleryFiles.length > 3) {
+        toast.error("You can only upload up to 3 gallery images.");
+        return;
+      }
+      const validFiles = files.filter(file => {
+          if (file.size > 5 * 1024 * 1024) {
+              toast.error(`File ${file.name} is too large. Max size is 5MB.`);
+              return false;
+          }
+          return true;
+      });
+
+      const newPreviewUrls = validFiles.map(file => URL.createObjectURL(file));
+      setGalleryFiles(prev => [...prev, ...validFiles]);
+      setGalleryPreviewUrls(prev => [...prev, ...newPreviewUrls]);
+    }
+  };
+
+  const removeGalleryImage = (index: number) => {
+      setGalleryFiles(prev => prev.filter((_, i) => i !== index));
+      setGalleryPreviewUrls(prev => prev.filter((_, i) => i !== index));
   };
 
   // Validation for Step 1
@@ -146,6 +190,7 @@ export default function CreateRewardWizardModal({
   const handleNext = () => {
     if (step === 1 && isStep1Valid) {
       setStep(2);
+      goToStep(1); // Assuming 0-indexed steps in guide
     }
   };
 
@@ -175,12 +220,43 @@ export default function CreateRewardWizardModal({
         finalImageUrl = uploadResult.secure_url;
       }
 
+      const uploadedGalleryUrls: string[] = [];
+      // Upload gallery images
+      for (const file of galleryFiles) {
+          const formData = new FormData();
+          formData.append('file', file);
+          const uploadResponse = await fetch('/api/upload/rewards', {
+              method: 'POST',
+              body: formData,
+          });
+          if (!uploadResponse.ok) {
+              const errorData = await uploadResponse.json();
+              toast.error(`Failed to upload gallery image: ${file.name}`);
+              console.error(errorData);
+              continue; // Skip this file and continue
+          }
+          const uploadResult = await uploadResponse.json();
+          uploadedGalleryUrls.push(uploadResult.secure_url);
+      }
+      
+      // Combine existing URLs (from edit mode) with new uploaded URLs
+      // Assuming galleryPreviewUrls contains both blobs (new) and http (existing)
+      // We only uploaded the files in galleryFiles.
+      // We need to keep the existing URLs that were not removed.
+      
+      const finalGalleryUrls = [
+          ...galleryPreviewUrls.filter(url => !url.startsWith('blob:')), // Existing URLs
+          ...uploadedGalleryUrls // New URLs
+      ];
+
+
       const payload: CreateRewardRequest = {
         title: name,
         max_points: Number(pointsRequired),
         value: Number(value),
         description,
         image: finalImageUrl,
+        gallery: finalGalleryUrls,
         quantity: 100, // Default or add field if needed
         reward_type: rewardType,
         reward_source: rewardSource,
@@ -218,11 +294,15 @@ export default function CreateRewardWizardModal({
 
   const handleCampaignYes = () => {
     setShowCampaignPrompt(false);
-    if (newRewardId) {
-      router.push(`/admin/campaigns/create?rewardId=${newRewardId}`);
-    } else {
-      router.push('/admin/campaigns/create');
+    // If we were in a tour, continue it
+    const queryParams = new URLSearchParams();
+    if (newRewardId) queryParams.set('rewardId', newRewardId);
+    if (startTour) {
+        queryParams.set('tour', 'true');
+        startGuide('CAMPAIGN');
     }
+
+    router.push(`/admin/campaigns/create?${queryParams.toString()}`);
   };
 
   const handleCampaignNo = () => {
@@ -242,13 +322,13 @@ export default function CreateRewardWizardModal({
           </DialogHeader>
 
           {step === 1 && (
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-4 py-4" id="create-reward-modal-content">
               {/* Reward Type */}
               <div>
                 <label className="block text-sm font-medium mb-2">Reward Type</label>
                 <p className="text-xs text-muted-foreground mb-2">Choose the type of reward you're offering (voucher, physical item, or digital product)</p>
                 <Select value={rewardType} onValueChange={setRewardType}>
-                  <SelectTrigger><SelectValue placeholder="Select reward type" /></SelectTrigger>
+                  <SelectTrigger id="reward-type-select-trigger"><SelectValue placeholder="Select reward type" /></SelectTrigger>
                   <SelectContent position="popper" className="z-[10000]">
                     {rewardTypes.map((type) => (
                       <SelectItem key={type.value} value={type.value}>{type.icon} {type.label}</SelectItem>
@@ -261,14 +341,14 @@ export default function CreateRewardWizardModal({
               <div>
                 <label htmlFor="name" className="block text-sm font-medium mb-1">Name</label>
                 <p className="text-xs text-muted-foreground mb-2">Enter a clear, descriptive name for this reward</p>
-                <Input id="name" placeholder="e.g., £10 Coffee Voucher" value={name} onChange={(e) => setName(e.target.value)} />
+                <Input id="reward-name-input" placeholder="e.g., £10 Coffee Voucher" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
 
               {/* Description */}
               <div>
                 <label htmlFor="description" className="block text-sm font-medium mb-1">Description</label>
                 <p className="text-xs text-muted-foreground mb-2">Provide details about what this reward includes and how to use it</p>
-                <Textarea id="description" placeholder="e.g., Enjoy a £10 voucher redeemable at any participating coffee shop" value={description} onChange={(e) => setDescription(e.target.value)} />
+                <Textarea id="reward-description-input" placeholder="e.g., Enjoy a £10 voucher redeemable at any participating coffee shop" value={description} onChange={(e) => setDescription(e.target.value)} />
               </div>
 
               {/* Audience - moved to be directly after Description */}
@@ -276,7 +356,7 @@ export default function CreateRewardWizardModal({
                 <label className="block text-sm font-medium mb-1">Audience</label>
                 <p className="text-xs text-muted-foreground mb-2">Select who can access this reward - all businesses or specific sectors only</p>
                 <Select value={audience} onValueChange={setAudience}>
-                  <SelectTrigger><SelectValue placeholder="Select Audience" /></SelectTrigger>
+                  <SelectTrigger id="reward-audience-select-trigger"><SelectValue placeholder="Select Audience" /></SelectTrigger>
                   <SelectContent position="popper" className="z-[10000]">
                     <SelectItem value="all business">All Businesses</SelectItem>
                     <SelectItem value="specific sectors">Specific Sectors</SelectItem>
@@ -305,12 +385,12 @@ export default function CreateRewardWizardModal({
                 <div>
                   <label htmlFor="value" className="block text-sm font-medium mb-1">Value (£)</label>
                   <p className="text-xs text-muted-foreground mb-2">Monetary value of the reward</p>
-                  <Input id="value" type="number" placeholder="0" value={value} onChange={(e) => setValue(e.target.value === '' ? '' : Number(e.target.value))} />
+                  <Input id="reward-value-input" type="number" placeholder="0" value={value} onChange={(e) => setValue(e.target.value === '' ? '' : Number(e.target.value))} />
                 </div>
                 <div>
                   <label htmlFor="points" className="block text-sm font-medium mb-1">Maximum point</label>
                   <p className="text-xs text-muted-foreground mb-2">Points needed to redeem this reward</p>
-                  <Input id="points" type="number" placeholder="0" value={pointsRequired} onChange={(e) => setPointsRequired(e.target.value === '' ? '' : Number(e.target.value))} />
+                  <Input id="reward-points-input" type="number" placeholder="0" value={pointsRequired} onChange={(e) => setPointsRequired(e.target.value === '' ? '' : Number(e.target.value))} />
                 </div>
               </div>
 
@@ -405,6 +485,51 @@ export default function CreateRewardWizardModal({
                   </div>
                 )}
               </div>
+
+              {/* Gallery Images */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Gallery Images (Optional)</label>
+                <p className="text-xs text-muted-foreground mb-2">Upload up to 3 additional images (max 5MB each)</p>
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center gap-2">
+                     <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('gallery-upload')?.click()}
+                        disabled={galleryPreviewUrls.length >= 3}
+                      >
+                        Upload Gallery Images
+                      </Button>
+                      <input
+                        id="gallery-upload"
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleGallerySelect}
+                        disabled={galleryPreviewUrls.length >= 3}
+                      />
+                      <span className="text-xs text-muted-foreground">{galleryPreviewUrls.length}/3 images</span>
+                  </div>
+                  
+                  {galleryPreviewUrls.length > 0 && (
+                    <div className="flex flex-wrap gap-4 mt-2">
+                      {galleryPreviewUrls.map((url, index) => (
+                        <div key={index} className="relative h-24 w-24 rounded-lg overflow-hidden border">
+                          <Image src={url} alt={`Gallery ${index + 1}`} layout="fill" objectFit="cover" />
+                          <button
+                            type="button"
+                            onClick={() => removeGalleryImage(index)}
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 h-5 w-5 flex items-center justify-center text-xs"
+                          >
+                            X
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
@@ -452,7 +577,7 @@ export default function CreateRewardWizardModal({
               Back
             </Button>
             {step < totalSteps ? (
-              <Button onClick={handleNext} disabled={!isStep1Valid}>Next</Button>
+              <Button id="reward-next-btn" onClick={handleNext} disabled={!isStep1Valid}>Next</Button>
             ) : (
               <Button onClick={handleSubmit} disabled={isCreating}>
                 {isCreating ? 'Creating...' : (mode === 'edit' ? 'Save Changes' : 'Create Reward')}
