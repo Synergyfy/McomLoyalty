@@ -2,10 +2,11 @@
 
 import React from 'react';
 import { useGuide } from '@/context/GuideContext';
-import { GUIDE_CONTENT } from '@/lib/guide-content';
+import { GUIDE_CONTENT, GUIDE_URLS } from '@/lib/guide-content';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { X, ChevronLeft, ChevronRight, HelpCircle } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, HelpCircle, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
 
 export default function FloatingGuide() {
     const {
@@ -24,6 +25,7 @@ export default function FloatingGuide() {
 
     const steps = GUIDE_CONTENT[activeGuideId];
     const currentStep = steps[currentStepIndex];
+    const guideUrl = GUIDE_URLS[activeGuideId];
 
     if (!isGuideVisible) {
         return (
@@ -76,6 +78,19 @@ export default function FloatingGuide() {
                         >
                             <ChevronLeft className="h-4 w-4" />
                         </Button>
+
+                        {guideUrl && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                asChild
+                                className="h-8 px-3 text-blue-600 border-blue-200 hover:bg-blue-50"
+                            >
+                                <Link href={guideUrl}>
+                                    Go to Page <ExternalLink className="h-3 w-3 ml-1" />
+                                </Link>
+                            </Button>
+                        )}
 
                         {currentStepIndex < steps.length - 1 ? (
                             <Button
