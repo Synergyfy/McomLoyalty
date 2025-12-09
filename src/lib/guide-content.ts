@@ -42,3 +42,9 @@ export const GUIDE_CONTENT: Record<string, GuideStep[]> = {
     'CAMPAIGN': CAMPAIGN_CREATION_STEPS,
     'STAFF': STAFF_CREATION_STEPS
 };
+
+export const GUIDE_URLS: Record<string, string> = {
+    'REWARD': '/dashboard/rewards',
+    'CAMPAIGN': '/dashboard/campaigns/create',
+    'STAFF': '/dashboard/staff'
+};
