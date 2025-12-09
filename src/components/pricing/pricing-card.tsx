@@ -1,11 +1,8 @@
 'use client';
 
-import { type LucideIcon, Check, Nfc, Loader2 } from "lucide-react"
+import { type LucideIcon, Check, Nfc } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { useJoinTrial } from "@/services/payment/hook"
-import { toast } from "sonner"
 
 interface PricingCardProps {
   tier: {
