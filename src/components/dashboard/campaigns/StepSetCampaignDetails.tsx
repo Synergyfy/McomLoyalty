@@ -45,8 +45,8 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
   const tiers = tiersData || [];
 
   const rewardOptions = rewards.map(r => ({
-    value: r.reward.id,
-    label: r.reward.title
+    value: r.id,
+    label: r.title
   })) || [];
 
   useEffect(() => {
