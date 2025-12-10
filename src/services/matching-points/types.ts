@@ -24,20 +24,20 @@ export interface ToggleMatchingPointsResponse {
 
 // New types for fetching matching points overview and history
 export interface MatchingPointsOverview {
-  totalMatchingPoints: number;
-  totalRegularPoints: number;
-  earningRules: string[];
-  redemptionRules: string[];
-  adminNotices: string[];
+    totalMatchingPoints: number;
+    totalRegularPoints: number;
+    earningRules: string[];
+    redemptionRules: string[];
+    adminNotices: string[];
 }
 
 export interface MatchingPointActivity {
-  id: string;
-  date: string;
-  type: 'Earned' | 'Redeemed' | 'Adjusted';
-  description: string;
-  points: number;
-  balance: number;
+    id: string;
+    date: string;
+    type: 'Earned' | 'Redeemed' | 'Adjusted';
+    description: string;
+    points: number;
+    balance: number;
 }
 
 export interface MatchingPointsHistoryResponse {
@@ -48,3 +48,51 @@ export interface MatchingPointsHistoryResponse {
 export interface MatchingPointsQueryDto {
     businessId?: string; // For admin impersonation
 }
+
+// Earning Actions
+export interface EarningAction {
+    id: string;
+    name: string;
+    key: string;
+    points: number;
+    description?: string;
+    actionParameters?: Record<string, any>;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface CreateEarningActionDto {
+    name: string;
+    key: string;
+    points: number;
+    description?: string;
+    actionParameters?: Record<string, any>;
+    isActive?: boolean;
+}
+
+export interface UpdateEarningActionDto extends Partial<CreateEarningActionDto> { }
+
+// Participant Badges
+export interface ParticipantBadge {
+    id: string;
+    name: string;
+    minPoints: number;
+    priority: number;
+    multiplier: number;
+    benefits: string[];
+    color: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface CreateParticipantBadgeDto {
+    name: string;
+    minPoints: number;
+    priority: number;
+    multiplier?: number;
+    benefits?: string[];
+    color?: string;
+}
+
+export interface UpdateParticipantBadgeDto extends Partial<CreateParticipantBadgeDto> { }
