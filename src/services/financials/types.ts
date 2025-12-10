@@ -70,6 +70,11 @@ export interface SeasonalVariant {
   pro_plus?: Partial<ProgressionLevel>;
 }
 
+export interface TrialConfiguration {
+  quotas?: Partial<TierQuotas>;
+  featureFlags?: Partial<TierFeatureFlags>;
+}
+
 export interface TierConfiguration {
   quotas: TierQuotas;
   featureFlags: TierFeatureFlags;
@@ -80,6 +85,7 @@ export interface TierConfiguration {
   summer?: SeasonalVariant;
   autumn?: SeasonalVariant;
   spring?: SeasonalVariant;
+  trial?: TrialConfiguration;
 }
 
 export interface Tier {

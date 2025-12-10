@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useCreateTier, useUpdateTier } from '@/services/financials';
-import { Tier, TierConfiguration, TierQuotas, TierFeatureFlags, TierProgressBonuses, SeasonalVariant, ProgressionLevel, ProgressionConditions, ProgressionBenefits } from '@/services/financials/types';
+import { Tier, TierConfiguration, TierQuotas, TierFeatureFlags, TierProgressBonuses, SeasonalVariant, ProgressionLevel, ProgressionConditions, ProgressionBenefits, TrialConfiguration } from '@/services/financials/types';
 import { PlusCircle, Trash2, Info } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -188,17 +188,18 @@ export function AddEditPlanModal({ isOpen, onClose, initialData, onSave, onShowF
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{initialData ? 'Edit' : 'Add'} Subscription Plan</DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="details" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="details">Basic Details</TabsTrigger>
             <TabsTrigger value="configuration">Configuration</TabsTrigger>
             <TabsTrigger value="progression">Progression (Pro/Pro+)</TabsTrigger>
             <TabsTrigger value="seasonal">Seasonal</TabsTrigger>
+            <TabsTrigger value="trial">Trial</TabsTrigger>
           </TabsList>
 
           <TabsContent value="details" className="space-y-4 py-4">
@@ -283,6 +284,19 @@ export function AddEditPlanModal({ isOpen, onClose, initialData, onSave, onShowF
                 </AccordionItem>
               ))}
             </Accordion>
+          </TabsContent>
+
+          <TabsContent value="trial" className="space-y-6 py-4">
+            <div className="bg-blue-50 p-4 rounded-md border border-blue-100 flex gap-2 text-sm text-blue-700">
+              <Info className="h-5 w-5 shrink-0" />
+              <p>
+                Configure specific limitations for users on a trial period. These settings override the base configuration when a user is in trial status.
+              </p>
+            </div>
+            <TrialConfigurationSection
+              trial={configuration.trial || { quotas: {}, featureFlags: {} }}
+              onChange={(t) => setConfiguration(prev => ({ ...prev, trial: t }))}
+            />
           </TabsContent>
         </Tabs>
 
@@ -656,6 +670,29 @@ function SeasonalVariantSection({ variant, onChange, title }: { variant: Seasona
       <QuotasSection quotas={variant.quotas || {}} onChange={updateQuota} />
       <FeatureFlagsSection flags={variant.featureFlags || {}} onChange={updateFeatureFlag} />
       <ProgressBonusesSection bonuses={variant.progressBonuses || {}} onChange={updateProgressBonus} />
+    </div>
+  );
+}
+
+function TrialConfigurationSection({ trial, onChange }: { trial: TrialConfiguration, onChange: (t: TrialConfiguration) => void }) {
+  const updateQuota = (key: keyof TierQuotas, value: number) => {
+    onChange({
+      ...trial,
+      quotas: { ...trial.quotas, [key]: value }
+    });
+  };
+
+  const updateFeatureFlag = (key: keyof TierFeatureFlags, value: boolean) => {
+    onChange({
+      ...trial,
+      featureFlags: { ...trial.featureFlags, [key]: value }
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <QuotasSection quotas={trial.quotas || {}} onChange={updateQuota} />
+      <FeatureFlagsSection flags={trial.featureFlags || {}} onChange={updateFeatureFlag} />
     </div>
   );
 }

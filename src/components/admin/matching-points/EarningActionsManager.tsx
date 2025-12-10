@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Plus, Pencil, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -27,9 +28,26 @@ export const EarningActionsManager = () => {
         actionParameters: {}
     });
 
+    // Helper state for simplifying Action Parameters UI
+    const [limitType, setLimitType] = useState<'none' | 'once_lifetime' | 'daily'>('none');
+    const [dailyLimit, setDailyLimit] = useState<number>(1);
+
+    const SYSTEM_KEYS = [
+        { value: 'LOGIN_DAILY', label: 'Daily Login', desc: 'Triggers when a user logs in (limit daily).' },
+        { value: 'REGISTRATION', label: 'Registration', desc: 'Triggers on new signup.' },
+        { value: 'PROFILE_COMPLETE', label: 'Profile Completion', desc: 'Triggers when profile is 100% full.' },
+        { value: 'CAMPAIGN_JOIN', label: 'Join Campaign', desc: 'Triggers when joining a new campaign.' },
+        { value: 'PURCHASE', label: 'Purchase/Redemption', desc: 'Triggers after a successful deal redemption.' },
+        { value: 'REFERRAL_SUCCESS', label: 'Referral Success', desc: 'Triggers when an invited friend joins.' },
+        { value: 'APP_OPEN', label: 'App Open', desc: 'Triggers when the app is opened.' },
+        { value: 'STREAK_7_DAY', label: '7-Day Streak', desc: 'Triggers on 7th consecutive active day.' },
+    ];
+
     const handleOpenCreate = () => {
         setEditingAction(null);
         setFormData({ isActive: true, actionParameters: {} });
+        setLimitType('none');
+        setDailyLimit(1);
         setIsModalOpen(true);
     };
 
@@ -43,8 +61,30 @@ export const EarningActionsManager = () => {
             isActive: action.isActive,
             actionParameters: action.actionParameters || {}
         });
+
+        // Parse actionParameters to set simplified UI state
+        if (action.actionParameters?.once_lifetime) {
+            setLimitType('once_lifetime');
+        } else if (action.actionParameters?.daily) {
+            setLimitType('daily');
+            setDailyLimit(Number(action.actionParameters.daily));
+        } else {
+            setLimitType('none');
+        }
+
         setIsModalOpen(true);
     };
+
+    // Update actionParameters whenever limit UI changes
+    React.useEffect(() => {
+        let newParams = {};
+        if (limitType === 'once_lifetime') {
+            newParams = { once_lifetime: true };
+        } else if (limitType === 'daily') {
+            newParams = { daily: dailyLimit };
+        }
+        setFormData(prev => ({ ...prev, actionParameters: newParams }));
+    }, [limitType, dailyLimit]);
 
     const handleSave = () => {
         if (!formData.name || !formData.key || formData.points === undefined) {
@@ -79,26 +119,6 @@ export const EarningActionsManager = () => {
             });
         }
     };
-
-    // Helper to parse/stringify action parameters for the simplistic JSON input
-    const handleParamsChange = (value: string) => {
-        try {
-            const parsed = JSON.parse(value);
-            setFormData({ ...formData, actionParameters: parsed });
-        } catch (e) {
-            // Allow typing invalid json, validate on save or just let it stay as previous valid object if complex logic needed
-            // For now, we won't update state if invalid to prevent saving bad json, 
-            // but for a text area feeling we might need a separate string state.
-            // Simplified: we will just assume simple key-values for now or leave empty if invalid
-        }
-    };
-
-    const [paramsString, setParamsString] = useState("{}");
-
-    // Sync params string when opening modal
-    React.useEffect(() => {
-        setParamsString(JSON.stringify(formData.actionParameters || {}, null, 2));
-    }, [formData.actionParameters, isModalOpen]);
 
     return (
         <Card>
@@ -135,7 +155,7 @@ export const EarningActionsManager = () => {
                                         {action.name}
                                         {action.description && <p className="text-xs text-muted-foreground">{action.description}</p>}
                                     </TableCell>
-                                    <TableCell><code className="bg-muted px-1 rounded text-xs">{action.key}</code></TableCell>
+                                    <TableCell><Badge variant="outline">{action.key}</Badge></TableCell>
                                     <TableCell>{action.points}</TableCell>
                                     <TableCell>
                                         <Badge variant={action.isActive ? "default" : "secondary"}>
@@ -162,45 +182,122 @@ export const EarningActionsManager = () => {
             </CardContent>
 
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent className="sm:max-w-[500px]">
+                <DialogContent className="sm:max-w-[600px]">
                     <DialogHeader>
                         <DialogTitle>{editingAction ? 'Edit Earning Rule' : 'Create Earning Rule'}</DialogTitle>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
+                    <div className="grid gap-6 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="name" className="text-right">Name</Label>
-                            <Input id="name" value={formData.name || ''} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="col-span-3" />
+                            <div className="col-span-3 space-y-1">
+                                <Input
+                                    id="name"
+                                    value={formData.name || ''}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    placeholder="e.g. Daily Login Bonus"
+                                />
+                                <p className="text-xs text-muted-foreground">Human-readable name for this rule.</p>
+                            </div>
                         </div>
+
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="key" className="text-right">System Key</Label>
-                            <Input id="key" value={formData.key || ''} onChange={(e) => setFormData({ ...formData, key: e.target.value })} className="col-span-3" placeholder="e.g. LOGIN_DAILY" />
+                            <Label className="text-right">System Key</Label>
+                            <div className="col-span-3 space-y-1">
+                                <Select
+                                    value={formData.key}
+                                    onValueChange={(val) => setFormData({ ...formData, key: val })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a trigger event" />
+                                    </SelectTrigger>
+                                    <SelectContent className="z-[9999]">
+                                        {SYSTEM_KEYS.map((s) => (
+                                            <SelectItem key={s.value} value={s.value}>
+                                                <span className="font-medium">{s.label}</span>
+                                                <span className="text-xs text-muted-foreground ml-2">({s.value})</span>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {formData.key && (
+                                    <p className="text-xs text-muted-foreground">
+                                        {SYSTEM_KEYS.find(k => k.value === formData.key)?.desc}
+                                    </p>
+                                )}
+                            </div>
                         </div>
+
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="points" className="text-right">Points</Label>
-                            <Input id="points" type="number" value={formData.points || 0} onChange={(e) => setFormData({ ...formData, points: parseInt(e.target.value) })} className="col-span-3" />
+                            <div className="col-span-3 space-y-1">
+                                <Input
+                                    id="points"
+                                    type="number"
+                                    value={formData.points ?? 0}
+                                    onChange={(e) => setFormData({ ...formData, points: parseInt(e.target.value) || 0 })}
+                                />
+                                <p className="text-xs text-muted-foreground">Base matching points to award.</p>
+                            </div>
                         </div>
+
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="description" className="text-right">Description</Label>
-                            <Textarea id="description" value={formData.description || ''} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="col-span-3" />
+                            <div className="col-span-3 space-y-1">
+                                <Textarea
+                                    id="description"
+                                    value={formData.description || ''}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    placeholder="Internal note about this rule..."
+                                />
+                            </div>
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="params" className="text-right">Parameters (JSON)</Label>
-                            <Textarea
-                                id="params"
-                                value={paramsString}
-                                onChange={(e) => {
-                                    setParamsString(e.target.value);
-                                    handleParamsChange(e.target.value);
-                                }}
-                                className="col-span-3 font-mono text-xs"
-                                placeholder='{"daily": 1}'
-                            />
+
+                        <div className="grid grid-cols-4 items-start gap-4">
+                            <Label className="text-right pt-2">Frequency Limit</Label>
+                            <div className="col-span-3 space-y-3 p-3 border rounded-md bg-muted/20">
+                                <div className="flex items-center space-x-2">
+                                    <Switch
+                                        id="once"
+                                        checked={limitType === 'once_lifetime'}
+                                        onCheckedChange={(checked) => setLimitType(checked ? 'once_lifetime' : 'none')}
+                                    />
+                                    <Label htmlFor="once" className="font-normal">Once per Lifetime</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Switch
+                                        id="daily"
+                                        checked={limitType === 'daily'}
+                                        onCheckedChange={(checked) => setLimitType(checked ? 'daily' : 'none')}
+                                    />
+                                    <Label htmlFor="daily" className="font-normal">Daily Limit</Label>
+                                </div>
+
+                                {limitType === 'daily' && (
+                                    <div className="pl-6 pt-1 flex items-center gap-2">
+                                        <span className="text-sm">Max</span>
+                                        <Input
+                                            type="number"
+                                            className="w-20 h-8"
+                                            value={dailyLimit}
+                                            onChange={(e) => setDailyLimit(parseInt(e.target.value) || 1)}
+                                            min={1}
+                                        />
+                                        <span className="text-sm">times per day</span>
+                                    </div>
+                                )}
+                                <p className="text-xs text-muted-foreground pt-1">
+                                    {limitType === 'none' && "No limits - triggers every time the event occurs."}
+                                    {limitType === 'once_lifetime' && "User can only earn this ONCE forever."}
+                                    {limitType === 'daily' && `User can earn this ${dailyLimit} time(s) every 24 hours.`}
+                                </p>
+                            </div>
                         </div>
+
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label className="text-right">Active</Label>
+                            <Label className="text-right">Status</Label>
                             <div className="col-span-3 flex items-center space-x-2">
                                 <Switch checked={formData.isActive} onCheckedChange={(c) => setFormData({ ...formData, isActive: c })} />
-                                <span>{formData.isActive ? 'Yes' : 'No'}</span>
+                                <span>{formData.isActive ? 'Active' : 'Inactive'}</span>
                             </div>
                         </div>
                     </div>

@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Plus, Pencil, Award, Trophy } from 'lucide-react'; // Using Trophy for badges
 import { toast } from 'sonner';
 
@@ -150,40 +151,57 @@ export const ParticipantBadgesManager = () => {
                     <DialogHeader>
                         <DialogTitle>{editingBadge ? 'Edit Badge Level' : 'Create Badge Level'}</DialogTitle>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
+                    <div className="grid gap-6 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="levelName" className="text-right">Name</Label>
-                            <Input id="levelName" value={formData.name || ''} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="col-span-3" placeholder="e.g. Gold" />
+                            <div className="col-span-3 space-y-1">
+                                <Input id="levelName" value={formData.name || ''} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="e.g. Gold" />
+                                <p className="text-xs text-muted-foreground">The visible name of this tier.</p>
+                            </div>
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="priority" className="text-right">Priority</Label>
-                            <Input id="priority" type="number" value={formData.priority || ''} onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) })} className="col-span-3" placeholder="1 = Lowest" />
+                            <div className="col-span-3 space-y-1">
+                                <Input id="priority" type="number" value={formData.priority || ''} onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) })} placeholder="1 = Lowest" />
+                                <p className="text-xs text-muted-foreground">Higher numbers mean higher status (1=lowest).</p>
+                            </div>
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="minPoints" className="text-right">Min Points</Label>
-                            <Input id="minPoints" type="number" value={formData.minPoints || 0} onChange={(e) => setFormData({ ...formData, minPoints: parseInt(e.target.value) })} className="col-span-3" />
+                            <div className="col-span-3 space-y-1">
+                                <Input id="minPoints" type="number" value={formData.minPoints || 0} onChange={(e) => setFormData({ ...formData, minPoints: parseInt(e.target.value) })} />
+                                <p className="text-xs text-muted-foreground">Total points needed to unlock this badge.</p>
+                            </div>
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="multiplier" className="text-right">Multiplier</Label>
-                            <Input id="multiplier" type="number" step="0.1" value={formData.multiplier || 1.0} onChange={(e) => setFormData({ ...formData, multiplier: parseFloat(e.target.value) })} className="col-span-3" />
+                            <div className="col-span-3 space-y-1">
+                                <Input id="multiplier" type="number" step="0.1" value={formData.multiplier || 1.0} onChange={(e) => setFormData({ ...formData, multiplier: parseFloat(e.target.value) })} />
+                                <p className="text-xs text-muted-foreground">Bonus point multiplier (1.0 = normal, 1.5 = +50%).</p>
+                            </div>
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="color" className="text-right">Color Hex</Label>
-                            <div className="col-span-3 flex gap-2">
-                                <Input id="color" value={formData.color || '#000000'} onChange={(e) => setFormData({ ...formData, color: e.target.value })} />
-                                <div className="w-10 h-10 rounded border" style={{ backgroundColor: formData.color || '#000000' }} />
+                            <div className="col-span-3 space-y-1">
+                                <div className="flex gap-2">
+                                    <Input id="color" value={formData.color || '#000000'} onChange={(e) => setFormData({ ...formData, color: e.target.value })} />
+                                    <div className="w-10 h-10 rounded border shrink-0" style={{ backgroundColor: formData.color || '#000000' }} />
+                                </div>
+                                <p className="text-xs text-muted-foreground">Badge background color.</p>
                             </div>
                         </div>
                         <div className="grid grid-cols-4 items-start gap-4">
                             <Label htmlFor="benefits" className="text-right pt-2">Benefits</Label>
-                            <Textarea
-                                id="benefits"
-                                value={benefitsString}
-                                onChange={(e) => setBenefitsString(e.target.value)}
-                                className="col-span-3"
-                                placeholder="One benefit per line"
-                                rows={4}
-                            />
+                            <div className="col-span-3 space-y-1">
+                                <Textarea
+                                    id="benefits"
+                                    value={benefitsString}
+                                    onChange={(e) => setBenefitsString(e.target.value)}
+                                    placeholder="One benefit per line"
+                                    rows={4}
+                                />
+                                <p className="text-xs text-muted-foreground">List perks one per line.</p>
+                            </div>
                         </div>
                     </div>
                     <DialogFooter>
