@@ -10,8 +10,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { mockMatchingPointsSettings, MatchingPointsSettings } from '@/lib/mock-data/matching-points';
 import { initialSectors } from '@/lib/mock-data/sectors';
 import { AdjustMatchingPointsModal } from '@/components/admin/matching-points/AdjustMatchingPointsModal';
+import { EarningActionsManager } from '@/components/admin/matching-points/EarningActionsManager';
+import { ParticipantBadgesManager } from '@/components/admin/matching-points/ParticipantBadgesManager';
 import { FeedbackDialog } from '@/components/ui/feedback-dialog';
-import { Globe, SlidersHorizontal, Briefcase, Megaphone, BarChart, UserPlus, Loader2 } from 'lucide-react';
+import { Globe, SlidersHorizontal, Briefcase, Megaphone, BarChart, UserPlus, Loader2, Zap, Trophy } from 'lucide-react';
 import { useAwardMatchingPoints, useToggleMatchingPoints } from '@/services/matching-points/hook';
 import { useGetPublicCampaigns } from '@/services/customer-campaigns/hook';
 
@@ -180,11 +182,22 @@ export default function MatchingPointsSettingsPage() {
 
         {/* Right Column */}
         <div className="lg:col-span-2">
-          <Tabs defaultValue="sectors">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="sectors"><Briefcase className="mr-2 h-4 w-4" />Sector-Specific Ranges</TabsTrigger>
-              <TabsTrigger value="campaigns"><Megaphone className="mr-2 h-4 w-4" />Campaign-Specific Toggles</TabsTrigger>
+          <Tabs defaultValue="earning-rules">
+            <TabsList className="grid w-full grid-cols-4 h-auto"> {/* Changed to 4 columns and auto height for wrapping if needed on small screens */}
+              <TabsTrigger value="earning-rules" className="data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-700"><Zap className="mr-2 h-4 w-4" />Earning Rules</TabsTrigger>
+              <TabsTrigger value="badge-levels" className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-700"><Trophy className="mr-2 h-4 w-4" />Badge Levels</TabsTrigger>
+              <TabsTrigger value="sectors"><Briefcase className="mr-2 h-4 w-4" />Sector Ranges</TabsTrigger>
+              <TabsTrigger value="campaigns"><Megaphone className="mr-2 h-4 w-4" />Campaign Toggles</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="earning-rules">
+              <EarningActionsManager />
+            </TabsContent>
+
+            <TabsContent value="badge-levels">
+              <ParticipantBadgesManager />
+            </TabsContent>
+
             <TabsContent value="sectors">
               <Card>
                 <CardHeader>
