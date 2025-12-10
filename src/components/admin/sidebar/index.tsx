@@ -110,12 +110,6 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
           </Link>
         </li>
         <li>
-          <Link href="/admin/tier-configuration" className={linkClasses("/admin/tier-configuration")}>
-            <ListFilter className="mr-3" />
-            Tier Configuration
-          </Link>
-        </li>
-        <li>
           <Link href="/admin/deals-management" className={linkClasses("/admin/deals-management")}>
             <Tag className="mr-3" />
             Deals Management
