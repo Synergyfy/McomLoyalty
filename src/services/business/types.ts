@@ -98,6 +98,8 @@ export interface UpdateBusinessProfileDto {
   website?: string;
   logoUrl?: string;
   bannerUrl?: string;
+  profile_image?: string;
+  banner?: string | null;
   description?: string;
   socialMedia?: { name: string; link: string }[];
 }
