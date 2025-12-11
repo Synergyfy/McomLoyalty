@@ -20,7 +20,7 @@ export default function BusinessProfilePage() {
     instagram?: string;
   }>({});
 
-  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -45,7 +45,7 @@ export default function BusinessProfilePage() {
     }
   }, [profile]);
 
-  const logoInputRef = useRef<HTMLInputElement>(null);
+  const profileImageInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -53,10 +53,10 @@ export default function BusinessProfilePage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'logoUrl' | 'bannerUrl') => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'profileImage' | 'bannerUrl') => {
     const file = e.target.files?.[0];
     if (file) {
-      if (field === 'logoUrl') setLogoFile(file);
+      if (field === 'profileImage') setProfileImageFile(file);
       if (field === 'bannerUrl') setBannerFile(file);
 
       const reader = new FileReader();
@@ -83,8 +83,8 @@ export default function BusinessProfilePage() {
       if (form.website !== profile.website) payload.website = form.website;
 
       // Handle Image Uploads
-      if (logoFile) {
-        const { secure_url } = await uploadToCloudinary({ file: logoFile, folder: 'business' });
+      if (profileImageFile) {
+        const { secure_url } = await uploadToCloudinary({ file: profileImageFile, folder: 'business' });
         payload.profile_image = secure_url;
       }
 
@@ -110,7 +110,7 @@ export default function BusinessProfilePage() {
         updateProfile(payload, {
           onSuccess: () => {
             setEditing(false);
-            setLogoFile(null);
+            setProfileImageFile(null);
             setBannerFile(null);
             toast.success('Profile updated successfully');
           },
@@ -150,7 +150,7 @@ export default function BusinessProfilePage() {
           {/* Logo */}
           <div className="relative">
             <Image
-              src={form.logoUrl || 'https://via.placeholder.com/96'}
+              src={form.profileImage || 'https://via.placeholder.com/96'}
               alt="Business Logo"
               className="w-24 h-24 rounded-full object-cover border-4 border-orange-500 shadow-md"
               width={96}
@@ -160,13 +160,13 @@ export default function BusinessProfilePage() {
               <>
                 <input
                   type="file"
-                  ref={logoInputRef}
+                  ref={profileImageInputRef}
                   className="hidden"
                   accept="image/*"
-                  onChange={(e) => handleFileChange(e, 'logoUrl')}
+                  onChange={(e) => handleFileChange(e, 'profileImage')}
                 />
                 <button
-                  onClick={() => logoInputRef.current?.click()}
+                  onClick={() => profileImageInputRef.current?.click()}
                   className="absolute bottom-1 right-1 bg-orange-500 text-white p-1.5 rounded-full hover:bg-orange-600 transition"
                   title="Change logo"
                 >
