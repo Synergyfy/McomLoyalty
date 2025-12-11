@@ -67,7 +67,7 @@ export default function CampaignPreviewPage() {
         value: reward.reward.value || 0,
         description: reward.reward.description || '',
         image: reward.reward.image || '',
-        quantity: reward.quantity,
+        quantity: reward.quantity ?? 0,
         disabled: reward.reward.disabled || false,
       })),
       uniqueCode: campaignData.uniqueCode || null,
