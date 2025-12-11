@@ -5,13 +5,13 @@ import React, { useMemo } from 'react';
 import CampaignPreview from '@/components/dashboard/campaigns/previews/CampaignPreview';
 import { useParams } from 'next/navigation';
 import { useGetClaimableCampaigns } from '@/services/campaigns/hook';
-import { CampaignResponse, PublicCampaignResponse } from '@/services/campaigns/types'; // Keep PublicCampaignResponse for data fetching
+import { CampaignResponse } from '@/services/campaigns/types';
 
 export default function CampaignPreviewPage() {
   const params = useParams();
   const { campaignId } = params;
 
-  const { data: claimableCampaignsData, isLoading } = useGetClaimableCampaigns(1, 100);
+  const { data: claimableCampaignsData, isLoading: isLoadingCampaigns } = useGetClaimableCampaigns(1, 100);
 
   const campaign = useMemo(() => {
     const campaignData = claimableCampaignsData?.data.find(c => c.id === campaignId);
@@ -36,17 +36,9 @@ export default function CampaignPreviewPage() {
       ctaTextColor: campaignData.cta_text_color,
       textColor: campaignData.text_color,
       backgroundColor: campaignData.background_color,
-      rewards: (campaignData.rewards || []).map(reward => ({
-        id: reward.id,
-        title: reward.title,
-        points_required: reward.points_required,
-        value: reward.value || 0, // Provide default if missing in PublicCampaignResponse
-        description: reward.description || '', // Provide default if missing
-        image: reward.image || '', // Provide default if missing
-        quantity: reward.quantity || 0, // Provide default if missing
-        disabled: reward.disabled || false, // Provide default if missing
-      })),
+      rewards: campaignData.rewards || [],
       uniqueCode: campaignData.uniqueCode || null,
+      business_reward_ids: [],
       // Provide default values for other CampaignResponse fields not present in PublicCampaignResponse
       signUpPoint: 0,
       rewardType: '',
@@ -73,7 +65,7 @@ export default function CampaignPreviewPage() {
     return transformedCampaign;
   }, [claimableCampaignsData, campaignId]);
 
-  if (isLoading) {
+  if (isLoadingCampaigns) {
     return <div className="p-8 text-center">Loading campaign details...</div>;
   }
 

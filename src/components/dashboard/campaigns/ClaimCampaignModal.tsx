@@ -1,11 +1,11 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import Image from 'next/image';
-import Link from 'next/link';
 import { PublicCampaignResponse } from '@/services/campaigns/types';
 
 interface ClaimCampaignModalProps {
@@ -21,6 +21,14 @@ export default function ClaimCampaignModal({
   claimableCampaigns,
   onCreateFromScratch,
 }: ClaimCampaignModalProps) {
+  const router = useRouter();
+
+  const handleCampaignSelect = (campaignId: string) => {
+    // Close the modal and redirect to preview
+    onClose();
+    router.push(`/dashboard/campaigns/preview/${campaignId}/overview`);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col">
@@ -49,7 +57,7 @@ export default function ClaimCampaignModal({
                         />
                       ) : (
                         <div className="flex items-center justify-center h-full text-gray-400">
-                           No Image
+                          No Image
                         </div>
                       )}
                     </div>
@@ -60,13 +68,11 @@ export default function ClaimCampaignModal({
                   </CardContent>
                   <CardFooter className="p-4">
                     <Button
-                      asChild
+                      onClick={() => handleCampaignSelect(campaign.id)}
                       variant="outline"
                       className="w-full"
                     >
-                      <Link href={`/dashboard/campaigns/preview/${campaign.id}`}>
-                        View Campaign
-                      </Link>
+                      View Campaign
                     </Button>
                   </CardFooter>
                 </Card>
