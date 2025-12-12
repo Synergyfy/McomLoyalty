@@ -5,7 +5,7 @@ import { Camera, Mail, Phone, MapPin, Building2, Link as LinkIcon } from 'lucide
 import TierBadge, { TierName, isTierName } from "@/components/ui/tierBadge";
 import Image from 'next/image';
 import BrandingManager from '@/components/dashboard/profile/BrandingManager';
-import { useGetBusinessProfile, useUpdateBusinessProfile } from '@/services/business/hook';
+import { useGetBusinessProfile, useUpdateBusinessProfile, useGetSectors, useGetCategories, useGetSubcategories } from '@/services/business/hook';
 import { useGetMySubscription } from '@/services/tiers/hook';
 import { BusinessProfile, UpdateBusinessProfileDto } from '@/services/business/types';
 
@@ -16,12 +16,19 @@ export default function BusinessProfilePage() {
     categoryName?: string;
     whatsapp?: string;
     instagram?: string;
+    sectorId?: string;
+    categoryId?: string;
+    subCategoryId?: string;
   }>({});
 
   const { data: profile, isLoading: isLoadingProfile, isError: isErrorProfile } = useGetBusinessProfile();
   const { data: subscription, isLoading: isLoadingSubscription, isError: isErrorSubscription } = useGetMySubscription();
   const { mutate: updateProfile, isPending: isUpdating } = useUpdateBusinessProfile();
 
+  // Fetch Sectors, Categories, Subcategories for the dropdowns
+  const { data: sectors } = useGetSectors();
+  const { data: categories } = useGetCategories(form.sectorId || "");
+  const { data: subcategories } = useGetSubcategories(form.categoryId || "");
 
   useEffect(() => {
     if (profile) {
@@ -34,6 +41,9 @@ export default function BusinessProfilePage() {
         categoryName: profile.category?.name || 'N/A',
         instagram,
         whatsapp,
+        sectorId: profile.sectorId,
+        categoryId: profile.category?.id,
+        subCategoryId: profile.subCategoryId,
       });
     }
   }, [profile]);
@@ -41,9 +51,28 @@ export default function BusinessProfilePage() {
   const logoInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSectorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = e.target;
+    setForm(prev => ({
+      ...prev,
+      sectorId: value,
+      categoryId: "", // Reset category
+      subCategoryId: "" // Reset subcategory
+    }));
+  };
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = e.target;
+    setForm(prev => ({
+      ...prev,
+      categoryId: value,
+      subCategoryId: "" // Reset subcategory
+    }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'logoUrl' | 'bannerUrl') => {
@@ -83,6 +112,11 @@ export default function BusinessProfilePage() {
       if (form.instagram) socialMedia.push({ name: 'instagram', link: form.instagram });
       payload.socialMedia = socialMedia;
     }
+
+    // Handle Sector, Category, Subcategory changes
+    if (form.sectorId !== profile.sectorId) payload.sector = form.sectorId;
+    if (form.categoryId !== profile.category?.id) payload.category = form.categoryId;
+    if (form.subCategoryId !== profile.subCategoryId) payload.subCategory = form.subCategoryId;
 
     // Only call update if there are actual changes
     if (Object.keys(payload).length > 0) {
