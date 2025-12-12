@@ -102,9 +102,9 @@ export interface UpdateBusinessProfileDto {
   banner?: string | null;
   description?: string;
   socialMedia?: { name: string; link: string }[];
-  sectorId?: string;
-  categoryId?: string;
-  subCategoryId?: string;
+  sector?: { id: string };
+  category?: { id: string };
+  subCategory?: { id: string };
 }
 
 // --- Business Balances & Feature Usage ---

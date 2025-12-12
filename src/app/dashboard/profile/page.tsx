@@ -118,9 +118,17 @@ export default function BusinessProfilePage() {
         payload.banner = secure_url;
       }
 
-      if (form.sectorId !== profile.sectorId) payload.sectorId = form.sectorId;
-      if (form.categoryId !== profile.category?.id) payload.categoryId = form.categoryId;
-      if (form.subCategoryId !== profile.subCategoryId) payload.subCategoryId = form.subCategoryId;
+      if (form.sectorId !== profile.sectorId && form.sectorId) {
+        payload.sector = { id: form.sectorId };
+      }
+
+      if (form.categoryId !== profile.category?.id && form.categoryId) {
+        payload.category = { id: form.categoryId };
+      }
+
+      if (form.subCategoryId !== profile.subCategoryId && form.subCategoryId) {
+        payload.subCategory = { id: form.subCategoryId };
+      }
 
       const originalInstagram = profile.socialMedia?.find(s => s.name.toLowerCase() === 'instagram')?.link || '';
       const originalWhatsapp = profile.socialMedia?.find(s => s.name.toLowerCase() === 'whatsapp')?.link || '';
