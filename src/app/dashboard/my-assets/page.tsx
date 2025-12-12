@@ -714,14 +714,14 @@ export default function FormContactsPage() {
 
       {/* Add Contact Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Add New Contact</DialogTitle>
             <DialogDescription>
               Add a new contact to your network. Fields marked with * are required.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 overflow-y-auto max-h-[calc(90vh-180px)]">
             <div className="grid grid-cols-2 gap-4">
               {/* Full Name */}
               <div className="col-span-2">
@@ -730,11 +730,11 @@ export default function FormContactsPage() {
                     Full Name <span className="text-red-500">*</span>
                   </Label>
                   <TooltipProvider>
-                    <Tooltip>
+                    <Tooltip delayDuration={200}>
                       <TooltipTrigger asChild>
                         <Info className="h-4 w-4 text-gray-400 cursor-help" />
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
+                      <TooltipContent side="top" sideOffset={5} align="center" className="max-w-xs z-[10000]">
                         <p className="text-sm">Enter the full name of the contact person or business owner.</p>
                       </TooltipContent>
                     </Tooltip>
@@ -753,11 +753,11 @@ export default function FormContactsPage() {
                 <div className="flex items-center gap-2 mb-2">
                   <Label htmlFor="businessName">Business Name</Label>
                   <TooltipProvider>
-                    <Tooltip>
+                    <Tooltip delayDuration={200}>
                       <TooltipTrigger asChild>
                         <Info className="h-4 w-4 text-gray-400 cursor-help" />
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
+                      <TooltipContent side="top" sideOffset={5} align="center" className="max-w-xs z-[10000]">
                         <p className="text-sm">The official name of the business or company this contact represents.</p>
                       </TooltipContent>
                     </Tooltip>
@@ -776,11 +776,11 @@ export default function FormContactsPage() {
                 <div className="flex items-center gap-2 mb-2">
                   <Label htmlFor="email">Email</Label>
                   <TooltipProvider>
-                    <Tooltip>
+                    <Tooltip delayDuration={200}>
                       <TooltipTrigger asChild>
                         <Info className="h-4 w-4 text-gray-400 cursor-help" />
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
+                      <TooltipContent side="top" sideOffset={5} align="start" className="max-w-xs z-[10000]">
                         <p className="text-sm">Primary email address for business communications and campaign invitations.</p>
                       </TooltipContent>
                     </Tooltip>
@@ -800,11 +800,11 @@ export default function FormContactsPage() {
                 <div className="flex items-center gap-2 mb-2">
                   <Label htmlFor="phone">Phone</Label>
                   <TooltipProvider>
-                    <Tooltip>
+                    <Tooltip delayDuration={200}>
                       <TooltipTrigger asChild>
                         <Info className="h-4 w-4 text-gray-400 cursor-help" />
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
+                      <TooltipContent side="top" sideOffset={5} align="end" className="max-w-xs z-[10000]">
                         <p className="text-sm">Contact phone number for direct communication and follow-ups.</p>
                       </TooltipContent>
                     </Tooltip>
@@ -826,11 +826,11 @@ export default function FormContactsPage() {
                     Location Tag <span className="text-red-500">*</span>
                   </Label>
                   <TooltipProvider>
-                    <Tooltip>
+                    <Tooltip delayDuration={200}>
                       <TooltipTrigger asChild>
                         <Info className="h-4 w-4 text-gray-400 cursor-help" />
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
+                      <TooltipContent side="top" sideOffset={5} align="start" className="max-w-xs z-[10000]">
                         <div className="text-sm space-y-1">
                           <p><strong>Nearby:</strong> Very close, neighbourhood radius</p>
                           <p><strong>Hyperlocal:</strong> Wider local area but still nearby</p>
@@ -864,11 +864,11 @@ export default function FormContactsPage() {
                     Relationship Tag <span className="text-red-500">*</span>
                   </Label>
                   <TooltipProvider>
-                    <Tooltip>
+                    <Tooltip delayDuration={200}>
                       <TooltipTrigger asChild>
                         <Info className="h-4 w-4 text-gray-400 cursor-help" />
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
+                      <TooltipContent side="top" sideOffset={5} align="end" className="max-w-xs z-[10000]">
                         <div className="text-sm space-y-1">
                           <p><strong>Partner:</strong> Someone you collaborate with</p>
                           <p><strong>Supplier:</strong> Provides you items or services</p>
@@ -915,11 +915,11 @@ export default function FormContactsPage() {
                       Permission Confirmation <span className="text-red-500">*</span>
                     </Label>
                     <TooltipProvider>
-                      <Tooltip>
+                      <Tooltip delayDuration={200}>
                         <TooltipTrigger asChild>
                           <Info className="h-4 w-4 text-orange-600 cursor-help" />
                         </TooltipTrigger>
-                        <TooltipContent className="max-w-xs">
+                        <TooltipContent side="top" sideOffset={5} align="start" className="max-w-xs z-[10000]">
                           <p className="text-sm">You must confirm that you have explicit permission from this contact to store their information and contact them for business purposes. This is required for GDPR compliance.</p>
                         </TooltipContent>
                       </Tooltip>
@@ -956,14 +956,14 @@ export default function FormContactsPage() {
 
       {/* Edit Contact Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Edit Contact</DialogTitle>
             <DialogDescription>
               Update contact information. Fields marked with * are required.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 overflow-y-auto max-h-[calc(90vh-180px)]">
             <div className="grid grid-cols-2 gap-4">
               {/* Full Name */}
               <div className="col-span-2">
@@ -972,11 +972,11 @@ export default function FormContactsPage() {
                     Full Name <span className="text-red-500">*</span>
                   </Label>
                   <TooltipProvider>
-                    <Tooltip>
+                    <Tooltip delayDuration={200}>
                       <TooltipTrigger asChild>
                         <Info className="h-4 w-4 text-gray-400 cursor-help" />
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
+                      <TooltipContent side="top" sideOffset={5} align="center" className="max-w-xs z-[10000]">
                         <p className="text-sm">Enter the full name of the contact person or business owner.</p>
                       </TooltipContent>
                     </Tooltip>
@@ -995,11 +995,11 @@ export default function FormContactsPage() {
                 <div className="flex items-center gap-2 mb-2">
                   <Label htmlFor="edit-businessName">Business Name</Label>
                   <TooltipProvider>
-                    <Tooltip>
+                    <Tooltip delayDuration={200}>
                       <TooltipTrigger asChild>
                         <Info className="h-4 w-4 text-gray-400 cursor-help" />
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
+                      <TooltipContent side="top" sideOffset={5} align="center" className="max-w-xs z-[10000]">
                         <p className="text-sm">The official name of the business or company this contact represents.</p>
                       </TooltipContent>
                     </Tooltip>
@@ -1018,11 +1018,11 @@ export default function FormContactsPage() {
                 <div className="flex items-center gap-2 mb-2">
                   <Label htmlFor="edit-email">Email</Label>
                   <TooltipProvider>
-                    <Tooltip>
+                    <Tooltip delayDuration={200}>
                       <TooltipTrigger asChild>
                         <Info className="h-4 w-4 text-gray-400 cursor-help" />
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
+                      <TooltipContent side="top" sideOffset={5} align="start" className="max-w-xs z-[10000]">
                         <p className="text-sm">Primary email address for business communications and campaign invitations.</p>
                       </TooltipContent>
                     </Tooltip>
@@ -1042,11 +1042,11 @@ export default function FormContactsPage() {
                 <div className="flex items-center gap-2 mb-2">
                   <Label htmlFor="edit-phone">Phone</Label>
                   <TooltipProvider>
-                    <Tooltip>
+                    <Tooltip delayDuration={200}>
                       <TooltipTrigger asChild>
                         <Info className="h-4 w-4 text-gray-400 cursor-help" />
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
+                      <TooltipContent side="top" sideOffset={5} align="end" className="max-w-xs z-[10000]">
                         <p className="text-sm">Contact phone number for direct communication and follow-ups.</p>
                       </TooltipContent>
                     </Tooltip>
@@ -1068,11 +1068,11 @@ export default function FormContactsPage() {
                     Location Tag <span className="text-red-500">*</span>
                   </Label>
                   <TooltipProvider>
-                    <Tooltip>
+                    <Tooltip delayDuration={200}>
                       <TooltipTrigger asChild>
                         <Info className="h-4 w-4 text-gray-400 cursor-help" />
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
+                      <TooltipContent side="top" sideOffset={5} align="start" className="max-w-xs z-[10000]">
                         <div className="text-sm space-y-1">
                           <p><strong>Nearby:</strong> Very close, neighbourhood radius</p>
                           <p><strong>Hyperlocal:</strong> Wider local area but still nearby</p>
@@ -1106,11 +1106,11 @@ export default function FormContactsPage() {
                     Relationship Tag <span className="text-red-500">*</span>
                   </Label>
                   <TooltipProvider>
-                    <Tooltip>
+                    <Tooltip delayDuration={200}>
                       <TooltipTrigger asChild>
                         <Info className="h-4 w-4 text-gray-400 cursor-help" />
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
+                      <TooltipContent side="top" sideOffset={5} align="end" className="max-w-xs z-[10000]">
                         <div className="text-sm space-y-1">
                           <p><strong>Partner:</strong> Someone you collaborate with</p>
                           <p><strong>Supplier:</strong> Provides you items or services</p>
@@ -1157,11 +1157,11 @@ export default function FormContactsPage() {
                       Permission Confirmation <span className="text-red-500">*</span>
                     </Label>
                     <TooltipProvider>
-                      <Tooltip>
+                      <Tooltip delayDuration={200}>
                         <TooltipTrigger asChild>
                           <Info className="h-4 w-4 text-orange-600 cursor-help" />
                         </TooltipTrigger>
-                        <TooltipContent className="max-w-xs">
+                        <TooltipContent side="top" sideOffset={5} align="start" className="max-w-xs z-[10000]">
                           <p className="text-sm">You must confirm that you have explicit permission from this contact to store their information and contact them for business purposes. This is required for GDPR compliance.</p>
                         </TooltipContent>
                       </Tooltip>
