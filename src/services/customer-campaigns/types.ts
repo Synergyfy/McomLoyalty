@@ -7,10 +7,10 @@ export interface CampaignBusiness {
   phone: string | null;
   address: string | null;
   website: string | null;
-  socialMedia: any[] | null;
+  socialMedia: unknown[] | null;
   uniqueCode: string;
   role: string;
-  referralCapacity: any | null;
+  referralCapacity: unknown | null;
   affiliateCode: string;
   referralPoints: string;
   reputationPoints: string;
@@ -114,12 +114,10 @@ export interface PublicCampaignSummary {
   contactEmail: string | null;
   contactPhoneNumber: string | null;
   footerText: string | null;
-<<<<<<< HEAD
   category?: string;
-=======
   initialAudienceSize: number | null;
   business?: CampaignBusiness;
->>>>>>> 6e28f7578864541031ed88b4c3a83bf6c16f99a9
+
 }
 
 export interface PaginatedPublicCampaigns {
