@@ -40,14 +40,17 @@ export default function CreatePlaquePage() {
 
         const newPlaque = {
             id: `local-${Date.now()}`,
-            name,
+            name: name,
+            partner: name, // Mapping for dashboard view
             actionText,
             description,
             extraInfo,
             qrCodeUrl,
             status: 'Draft',
-            location: 'Not Assigned',
-            scans30d: 0,
+            scans: 0,
+            redemptions: 0,
+            linkedOffer: null,
+            price: null,
             createdAt: new Date().toISOString(),
         };
 
@@ -55,7 +58,7 @@ export default function CreatePlaquePage() {
             const existingPlaques = JSON.parse(localStorage.getItem('my_plaques_list') || '[]');
             localStorage.setItem('my_plaques_list', JSON.stringify([...existingPlaques, newPlaque]));
             toast.success("Plaque template saved successfully!");
-            router.push('/plaque-user/plaques');
+            router.push('/dashboard/my-assets/qr-plaques');
         } catch (error) {
             console.error("Failed to save plaque", error);
             toast.error("Failed to save plaque template.");
@@ -63,8 +66,6 @@ export default function CreatePlaquePage() {
     };
 
     const handlePrint = () => {
-        // Trigger browser print.
-        // We'll use CSS @media print to hide everything except the preview.
         window.print();
     };
 
@@ -95,7 +96,7 @@ export default function CreatePlaquePage() {
 
             <div className="flex items-center gap-4">
                 <Button variant="ghost" size="icon" asChild>
-                    <Link href="/plaque-user/plaques">
+                    <Link href="/dashboard/my-assets/qr-plaques">
                         <ArrowLeft className="h-5 w-5" />
                     </Link>
                 </Button>
