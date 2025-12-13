@@ -53,6 +53,14 @@ interface Plaque {
     qrCodeUrl?: string;
 }
 
+// Fallback limits if API qrCodeCount is missing
+const TIER_LIMITS: Record<string, number> = {
+    'Bronze Plan': 5,
+    'Silver Plan': 10,
+    'Gold Plan': 20,
+    'Platinum Plan': 50
+};
+
 export default function QRPlaquesPage() {
     const [date, setDate] = useState<DateRange | undefined>({ from: new Date(), to: new Date() });
     const [plaques, setPlaques] = useState<Plaque[]>(initialQrPlaquesData);
@@ -60,7 +68,26 @@ export default function QRPlaquesPage() {
 
     // Subscription Hook
     const { data: subscription, isLoading: isSubscriptionLoading } = useGetMySubscription();
-    const maxPlaques = subscription?.tier?.qrCodeCount || 0;
+
+    // Calculate Max Plaques
+    // Priority: 1. API qrCodeCount, 2. Map based on Name, 3. Default (5)
+    let maxPlaques = 0;
+    if (subscription?.tier) {
+        if (typeof subscription.tier.qrCodeCount === 'number') {
+            maxPlaques = subscription.tier.qrCodeCount;
+        } else if (subscription.tier.name && TIER_LIMITS[subscription.tier.name]) {
+            maxPlaques = TIER_LIMITS[subscription.tier.name];
+        } else {
+            // Try partial match if exact name doesn't match (e.g. "Gold" vs "Gold Plan")
+            const tierName = subscription.tier.name || '';
+            if (tierName.includes('Platinum')) maxPlaques = 50;
+            else if (tierName.includes('Gold')) maxPlaques = 20;
+            else if (tierName.includes('Silver')) maxPlaques = 10;
+            else if (tierName.includes('Bronze')) maxPlaques = 5;
+            else maxPlaques = 5; // Default safe limit
+        }
+    }
+
     const currentCount = plaques.length;
     // Check if limit is reached (only if maxPlaques is not -1 which means unlimited)
     const isLimitReached = maxPlaques !== -1 && currentCount >= maxPlaques;
