@@ -17,10 +17,10 @@ export const createBusinessSchema = z.object({
   address: z.string(),
   website: z.string().optional(),
   socialMedia: socialMediaSchema,
-  referralCapacity: z.enum(["12-24", "25-49", "50-99", "100+"], {
+  referralCapacity: z.enum(["12+", "25+", "50+", "100+"], {
     error: "Please select a referral capacity",
   })
- 
+
 });
 
 export const businessSignUpSchema = z.object({

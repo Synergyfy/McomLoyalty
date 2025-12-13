@@ -34,7 +34,7 @@ export interface CreateBusinessDto {
   address: string;
   website?: string;
   socialMedia?: { name: string; link: string }[];
-  referralCapacity: "12-24" | "25-49" | "50-99" | "100+";
+  referralCapacity: "12+" | "25+" | "50+" | "100+";
 }
 
 export interface PaginatedResponse<T> {
@@ -59,6 +59,7 @@ export interface Subcategory {
 export interface Business {
   id: string;
   name: string;
+  imageUrl?: string;
 }
 
 // --- Business Profile ---
@@ -82,7 +83,7 @@ export interface BusinessProfile {
   socialMedia: { name: string; link: string }[];
   uniqueCode: string;
   role: string;
-  referralCapacity: "12-24" | "25-49" | "50-99" | "100+" | number;
+  referralCapacity: "12+" | "25+" | "50+" | "100+" | number;
   affiliateCode: string;
   referralPoints: string;
   reputationPoints: string;
