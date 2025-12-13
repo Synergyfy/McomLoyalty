@@ -40,8 +40,6 @@ export default function CreatePlaquePage() {
 
         try {
             const existingPlaques = JSON.parse(localStorage.getItem('my_plaques_list') || '[]');
-            // Calculate new ID based on initial mock data (5 items) + saved items
-            // Format: Plaque-XXX (e.g. Plaque-006)
             const baseCount = 5;
             const nextNum = baseCount + existingPlaques.length + 1;
             const newId = `Plaque-${String(nextNum).padStart(3, '0')}`;
@@ -49,7 +47,7 @@ export default function CreatePlaquePage() {
             const newPlaque = {
                 id: newId,
                 name: name,
-                partner: name, // Mapping for dashboard view
+                partner: name,
                 actionText,
                 description,
                 extraInfo,
@@ -120,26 +118,18 @@ export default function CreatePlaquePage() {
                         <CardDescription>Enter the information to display on your plaque.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
+                        {/* 1. Name */}
                         <div className="space-y-2">
-                            <Label htmlFor="plaqueName">Template Name <span className="text-red-500">*</span></Label>
+                            <Label htmlFor="plaqueName">Name of the QR Plaque <span className="text-red-500">*</span></Label>
                             <Input
                                 id="plaqueName"
-                                placeholder="e.g. Counter Display"
+                                placeholder="e.g. Front Desk Display"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="actionText">Action Text</Label>
-                            <Input
-                                id="actionText"
-                                placeholder="SCAN HERE"
-                                value={actionText}
-                                onChange={(e) => setActionText(e.target.value)}
-                            />
-                        </div>
-
+                        {/* 2. Description */}
                         <div className="space-y-2">
                             <Label htmlFor="description">Description</Label>
                             <Input
@@ -150,16 +140,18 @@ export default function CreatePlaquePage() {
                             />
                         </div>
 
+                        {/* 3. Action Text */}
                         <div className="space-y-2">
-                            <Label htmlFor="extraInfo">Extra Info (Optional)</Label>
-                            <Textarea
-                                id="extraInfo"
-                                placeholder="e.g. Please check the amount before finalizing."
-                                value={extraInfo}
-                                onChange={(e) => setExtraInfo(e.target.value)}
+                            <Label htmlFor="actionText">Action Text</Label>
+                            <Input
+                                id="actionText"
+                                placeholder="Scan here or Scan now"
+                                value={actionText}
+                                onChange={(e) => setActionText(e.target.value)}
                             />
                         </div>
 
+                        {/* 4. QR Upload */}
                         <div className="space-y-2">
                             <Label>QR Code Image</Label>
                             <div className="flex items-center gap-4">
@@ -179,6 +171,17 @@ export default function CreatePlaquePage() {
                                 />
                                 {qrCodeUrl && <span className="text-sm text-green-600">Image uploaded</span>}
                             </div>
+                        </div>
+
+                        {/* 5. Footer (Extra Info) */}
+                        <div className="space-y-2">
+                            <Label htmlFor="extraInfo">Footer Text (Optional)</Label>
+                            <Textarea
+                                id="extraInfo"
+                                placeholder="e.g. Please check the amount before finalizing."
+                                value={extraInfo}
+                                onChange={(e) => setExtraInfo(e.target.value)}
+                            />
                         </div>
 
                         <div className="pt-4 flex gap-4">
