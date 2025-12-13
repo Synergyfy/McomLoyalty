@@ -62,6 +62,8 @@ export default function QRPlaquesPage() {
     const { data: subscription, isLoading: isSubscriptionLoading } = useGetMySubscription();
     const maxPlaques = subscription?.tier?.qrCodeCount || 0;
     const currentCount = plaques.length;
+    // Check if limit is reached (only if maxPlaques is not -1 which means unlimited)
+    const isLimitReached = maxPlaques !== -1 && currentCount >= maxPlaques;
 
     // Print State
     const [plaqueToPrint, setPlaqueToPrint] = useState<Plaque | null>(null);
@@ -190,7 +192,7 @@ export default function QRPlaquesPage() {
                             {isSubscriptionLoading ? (
                                 <span>Loading...</span>
                             ) : (
-                                <span>
+                                <span className={isLimitReached ? "text-red-600 font-bold" : ""}>
                                     Used: {currentCount} / {maxPlaques === -1 ? 'Unlimited' : maxPlaques}
                                 </span>
                             )}
@@ -200,11 +202,19 @@ export default function QRPlaquesPage() {
                             <Download className="mr-2 h-4 w-4" />
                             Download All
                         </Button>
-                        <Button asChild>
-                            <Link href="/dashboard/my-assets/qr-plaques/create">
+
+                        {/* Create Button with Limit Enforcement */}
+                        {isLimitReached ? (
+                            <Button disabled title="Plaque limit reached. Upgrade your plan to create more.">
                                 <Plus className="mr-2 h-4 w-4" /> Create QR Plaque
-                            </Link>
-                        </Button>
+                            </Button>
+                        ) : (
+                            <Button asChild>
+                                <Link href="/dashboard/my-assets/qr-plaques/create">
+                                    <Plus className="mr-2 h-4 w-4" /> Create QR Plaque
+                                </Link>
+                            </Button>
+                        )}
                     </div>
                 </div>
 
