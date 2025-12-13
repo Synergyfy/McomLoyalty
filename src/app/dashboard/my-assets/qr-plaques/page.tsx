@@ -67,24 +67,34 @@ export default function QRPlaquesPage() {
     const [selectedPlaque, setSelectedPlaque] = useState<Plaque | null>(null);
 
     // Subscription Hook
-    const { data: subscription, isLoading: isSubscriptionLoading } = useGetMySubscription();
+    // We also check isError to gracefully fallback
+    const { data: subscription, isLoading: isSubscriptionLoading, isError } = useGetMySubscription();
 
     // Calculate Max Plaques
     // Priority: 1. API qrCodeCount, 2. Map based on Name, 3. Default (5)
-    let maxPlaques = 0;
+    // Initialize with a safe default of 5 (Bronze) instead of 0
+    let maxPlaques = 5;
+
     if (subscription?.tier) {
-        if (typeof subscription.tier.qrCodeCount === 'number') {
+        // If we have explicit count from API, use it (even if 0, though unlikely for Platinum)
+        // But if it's 0, we might want to check if that's real or a mistake. For now, trust explicit number.
+        if (typeof subscription.tier.qrCodeCount === 'number' && subscription.tier.qrCodeCount > 0) {
             maxPlaques = subscription.tier.qrCodeCount;
-        } else if (subscription.tier.name && TIER_LIMITS[subscription.tier.name]) {
-            maxPlaques = TIER_LIMITS[subscription.tier.name];
-        } else {
-            // Try partial match if exact name doesn't match (e.g. "Gold" vs "Gold Plan")
-            const tierName = subscription.tier.name || '';
-            if (tierName.includes('Platinum')) maxPlaques = 50;
-            else if (tierName.includes('Gold')) maxPlaques = 20;
-            else if (tierName.includes('Silver')) maxPlaques = 10;
-            else if (tierName.includes('Bronze')) maxPlaques = 5;
-            else maxPlaques = 5; // Default safe limit
+        } else if (subscription.tier.name) {
+            // Fallback to name matching
+            const tierName = subscription.tier.name;
+
+            // Exact match
+            if (TIER_LIMITS[tierName]) {
+                maxPlaques = TIER_LIMITS[tierName];
+            } else {
+                // Partial/Case-insensitive match
+                const lowerName = tierName.toLowerCase();
+                if (lowerName.includes('platinum')) maxPlaques = 50;
+                else if (lowerName.includes('gold')) maxPlaques = 20;
+                else if (lowerName.includes('silver')) maxPlaques = 10;
+                else if (lowerName.includes('bronze')) maxPlaques = 5;
+            }
         }
     }
 
@@ -106,8 +116,6 @@ export default function QRPlaquesPage() {
         try {
             const saved = JSON.parse(localStorage.getItem('my_plaques_list') || '[]');
             if (saved.length > 0) {
-                // Determine if we should append or if they are already there (simple check)
-                 // Just merge for now, assuming mock data is static
                 setPlaques([...initialQrPlaquesData, ...saved]);
             }
         } catch (e) {
@@ -232,7 +240,7 @@ export default function QRPlaquesPage() {
 
                         {/* Create Button with Limit Enforcement */}
                         {isLimitReached ? (
-                            <Button disabled title="Plaque limit reached. Upgrade your plan to create more.">
+                            <Button disabled title={`Plaque limit reached (${maxPlaques}). Upgrade your plan to create more.`}>
                                 <Plus className="mr-2 h-4 w-4" /> Create QR Plaque
                             </Button>
                         ) : (
