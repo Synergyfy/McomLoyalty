@@ -148,7 +148,6 @@ export default function FormContactsPage() {
     search: searchQuery || undefined,
     locationTag: locationFilter !== 'all' ? locationFilter : undefined,
     relationshipTag: relationshipFilter !== 'all' ? relationshipFilter : undefined,
-    sourceTag: sourceFilter !== 'all' ? sourceFilter : undefined,
     status: statusFilter !== 'all' ? statusFilter : undefined,
     sortBy,
   };

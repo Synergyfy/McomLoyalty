@@ -52,7 +52,7 @@ export interface NetworkContactsQueryParams {
     locationTag?: LocationTag | "all"; // UI sends 'all'
     relationshipTag?: RelationshipTag | "all"; // UI sends 'all'
     status?: ContactStatus | "all"; // UI sends 'all'
-    sortBy?: "createdAt" | "fullName" | "email";
+    sortBy?: "createdAt" | "fullName" | "email" | "name" | "newest" | "oldest" | "active";
     sortOrder?: "ASC" | "DESC";
 }
 
