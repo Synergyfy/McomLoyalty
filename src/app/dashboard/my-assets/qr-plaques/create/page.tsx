@@ -38,24 +38,30 @@ export default function CreatePlaquePage() {
             return;
         }
 
-        const newPlaque = {
-            id: `local-${Date.now()}`,
-            name: name,
-            partner: name, // Mapping for dashboard view
-            actionText,
-            description,
-            extraInfo,
-            qrCodeUrl,
-            status: 'Draft',
-            scans: 0,
-            redemptions: 0,
-            linkedOffer: null,
-            price: null,
-            createdAt: new Date().toISOString(),
-        };
-
         try {
             const existingPlaques = JSON.parse(localStorage.getItem('my_plaques_list') || '[]');
+            // Calculate new ID based on initial mock data (5 items) + saved items
+            // Format: Plaque-XXX (e.g. Plaque-006)
+            const baseCount = 5;
+            const nextNum = baseCount + existingPlaques.length + 1;
+            const newId = `Plaque-${String(nextNum).padStart(3, '0')}`;
+
+            const newPlaque = {
+                id: newId,
+                name: name,
+                partner: name, // Mapping for dashboard view
+                actionText,
+                description,
+                extraInfo,
+                qrCodeUrl,
+                status: 'Draft',
+                scans: 0,
+                redemptions: 0,
+                linkedOffer: null,
+                price: null,
+                createdAt: new Date().toISOString(),
+            };
+
             localStorage.setItem('my_plaques_list', JSON.stringify([...existingPlaques, newPlaque]));
             toast.success("Plaque template saved successfully!");
             router.push('/dashboard/my-assets/qr-plaques');
