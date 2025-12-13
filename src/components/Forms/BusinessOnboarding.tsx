@@ -338,7 +338,7 @@ export default function BusinessOnboardingWizard() {
                       </p>
                       <Select
                         onValueChange={(value) => {
-                          setValue("referralCapacity", value as "12-24" | "25-49" | "50-99" | "100+", {
+                          setValue("referralCapacity", value as "12+" | "25+" | "50+" | "100+", {
                             shouldValidate: true,
                           });
                         }}
@@ -348,9 +348,9 @@ export default function BusinessOnboardingWizard() {
                           <SelectValue placeholder="Select referral capacity" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="12-24">12-24</SelectItem>
-                          <SelectItem value="25-49">25-49</SelectItem>
-                          <SelectItem value="50-99">50-99</SelectItem>
+                          <SelectItem value="12+">12+</SelectItem>
+                          <SelectItem value="25+">25+</SelectItem>
+                          <SelectItem value="50+">50+</SelectItem>
                           <SelectItem value="100+">100+</SelectItem>
                         </SelectContent>
                       </Select>
