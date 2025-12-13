@@ -1,13 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Download, Link as LinkIcon, Pencil, Trash2, MoreVertical, Settings } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Download, Link as LinkIcon, Pencil, Trash2, MoreVertical, Settings, Plus, Printer } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { DateRange } from 'react-day-picker';
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
+import Link from 'next/link';
+import { useGetMySubscription } from '@/services/tiers/hook';
+import { PlaquePreview } from '@/components/plaque/PlaquePreview';
 
 // Import Modals
 import AssignPartnerModal from '@/components/dashboard/my-assets/qr-plaques/AssignPartnerModal';
@@ -34,18 +37,65 @@ const chartData = [
     { name: 'Sun', scans: 349, redemptions: 430 },
 ];
 
-type Plaque = typeof initialQrPlaquesData[0];
+// Define a type that covers both initial data and saved plaques
+interface Plaque {
+    id: string;
+    partner: string;
+    status: string;
+    scans: number;
+    redemptions: number;
+    linkedOffer: string | null;
+    price: string | null;
+    // Optional fields for saved templates
+    actionText?: string;
+    description?: string;
+    extraInfo?: string;
+    qrCodeUrl?: string;
+}
 
 export default function QRPlaquesPage() {
     const [date, setDate] = useState<DateRange | undefined>({ from: new Date(), to: new Date() });
-    const [plaques, setPlaques] = useState(initialQrPlaquesData);
+    const [plaques, setPlaques] = useState<Plaque[]>(initialQrPlaquesData);
     const [selectedPlaque, setSelectedPlaque] = useState<Plaque | null>(null);
+
+    // Subscription Hook
+    const { data: subscription, isLoading: isSubscriptionLoading } = useGetMySubscription();
+    const maxPlaques = subscription?.tier?.qrCodeCount || 0;
+    const currentCount = plaques.length;
+
+    // Print State
+    const [plaqueToPrint, setPlaqueToPrint] = useState<Plaque | null>(null);
 
     // Modal states
     const [isAssignModalOpen, setAssignModalOpen] = useState(false);
     const [isSaleModalOpen, setSaleModalOpen] = useState(false);
     const [isConfigureModalOpen, setConfigureModalOpen] = useState(false);
     const [isDeactivateModalOpen, setDeactivateModalOpen] = useState(false);
+
+    useEffect(() => {
+        // Load saved plaques from local storage
+        try {
+            const saved = JSON.parse(localStorage.getItem('my_plaques_list') || '[]');
+            if (saved.length > 0) {
+                // Determine if we should append or if they are already there (simple check)
+                 // Just merge for now, assuming mock data is static
+                setPlaques([...initialQrPlaquesData, ...saved]);
+            }
+        } catch (e) {
+            console.error("Failed to load saved plaques", e);
+        }
+    }, []);
+
+    // Effect to trigger print
+    useEffect(() => {
+        if (plaqueToPrint) {
+            const timer = setTimeout(() => {
+                window.print();
+                setPlaqueToPrint(null);
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [plaqueToPrint]);
 
     // Handlers
     const handleOpenModal = (plaque: Plaque, modalSetter: React.Dispatch<React.SetStateAction<boolean>>) => {
@@ -57,7 +107,6 @@ export default function QRPlaquesPage() {
         if (!selectedPlaque) return;
         setPlaques(plaques.map(p => p.id === selectedPlaque.id ? { ...p, status: 'Pending Assignment', partner: `Pending (${partnerDetails.email})` } : p));
         setAssignModalOpen(false);
-        // TODO: Show toast notification
     };
 
     const handleMarkForSale = (price: string) => {
@@ -78,19 +127,87 @@ export default function QRPlaquesPage() {
         setDeactivateModalOpen(false);
     };
 
+    const handlePrint = (plaque: Plaque) => {
+        setPlaqueToPrint(plaque);
+    };
+
     const getStatusClass = (status: string) => {
         switch (status) {
             case 'Active': return 'bg-green-100 text-green-800';
             case 'Inactive': return 'bg-red-100 text-red-800';
             case 'For Sale': return 'bg-yellow-100 text-yellow-800';
             case 'Pending Assignment': return 'bg-blue-100 text-blue-800';
+            case 'Draft': return 'bg-gray-200 text-gray-800';
             default: return 'bg-gray-100 text-gray-800';
         }
     };
 
     return (
         <>
+             {/* Hidden Print Area */}
+            {plaqueToPrint && (
+                 <div id="print-area">
+                    <style jsx global>{`
+                        @media print {
+                            body * {
+                                visibility: hidden;
+                            }
+                            #print-area, #print-area * {
+                                visibility: visible;
+                            }
+                            #print-area {
+                                position: absolute;
+                                left: 0;
+                                top: 0;
+                                width: 100%;
+                                height: 100%;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                background: white;
+                                z-index: 9999;
+                            }
+                        }
+                    `}</style>
+                    <div className="w-full h-full flex justify-center items-center">
+                        <PlaquePreview
+                            actionText={plaqueToPrint.actionText || "SCAN HERE"}
+                            description={plaqueToPrint.description || "FOR PAYMENT"}
+                            extraInfo={plaqueToPrint.extraInfo || ""}
+                            qrCodeUrl={plaqueToPrint.qrCodeUrl || ""}
+                        />
+                    </div>
+                 </div>
+            )}
+
             <div className="space-y-6">
+                 {/* Header with Actions & Counter */}
+                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <h2 className="text-3xl font-bold tracking-tight">QR Plaques</h2>
+                    <div className="flex items-center gap-2">
+                        {/* Counter */}
+                        <div className="bg-gray-100 px-3 py-1.5 rounded-md text-sm font-medium text-gray-700">
+                            {isSubscriptionLoading ? (
+                                <span>Loading...</span>
+                            ) : (
+                                <span>
+                                    Used: {currentCount} / {maxPlaques === -1 ? 'Unlimited' : maxPlaques}
+                                </span>
+                            )}
+                        </div>
+
+                         <Button variant="outline">
+                            <Download className="mr-2 h-4 w-4" />
+                            Download All
+                        </Button>
+                        <Button asChild>
+                            <Link href="/dashboard/my-assets/qr-plaques/create">
+                                <Plus className="mr-2 h-4 w-4" /> Create QR Plaque
+                            </Link>
+                        </Button>
+                    </div>
+                </div>
+
                 {/* Filters */}
                 <div className="flex flex-col md:flex-row gap-4">
                     <Select>
@@ -133,6 +250,9 @@ export default function QRPlaquesPage() {
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
+                                                <DropdownMenuItem onClick={() => handlePrint(plaque)}>
+                                                    <Printer className="mr-2 h-4 w-4" /> Print / PDF
+                                                </DropdownMenuItem>
                                                 <DropdownMenuItem onClick={() => handleOpenModal(plaque, setConfigureModalOpen)}><Settings className="mr-2 h-4 w-4" /> Configure</DropdownMenuItem>
                                                 <DropdownMenuItem><Download className="mr-2 h-4 w-4" /> Download Artwork</DropdownMenuItem>
                                                 <DropdownMenuItem onClick={() => handleOpenModal(plaque, setAssignModalOpen)}><LinkIcon className="mr-2 h-4 w-4" /> Assign to Partner</DropdownMenuItem>
