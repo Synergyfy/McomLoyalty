@@ -10,7 +10,7 @@ interface Reward {
     id: string;
     title: string;
     description: string;
-    pointsRequired?: number;
+    pointRequired?: number;
     points_required?: number;
     image: string;
     value: number;
@@ -34,7 +34,7 @@ export default function PublicRewardCard({
     className
 }: PublicRewardCardProps) {
     // Handle points property inconsistency
-    const pointsRequired = reward.pointsRequired || reward.points_required || 0;
+    const pointsRequired = reward.pointRequired || reward.points_required || 0;
 
     const progress = isMember ? Math.min((userPoints / pointsRequired) * 100, 100) : 0;
     const canRedeem = isMember && userPoints >= pointsRequired;
