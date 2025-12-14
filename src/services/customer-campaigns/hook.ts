@@ -29,18 +29,42 @@ const PARTICIPANT_BALANCE_QUERY_KEY = 'participantBalance';
 const UNIQUE_CODE_QUERY_KEY = 'uniqueCode';
 
 // Get Public Campaigns
-const getPublicCampaigns = async (page: number, limit: number): Promise<PaginatedPublicCampaigns> => {
+const getPublicCampaigns = async (
+  page: number,
+  limit: number,
+  sectorId?: string,
+  categoryId?: string,
+  subCategoryId?: string,
+  search?: string,
+  sort?: string
+): Promise<PaginatedPublicCampaigns> => {
+  const params: any = { page, limit };
+  if (sectorId) params.sectorId = sectorId;
+  if (categoryId) params.categoryId = categoryId;
+  if (subCategoryId) params.subCategoryId = subCategoryId;
+  if (search) params.search = search;
+  if (sort) params.sort = sort;
+
   const { data } = await api.get<PaginatedPublicCampaigns>('/campaigns/all/public', {
-    params: { page, limit },
+    params,
     _skipAuthRedirect: true
   } as InternalAxiosRequestConfig);
   return data;
 };
 
-export const useGetPublicCampaigns = (page: number, limit: number) => {
+export const useGetPublicCampaigns = (
+  page: number,
+  limit: number,
+  sectorId?: string,
+  categoryId?: string,
+  subCategoryId?: string,
+  search?: string,
+  sort?: string
+) => {
   return useQuery({
-    queryKey: [PUBLIC_CAMPAIGNS_QUERY_KEY, page, limit],
-    queryFn: () => getPublicCampaigns(page, limit),
+    queryKey: [PUBLIC_CAMPAIGNS_QUERY_KEY, page, limit, sectorId, categoryId, subCategoryId, search, sort],
+    queryFn: () => getPublicCampaigns(page, limit, sectorId, categoryId, subCategoryId, search, sort),
+    placeholderData: (previousData) => previousData,
   });
 };
 
