@@ -2,6 +2,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 
 interface PlaquePreviewProps {
+  title?: string;
   actionText: string;
   description: string;
   extraInfo?: string;
@@ -10,7 +11,7 @@ interface PlaquePreviewProps {
 }
 
 export const PlaquePreview = React.forwardRef<HTMLDivElement, PlaquePreviewProps>(
-  ({ actionText, description, extraInfo, qrCodeUrl, className }, ref) => {
+  ({ title, actionText, description, extraInfo, qrCodeUrl, className }, ref) => {
     return (
       <div
         ref={ref}
@@ -23,13 +24,19 @@ export const PlaquePreview = React.forwardRef<HTMLDivElement, PlaquePreviewProps
         }}
       >
         <div className="flex-1 flex flex-col justify-center w-full space-y-6">
-          {/* Action Text */}
-          <div className="space-y-2">
-           
+          {/* Text Content - Order: Title -> Description -> Action Text */}
+          <div className="space-y-3">
+            {title && (
+              <h1 className="text-2xl font-black tracking-tight text-gray-900 uppercase">
+                {title}
+              </h1>
+            )}
+
             <h3 className="text-lg font-semibold tracking-wider text-gray-800 uppercase">
               {description || "FOR PAYMENT"}
             </h3>
-             <h2 className="text-xl font-bold tracking-widest text-gray-800 uppercase">
+
+            <h2 className="text-xl font-bold tracking-widest text-gray-800 uppercase">
               {actionText || "SCAN HERE"}
             </h2>
           </div>

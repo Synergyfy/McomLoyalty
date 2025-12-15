@@ -52,6 +52,7 @@ interface Plaque {
     description?: string;
     extraInfo?: string;
     qrCodeUrl?: string;
+    name?: string; // Sometimes saved as name
 }
 
 // Fallback limits if API qrCodeCount is missing
@@ -207,10 +208,10 @@ export default function QRPlaquesPage() {
                     `}</style>
                     <div className="w-full h-full flex justify-center items-center">
                         <PlaquePreview
-                            
+                            title={plaqueToPrint.partner || plaqueToPrint.name} // Use partner or name as title
+                            actionText={plaqueToPrint.actionText || "SCAN HERE"}
                             description={plaqueToPrint.description || "FOR PAYMENT"}
                             extraInfo={plaqueToPrint.extraInfo || ""}
-                            actionText={plaqueToPrint.actionText || "SCAN HERE"}
                             qrCodeUrl={plaqueToPrint.qrCodeUrl || ""}
                         />
                     </div>

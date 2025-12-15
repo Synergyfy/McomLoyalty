@@ -203,10 +203,11 @@ export default function CreatePlaquePage() {
 
                     <div className="border rounded-lg p-8 bg-gray-50 flex items-center justify-center min-h-[500px]">
                         <div id="plaque-preview-container">
-                            <PlaquePreview  
+                            <PlaquePreview
+                                title={name}
+                                actionText={actionText}
                                 description={description}
                                 extraInfo={extraInfo}
-                                actionText={actionText}
                                 qrCodeUrl={qrCodeUrl}
                             />
                         </div>
