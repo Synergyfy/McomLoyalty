@@ -21,7 +21,7 @@ export default function RedeemPointsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedReward, setSelectedReward] = useState<RewardResponse | null>(null);
 
-  const rewards = campaign?.rewards || [];
+  const rewards = campaign?.businessRewards || [];
   const userPoints = balance?.balance || 0;
 
   const handleRedeemClick = (rewardId: string) => {
