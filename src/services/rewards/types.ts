@@ -7,7 +7,7 @@ export interface CreateRewardRequest {
   gallery?: string[];
   quantity: number;
   reward_type: string;
-  reward_source: string;
+  // reward_source: string;
   audience: string;
   expiry_datetime: string;
   status: string;
