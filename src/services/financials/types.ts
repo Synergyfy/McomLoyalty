@@ -169,6 +169,7 @@ export interface PaymentHistorySearchParams {
   purchase_type?: string;
   min_amount?: number;
   max_amount?: number;
+  sort?: 'ASC' | 'DESC';
 }
 
 export interface PointPackage {

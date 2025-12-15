@@ -37,6 +37,7 @@ export default function FinancialsPage() {
     purchase_type: 'all',
     min_amount: undefined,
     max_amount: undefined,
+    sort: 'DESC',
   });
 
   const debouncedSearch = useDebounce(paymentFilters.search, 500);
@@ -80,6 +81,7 @@ export default function FinancialsPage() {
       purchase_type: 'all',
       min_amount: undefined,
       max_amount: undefined,
+      sort: 'DESC',
     });
   };
 
@@ -335,6 +337,20 @@ export default function FinancialsPage() {
                       onChange={(e) => handleFilterChange('max_amount', e.target.value ? parseFloat(e.target.value) : undefined)}
                     />
                   </div>
+
+                  {/* Sort Order */}
+                  <Select
+                    value={paymentFilters.sort || 'DESC'}
+                    onValueChange={(value) => handleFilterChange('sort', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sort Order" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="DESC">Newest First</SelectItem>
+                      <SelectItem value="ASC">Oldest First</SelectItem>
+                    </SelectContent>
+                  </Select>
 
                   {/* Clear Filters */}
                   <Button variant="outline" onClick={clearFilters} className="w-full">
