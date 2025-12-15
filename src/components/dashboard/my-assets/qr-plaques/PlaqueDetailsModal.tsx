@@ -27,6 +27,7 @@ export default function PlaqueDetailsModal({ isOpen, onClose, plaque, onPrint }:
            {/* The Card Display */}
            <div className="transform scale-100 origin-top">
               <PlaquePreview
+                  title={plaque.partner || plaque.name}
                   actionText={plaque.actionText || "SCAN HERE"}
                   description={plaque.description || "FOR PAYMENT"}
                   extraInfo={plaque.extraInfo || ""}
