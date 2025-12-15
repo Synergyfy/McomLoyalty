@@ -70,7 +70,7 @@ export default function CreateRewardWizardModal({
   const [galleryPreviewUrls, setGalleryPreviewUrls] = useState<string[]>([]);
   const [status, setStatus] = useState<RewardResponse['status']>('draft');
   const [selectedSector, setSelectedSector] = useState('');
-  const [rewardSource, setRewardSource] = useState('mcom vault');
+  // const [rewardSource, setRewardSource] = useState('mcom vault');
   const [audience, setAudience] = useState('all business');
   const [newRewardId, setNewRewardId] = useState<string | null>(null);
 
@@ -101,7 +101,7 @@ export default function CreateRewardWizardModal({
     setGalleryPreviewUrls([]);
     setStatus('draft');
     setSelectedSector('');
-    setRewardSource('mcom vault');
+    // setRewardSource('mcom vault');
     setAudience('all business');
     setErrors({});
   };
@@ -259,7 +259,7 @@ export default function CreateRewardWizardModal({
         gallery: finalGalleryUrls,
         quantity: 100, // Default or add field if needed
         reward_type: rewardType,
-        reward_source: rewardSource,
+        // reward_source: rewardSource,
         audience,
         expiry_datetime: expiry.toISOString(),
         status,
@@ -546,7 +546,7 @@ export default function CreateRewardWizardModal({
                     )}
                     {selectedSector && <div className="flex justify-between"><span className="font-medium">Sector:</span><span>{sectors.find(s => s.id === selectedSector)?.name}</span></div>}
                     <div className="flex justify-between"><span className="font-medium">Audience:</span><span>{audience.replace('_', ' ')}</span></div>
-                    <div className="flex justify-between"><span className="font-medium">Source:</span><span>{rewardSource === 'mcom vault' ? 'MCOM Vault' : 'Partner'}</span></div>
+                    {/* <div className="flex justify-between"><span className="font-medium">Source:</span><span>{rewardSource === 'mcom vault' ? 'MCOM Vault' : 'Partner'}</span></div> */}
                     <div className="flex justify-between"><span className="font-medium">Expires:</span><span>{expiry.toLocaleDateString()}</span></div>
                   </div>
                 </CardContent>
