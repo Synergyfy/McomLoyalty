@@ -146,7 +146,7 @@ const onSubmit = async (data: BusinessSignUpDto) => {
           <div>
             <Label htmlFor="confirmPassword">Confirm Password <span className="text-red-500">*</span></Label>
             <Input
-              id="confirmPassword"
+              id="referalcode"
               type={showPassword ? "text" : "password"}
               placeholder="••••••••"
               {...register("confirmPassword", {
@@ -158,6 +158,24 @@ const onSubmit = async (data: BusinessSignUpDto) => {
             {errors.confirmPassword && (
               <p className="text-red-500 text-sm mt-1">
                 {errors.confirmPassword.message}
+              </p>
+            )}
+          </div>
+           <div>
+            <Label htmlFor="referalCode">Referal code <span className="text-red-500">*</span></Label>
+            <Input
+              id="referalCode"
+              type={showPassword ? "text" : "password"}
+              placeholder="....."
+              {...register("confirmPassword", {
+                required: "Con is required",
+                validate: (value) =>
+                  value === watch("password") || "Passwords do not match",
+              })}
+            />
+            {errors.inviteCode && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.inviteCode.message}
               </p>
             )}
           </div>
