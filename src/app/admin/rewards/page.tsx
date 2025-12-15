@@ -51,7 +51,8 @@ interface DisplayStatus {
 
 const getRewardDisplayStatus = (reward: RewardResponse): DisplayStatus => {
   const now = new Date();
-  const expiryDate = new Date(reward.expiry);
+  // Use expiryDatetime if available (preferred), fallback to expiry
+  const expiryDate = new Date(reward.expiryDatetime || reward.expiry);
 
   if (expiryDate < now) {
     return { text: 'Expired', variant: 'destructive' };
@@ -71,13 +72,13 @@ const RewardItem = ({ reward, onEdit, onDuplicate, onDelete }: {
   onDuplicate: (id: string) => void;
   onDelete: (id: string) => void;
 }) => {
-  // Select a random image from gallery or fallback to main image
+  // Main image logic: use first gallery image or fallback to main image
   const displayImage = useMemo(() => {
     if (reward.gallery && reward.gallery.length > 0) {
-      return reward.gallery[Math.floor(Math.random() * reward.gallery.length)];
+      return reward.gallery[0];
     }
     return reward.image;
-  }, [reward.gallery, reward.image, reward.id]); // reward.id included for stability
+  }, [reward.gallery, reward.image]);
 
   return (
     <Card className="flex flex-col justify-between hover:shadow-lg transition-shadow duration-200">
@@ -128,7 +129,26 @@ const RewardItem = ({ reward, onEdit, onDuplicate, onDelete }: {
         </div>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-gray-600 mb-3 h-10">{reward.description}</p>
+        {/* Gallery Thumbnails */}
+        {reward.gallery && reward.gallery.length > 0 && (
+          <div className="mb-4">
+            <p className="text-xs text-gray-500 mb-2">Gallery:</p>
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {reward.gallery.map((img, index) => (
+                <div key={index} className="relative w-10 h-10 flex-shrink-0 rounded-md overflow-hidden bg-gray-100 border border-gray-200">
+                  <Image
+                    src={img}
+                    alt={`Gallery ${index + 1}`}
+                    layout="fill"
+                    objectFit="cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <p className="text-sm text-gray-600 mb-3 h-10 line-clamp-2">{reward.description}</p>
         <div className="space-y-2 text-sm border-t pt-3 mt-3">
           <div className="flex justify-between">
             <span className="font-medium text-gray-500">Value:</span>
@@ -145,7 +165,8 @@ const RewardItem = ({ reward, onEdit, onDuplicate, onDelete }: {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <span>{reward.max_points}</span>
+            {/* Use maxPoints from payload, fallback to max_points or pointRequired for safety */}
+            <span>{reward.maxPoints || reward.max_points || reward.pointRequired}</span>
           </div>
           <div className="flex justify-between">
             <span className="font-medium text-gray-500">Created:</span>

@@ -35,7 +35,8 @@ export interface RewardResponse {
   id: string;
   title: string;
   pointRequired: number;
-  max_points: number;
+  maxPoints: number; // Corrected to match backend payload
+  max_points?: number; // Kept as optional just in case
   value: number;
   description: string;
   image: string;
@@ -45,11 +46,12 @@ export interface RewardResponse {
   createdAt: string;
   updatedAt: string;
   disabled: boolean;
-  rewardType: string; // Backend uses rewardType (camelCase)
-  type: string; // Keep for backward compatibility
+  rewardType: string;
+  type: string;
   status: string;
   expiry: string;
-  badgeLevel: string | string[]; // Can be string or array
+  expiryDatetime?: string; // Corrected to match backend payload
+  badgeLevel: string | string[];
 }
 
 export interface GetRewardsResponse {
