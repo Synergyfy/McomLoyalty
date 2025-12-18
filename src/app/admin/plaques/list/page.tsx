@@ -18,6 +18,16 @@ import { RetirePlaqueModal } from '@/components/admin/plaques/RetirePlaqueModal'
 import { AddEditPlaqueModal } from '@/components/admin/plaques/AddEditPlaqueModal';
 import { useGetAdminQrPlaques, useDeleteAdminQrPlaque, useUpdateAdminQrPlaque } from '@/services/qr-plaques/hook';
 import { QrPlaque } from '@/services/qr-plaques/types';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function PlaqueListPage() {
   const router = useRouter();
@@ -35,18 +45,15 @@ export default function PlaqueListPage() {
       page: Number(page) || 1,
       limit: Number(limit) || 10,
       search: searchTerm || undefined,
-      // Add other filters if API supports them (e.g. status)
       status: filterStatus !== 'all' ? [filterStatus] : undefined,
-      // assignedBusinessId: filterOwner !== 'all' ? filterOwner : undefined, // If supported
   };
 
   // API Hooks
   const { data: plaquesResponse, isLoading } = useGetAdminQrPlaques(queryParams);
-  const { mutate: deletePlaque } = useDeleteAdminQrPlaque();
+  const { mutate: deletePlaque, isPending: isDeleting } = useDeleteAdminQrPlaque();
   const { mutate: updatePlaque, isPending: isUpdating } = useUpdateAdminQrPlaque();
 
-  // Handle response structure (Array or Paginated Object)
-  // Cast to any to avoid TS error if types say array but runtime is object
+  // Handle response structure
   const plaques = Array.isArray(plaquesResponse)
       ? plaquesResponse
       : ((plaquesResponse as any)?.data || []);
@@ -66,30 +73,27 @@ export default function PlaqueListPage() {
     setShowFeedbackDialog(true);
   };
 
-  // State for Add/Edit Plaque Modal
+  // Modal States
   const [showAddEditPlaqueModal, setShowAddEditPlaqueModal] = useState(false);
   const [currentPlaqueForEdit, setCurrentPlaqueForEdit] = useState<QrPlaque | undefined>(undefined);
 
-  // State for Transfer Plaque Modal
   const [showTransferPlaqueModal, setShowTransferPlaqueModal] = useState(false);
   const [currentPlaqueForTransfer, setCurrentPlaqueForTransfer] = useState<QrPlaque | undefined>(undefined);
 
-  // State for Retire Plaque Modal
   const [showRetirePlaqueModal, setShowRetirePlaqueModal] = useState(false);
   const [currentPlaqueForRetire, setCurrentPlaqueForRetire] = useState<QrPlaque | undefined>(undefined);
 
+  // Delete Modal State
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [plaqueToDelete, setPlaqueToDelete] = useState<QrPlaque | null>(null);
+
   const filteredPlaques = useMemo(() => {
-    // If backend handles filtering, client-side filtering might be redundant or for refined search
-    // But since search/status are sent to backend, we rely on backend mainly.
-    // However, keeping client filtering for Group/Owner if API doesn't support them yet.
     return plaques.filter((plaque: QrPlaque) => {
       const matchesSearch = plaque.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             plaque.ownerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             plaque.id.toLowerCase().includes(searchTerm.toLowerCase());
-      // const matchesGroup = filterGroup === 'all' || plaque.groupId === filterGroup; // Group not in API yet
       const matchesOwner = filterOwner === 'all' || plaque.assignedBusinessId === filterOwner;
-      // const matchesStatus = filterStatus === 'all' || plaque.status === filterStatus; // Handled by API
-      return matchesOwner; // matchesSearch && matchesStatus are handled by API params ideally
+      return matchesOwner;
     });
   }, [plaques, searchTerm, filterGroup, filterOwner, filterStatus]);
 
@@ -104,9 +108,20 @@ export default function PlaqueListPage() {
     }
   };
 
-  const handleDeletePlaque = (plaqueId: string) => {
-    if (confirm('Are you sure you want to delete this plaque?')) {
-        deletePlaque(plaqueId);
+  // New Delete Handler
+  const handleDeleteClick = (plaque: QrPlaque) => {
+    setPlaqueToDelete(plaque);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    if (plaqueToDelete) {
+      deletePlaque(plaqueToDelete.id, {
+        onSuccess: () => {
+          setShowDeleteModal(false);
+          setPlaqueToDelete(null);
+        }
+      });
     }
   };
 
@@ -115,7 +130,6 @@ export default function PlaqueListPage() {
     setShowAddEditPlaqueModal(true);
   };
 
-  // Refactored to handle mutation here
   const handleSavePlaque = (plaqueData: any) => {
      if (currentPlaqueForEdit) {
          updatePlaque({
@@ -125,7 +139,8 @@ export default function PlaqueListPage() {
                  description: plaqueData.description,
                  assignedBusinessId: plaqueData.assignedBusinessId,
                  status: plaqueData.status,
-                 qrCodeUrl: plaqueData.qrCodeUrl
+                 qrCodeUrl: plaqueData.qrCodeUrl,
+                 contentUrl: plaqueData.contentUrl
              }
          }, {
              onSuccess: () => {
@@ -259,7 +274,7 @@ export default function PlaqueListPage() {
                         <Link href={`/admin/plaques/${plaque.id}/print`}>
                           <Button variant="outline" size="sm"><Printer className="h-4 w-4" /></Button>
                         </Link>
-                        <Button variant="destructive" size="sm" onClick={() => handleDeletePlaque(plaque.id)}><Trash2 className="h-4 w-4" /></Button>
+                        <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(plaque)}><Trash2 className="h-4 w-4" /></Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -292,6 +307,32 @@ export default function PlaqueListPage() {
         plaque={currentPlaqueForRetire}
         onSuccess={handleRetireSuccess}
       />
+
+      {/* Inline Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the plaque
+              {plaqueToDelete ? <span className="font-medium text-foreground"> "{plaqueToDelete.name}"</span> : ""} and remove it from the system.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowDeleteModal(false)} disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                confirmDelete();
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <FeedbackDialog
         isOpen={showFeedbackDialog}
