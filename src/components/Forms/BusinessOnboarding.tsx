@@ -409,7 +409,7 @@ export default function BusinessOnboardingWizard() {
                       </Button>
                       <Button
                         type="submit"
-                        disabled={isPending || !agreedToTerms}
+                        disabled={isPending || !agreedToTerms || !watch("referralCapacity")}
                         className="bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400"
                       >
                         {isPending && <LoadingSpinner />}
