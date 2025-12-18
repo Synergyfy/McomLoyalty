@@ -1,19 +1,21 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Download, Link as LinkIcon, Pencil, Trash2, MoreVertical, Settings, Plus, Printer, Eye } from 'lucide-react';
+import { Download, Link as LinkIcon, Pencil, Trash2, MoreVertical, Settings, Plus, Printer, Eye, Search } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { DateRange } from 'react-day-picker';
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import Link from 'next/link';
 import { useGetMySubscription } from '@/services/tiers/hook';
 import { PlaquePreview } from '@/components/plaque/PlaquePreview';
-import { useGetQrPlaques, useUpdateQrPlaque, useGetQrPlaqueByCode } from '@/services/qr-plaques/hook';
+import { useGetQrPlaques, useUpdateQrPlaque } from '@/services/qr-plaques/hook';
 import { QrPlaque } from '@/services/qr-plaques/types';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 
 // Import Modals
 import AssignPartnerModal from '@/components/dashboard/my-assets/qr-plaques/AssignPartnerModal';
@@ -41,20 +43,44 @@ const TIER_LIMITS: Record<string, number> = {
 };
 
 export default function QRPlaquesPage() {
-    const [date, setDate] = useState<DateRange | undefined>({ from: new Date(), to: new Date() });
+    // Filter States
+    const [date, setDate] = useState<DateRange | undefined>({ from: undefined, to: undefined });
+    const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [page, setPage] = useState(1);
+    const limit = 10;
+
     const [selectedPlaque, setSelectedPlaque] = useState<QrPlaque | null>(null);
 
+    // Prepare API Params
+    // Explicitly casting to number just to be safe, though 1 is number.
+    const queryParams = {
+        page: Number(page) || 1,
+        limit: Number(limit) || 10,
+        search: searchTerm || undefined,
+        status: statusFilter !== 'all' ? [statusFilter] : undefined,
+        startDate: date?.from ? format(date.from, 'yyyy-MM-dd') : undefined,
+        endDate: date?.to ? format(date.to, 'yyyy-MM-dd') : undefined,
+        sort: 'NEWEST'
+    };
+
     // API Hooks
-    const { data: plaquesData, isLoading } = useGetQrPlaques();
+    const { data: plaquesResponse, isLoading } = useGetQrPlaques(queryParams);
     const { mutate: updatePlaque } = useUpdateQrPlaque();
-    const plaques = plaquesData || [];
+
+    // Handle response structure (Array or Paginated Object)
+    // Cast to any to avoid TS error if types say array but runtime is object
+    const plaques = Array.isArray(plaquesResponse)
+        ? plaquesResponse
+        : ((plaquesResponse as any)?.data || []);
+
+    const totalItems = (plaquesResponse as any)?.meta?.total || plaques.length;
 
     // Subscription Hook
     const { data: subscription, isLoading: isSubscriptionLoading } = useGetMySubscription();
 
     // Calculate Max Plaques
     let maxPlaques = 5;
-
     if (subscription?.tier) {
         if (typeof subscription.tier.qrCodeCount === 'number' && subscription.tier.qrCodeCount > 0) {
             maxPlaques = subscription.tier.qrCodeCount;
@@ -62,23 +88,15 @@ export default function QRPlaquesPage() {
             const tierName = subscription.tier.name;
             if (TIER_LIMITS[tierName]) {
                 maxPlaques = TIER_LIMITS[tierName];
-            } else {
-                const lowerName = tierName.toLowerCase();
-                if (lowerName.includes('platinum')) maxPlaques = 50;
-                else if (lowerName.includes('gold')) maxPlaques = 20;
-                else if (lowerName.includes('silver')) maxPlaques = 10;
-                else if (lowerName.includes('bronze')) maxPlaques = 5;
             }
         }
     }
 
-    const currentCount = plaques.length;
+    const currentCount = totalItems;
     const isLimitReached = maxPlaques !== -1 && currentCount >= maxPlaques;
 
     // Print State
     const [plaqueToPrint, setPlaqueToPrint] = useState<QrPlaque | null>(null);
-
-    // View Details State
     const [viewPlaque, setViewPlaque] = useState<QrPlaque | null>(null);
 
     // Modal states
@@ -108,13 +126,7 @@ export default function QRPlaquesPage() {
         if (!selectedPlaque) return;
         updatePlaque({
             id: selectedPlaque.id,
-            data: {
-                status: 'PENDING',
-                // API might expect just status or specific partner fields.
-                // Based on provided mocks, we are sending what we can.
-                // If partner ID is needed, we would need to look it up or send email if API supports it.
-                // For now, assuming standard update structure.
-            }
+            data: { status: 'PENDING' }
         }, {
             onSuccess: () => setAssignModalOpen(false)
         });
@@ -122,15 +134,10 @@ export default function QRPlaquesPage() {
 
     const handleMarkForSale = (price: string) => {
         if (!selectedPlaque) return;
-        // Parse "£25.00" to number 25.00
         const priceValue = parseFloat(price.replace(/[^0-9.]/g, ''));
-
         updatePlaque({
             id: selectedPlaque.id,
-            data: {
-                status: 'FOR_SALE',
-                price: priceValue
-            }
+            data: { status: 'FOR_SALE', price: priceValue }
         }, {
             onSuccess: () => setSaleModalOpen(false)
         });
@@ -140,10 +147,7 @@ export default function QRPlaquesPage() {
         if (!selectedPlaque) return;
         updatePlaque({
             id: selectedPlaque.id,
-            data: {
-                contentUrl: config.linkedOffer,
-                status: 'ACTIVE'
-            }
+            data: { contentUrl: config.linkedOffer, status: 'ACTIVE' }
         }, {
             onSuccess: () => setConfigureModalOpen(false)
         });
@@ -164,7 +168,6 @@ export default function QRPlaquesPage() {
     };
 
     const handleViewDetails = (plaque: QrPlaque) => {
-        // Here we could fetch fresh details if needed, but passing the current object is usually fine for display
         setViewPlaque(plaque);
     };
 
@@ -181,7 +184,7 @@ export default function QRPlaquesPage() {
 
     return (
         <>
-             {/* Hidden Print Area */}
+            {/* Hidden Print Area */}
             {plaqueToPrint && (
                  <div id="print-area">
                     <style jsx global>{`
@@ -219,11 +222,10 @@ export default function QRPlaquesPage() {
             )}
 
             <div className="space-y-6">
-                 {/* Header with Actions & Counter */}
+                 {/* Header */}
                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                     <h2 className="text-3xl font-bold tracking-tight">QR Plaques</h2>
                     <div className="flex items-center gap-2">
-                        {/* Counter */}
                         <div className="bg-gray-100 px-3 py-1.5 rounded-md text-sm font-medium text-gray-700">
                             {isSubscriptionLoading ? (
                                 <span>Loading...</span>
@@ -239,9 +241,8 @@ export default function QRPlaquesPage() {
                             Download All
                         </Button>
 
-                        {/* Create Button with Limit Enforcement */}
                         {isLimitReached ? (
-                            <Button disabled title={`Plaque limit reached (${maxPlaques}). Upgrade your plan to create more.`}>
+                            <Button disabled title="Limit reached">
                                 <Plus className="mr-2 h-4 w-4" /> Create QR Plaque
                             </Button>
                         ) : (
@@ -255,15 +256,24 @@ export default function QRPlaquesPage() {
                 </div>
 
                 {/* Filters */}
-                <div className="flex flex-col md:flex-row gap-4">
-                    <Select>
+                <div className="flex flex-col md:flex-row gap-4 items-center">
+                    <div className="relative w-full md:w-[250px]">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Search plaques..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-8"
+                        />
+                    </div>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
                         <SelectTrigger className="w-full md:w-[180px]"><SelectValue placeholder="Status" /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Statuses</SelectItem>
                             <SelectItem value="ACTIVE">Active</SelectItem>
                             <SelectItem value="INACTIVE">Inactive</SelectItem>
                             <SelectItem value="FOR_SALE">For Sale</SelectItem>
-                            <SelectItem value="PENDING">Pending Assignment</SelectItem>
+                            <SelectItem value="PENDING">Pending</SelectItem>
                         </SelectContent>
                     </Select>
                     <DatePickerWithRange date={date} setDate={setDate} />
@@ -292,7 +302,7 @@ export default function QRPlaquesPage() {
                                         <td colSpan={7} className="text-center py-8 text-gray-500">No plaques found.</td>
                                     </tr>
                                 ) : (
-                                    plaques.map((plaque) => (
+                                    plaques.map((plaque: QrPlaque) => (
                                         <tr
                                             key={plaque.id}
                                             className="border-b hover:bg-gray-50 cursor-pointer transition-colors"
@@ -315,8 +325,7 @@ export default function QRPlaquesPage() {
                                                             <Printer className="mr-2 h-4 w-4" /> Print / PDF
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem onClick={() => handleOpenModal(plaque, setConfigureModalOpen)}><Settings className="mr-2 h-4 w-4" /> Configure</DropdownMenuItem>
-                                                        <DropdownMenuItem><Download className="mr-2 h-4 w-4" /> Download Artwork</DropdownMenuItem>
-                                                        <DropdownMenuItem onClick={() => handleOpenModal(plaque, setAssignModalOpen)}><LinkIcon className="mr-2 h-4 w-4" /> Assign to Partner</DropdownMenuItem>
+                                                        <DropdownMenuItem onClick={() => handleOpenModal(plaque, setAssignModalOpen)}><LinkIcon className="mr-2 h-4 w-4" /> Assign</DropdownMenuItem>
                                                         <DropdownMenuItem onClick={() => handleOpenModal(plaque, setSaleModalOpen)}><Pencil className="mr-2 h-4 w-4" /> Mark for Sale</DropdownMenuItem>
                                                         <DropdownMenuItem onClick={() => handleOpenModal(plaque, setDeactivateModalOpen)}><Trash2 className="mr-2 h-4 w-4" /> Deactivate</DropdownMenuItem>
                                                     </DropdownMenuContent>
@@ -337,7 +346,7 @@ export default function QRPlaquesPage() {
                 </div>
             </div>
 
-            {/* Modals */}
+            {/* Modals - Passed Correct Data */}
             <PlaqueDetailsModal
                 isOpen={!!viewPlaque}
                 onClose={() => setViewPlaque(null)}
