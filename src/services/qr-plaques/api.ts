@@ -6,6 +6,22 @@ import {
   AdminUpdateQrPlaqueRequest
 } from './types';
 
+// Helper to serialize params without brackets for arrays: status=A&status=B
+const paramsSerializer = (params: any) => {
+  const searchParams = new URLSearchParams();
+  Object.keys(params).forEach(key => {
+    const value = params[key];
+    if (value === undefined || value === null) return;
+
+    if (Array.isArray(value)) {
+      value.forEach(v => searchParams.append(key, v));
+    } else {
+      searchParams.append(key, value);
+    }
+  });
+  return searchParams.toString();
+};
+
 // Shared Endpoints
 
 export const createQrPlaque = async (data: CreateQrPlaqueRequest): Promise<QrPlaque> => {
@@ -16,7 +32,10 @@ export const createQrPlaque = async (data: CreateQrPlaqueRequest): Promise<QrPla
 // Business Endpoints
 
 export const getQrPlaques = async (params?: any): Promise<QrPlaque[]> => {
-  const response = await api.get('/qr-plaques', { params });
+  const response = await api.get('/qr-plaques', {
+    params,
+    paramsSerializer: (p) => paramsSerializer(p)
+  });
   return response.data;
 };
 
@@ -33,13 +52,15 @@ export const getQrPlaqueByCode = async (code: string): Promise<QrPlaque> => {
 // Admin Endpoints
 
 export const getAdminQrPlaques = async (params?: any): Promise<QrPlaque[]> => {
-  const response = await api.get('/qr-plaques/admin/list', { params });
+  const response = await api.get('/qr-plaques/admin/list', {
+    params,
+    paramsSerializer: (p) => paramsSerializer(p)
+  });
   return response.data;
 };
 
 // Admin Create uses the shared POST /qr-plaques
 export const createAdminQrPlaque = async (data: CreateQrPlaqueRequest): Promise<QrPlaque> => {
-    // Corrected to use the shared endpoint per user instruction
     const response = await api.post('/qr-plaques', data);
     return response.data;
 };
