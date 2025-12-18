@@ -222,7 +222,7 @@ export default function CampaignsListPage() {
   // Check if user has reached their campaign limit
   const maxActiveCampaigns = subscriptionData?.tier?.configuration?.quotas?.maxActiveCampaigns ?? 0;
   const currentActiveCampaigns = tierUsageData?.features?.campaigns?.used ?? 0;
-  const hasReachedCampaignLimit = currentActiveCampaigns >= maxActiveCampaigns;
+  const hasReachedCampaignLimit = maxActiveCampaigns !== -1 && currentActiveCampaigns >= maxActiveCampaigns;
 
   const renderCampaigns = (campaigns: PublicCampaignResponse[], isLoading: boolean) => {
     // ... loading / empty states ...
@@ -300,9 +300,11 @@ export default function CampaignsListPage() {
                     Reward:
                   </span>
                   <span className="font-semibold text-right">
-                    {campaign.rewards && campaign.rewards.length > 0
-                      ? campaign.rewards[0].title
-                      : 'N/A'}
+                    {campaign.businessRewards && campaign.businessRewards.length > 0
+                      ? campaign.businessRewards[0].title
+                      : (campaign.rewards && campaign.rewards.length > 0
+                        ? campaign.rewards[0].title
+                        : 'N/A')}
                   </span>
                 </div>
                 <div className="flex justify-between">
