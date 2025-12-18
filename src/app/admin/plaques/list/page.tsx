@@ -22,17 +22,36 @@ import { QrPlaque } from '@/services/qr-plaques/types';
 export default function PlaqueListPage() {
   const router = useRouter();
 
-  // API Hooks
-  const { data: plaquesData, isLoading } = useGetAdminQrPlaques();
-  const { mutate: deletePlaque } = useDeleteAdminQrPlaque();
-  const { mutate: updatePlaque, isPending: isUpdating } = useUpdateAdminQrPlaque();
-
-  const plaques = plaquesData || [];
-
+  // State for Filters/Params
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterGroup, setFilterGroup] = useState('all');
   const [filterOwner, setFilterOwner] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+
+  // Prepare Query Params with Explicit Integers
+  const queryParams = {
+      page: Number(page) || 1,
+      limit: Number(limit) || 10,
+      search: searchTerm || undefined,
+      // Add other filters if API supports them (e.g. status)
+      status: filterStatus !== 'all' ? [filterStatus] : undefined,
+      // assignedBusinessId: filterOwner !== 'all' ? filterOwner : undefined, // If supported
+  };
+
+  // API Hooks
+  const { data: plaquesResponse, isLoading } = useGetAdminQrPlaques(queryParams);
+  const { mutate: deletePlaque } = useDeleteAdminQrPlaque();
+  const { mutate: updatePlaque, isPending: isUpdating } = useUpdateAdminQrPlaque();
+
+  // Handle response structure (Array or Paginated Object)
+  // Cast to any to avoid TS error if types say array but runtime is object
+  const plaques = Array.isArray(plaquesResponse)
+      ? plaquesResponse
+      : ((plaquesResponse as any)?.data || []);
+
+  const totalItems = (plaquesResponse as any)?.meta?.total || plaques.length;
 
   // State for Feedback Dialog
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
@@ -60,14 +79,17 @@ export default function PlaqueListPage() {
   const [currentPlaqueForRetire, setCurrentPlaqueForRetire] = useState<QrPlaque | undefined>(undefined);
 
   const filteredPlaques = useMemo(() => {
-    return plaques.filter(plaque => {
+    // If backend handles filtering, client-side filtering might be redundant or for refined search
+    // But since search/status are sent to backend, we rely on backend mainly.
+    // However, keeping client filtering for Group/Owner if API doesn't support them yet.
+    return plaques.filter((plaque: QrPlaque) => {
       const matchesSearch = plaque.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             plaque.ownerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             plaque.id.toLowerCase().includes(searchTerm.toLowerCase());
       // const matchesGroup = filterGroup === 'all' || plaque.groupId === filterGroup; // Group not in API yet
       const matchesOwner = filterOwner === 'all' || plaque.assignedBusinessId === filterOwner;
-      const matchesStatus = filterStatus === 'all' || plaque.status === filterStatus;
-      return matchesSearch && matchesOwner && matchesStatus;
+      // const matchesStatus = filterStatus === 'all' || plaque.status === filterStatus; // Handled by API
+      return matchesOwner; // matchesSearch && matchesStatus are handled by API params ideally
     });
   }, [plaques, searchTerm, filterGroup, filterOwner, filterStatus]);
 
@@ -216,7 +238,7 @@ export default function PlaqueListPage() {
                   </TableCell>
                   </TableRow>
               ) : (
-                filteredPlaques.map((plaque) => (
+                filteredPlaques.map((plaque: QrPlaque) => (
                   <TableRow key={plaque.id}>
                     <TableCell className="font-medium">{plaque.id}</TableCell>
                     <TableCell>{plaque.name}</TableCell>
