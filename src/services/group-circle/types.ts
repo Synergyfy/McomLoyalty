@@ -80,3 +80,36 @@ export interface UpdateGroupCircleDto {
     networkIds?: string[];
     contributionAmount?: number;
 }
+export interface SendMessageDto {
+    content: string;
+    recipientId?: string;
+    senderId?: string;
+}
+
+export interface GroupCircleMessage {
+    id: string;
+    content: string;
+    type: 'GROUP' | 'DIRECT';
+    senderName: string;
+    senderId: string;
+    recipientId?: string;
+    created_at: string;
+}
+
+export interface MessageQueryParams {
+    page?: number;
+    limit?: number;
+    type?: 'GROUP' | 'DIRECT';
+    memberId?: string;
+}
+
+export interface MessagesResponse {
+    data: GroupCircleMessage[];
+    meta: {
+        total: number;
+        page: number;
+        lastPage: number;
+        nextPage: number | null;
+        prevPage: number | null;
+    };
+}

@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api';
-import { CreateGroupCircleDto, GroupCircle, GroupCirclesQueryParams, GroupCirclesResponse, UpdateGroupCircleDto } from './types';
+import { CreateGroupCircleDto, GroupCircle, GroupCirclesQueryParams, GroupCirclesResponse, UpdateGroupCircleDto, SendMessageDto, GroupCircleMessage, MessageQueryParams, MessagesResponse } from './types';
 
 const GROUP_CIRCLE_QUERY_KEY = 'groupCircles';
+const GROUP_CIRCLE_MESSAGES_QUERY_KEY = 'groupCircleMessages';
 
 const fetchGroupCircles = async (params: GroupCirclesQueryParams): Promise<GroupCirclesResponse> => {
     const apiParams = {
@@ -25,6 +26,23 @@ const updateGroupCircle = async ({ id, data }: { id: string; data: UpdateGroupCi
 
 const removeGroupCircleMember = async ({ id, memberId }: { id: string; memberId: string }): Promise<void> => {
     await api.delete(`/group-circles/${id}/members/${memberId}`);
+};
+
+const fetchGroupCircleMessages = async (id: string, params: MessageQueryParams): Promise<MessagesResponse> => {
+    const apiParams = {
+        page: params.page || 1,
+        limit: params.limit || 50,
+        // Temporarily disabled as backend reports they should not exist
+        // type: params.type,
+        // memberId: params.memberId
+    };
+    const response = await api.get<MessagesResponse>(`/group-circles/${id}/messages`, { params: apiParams });
+    return response.data;
+};
+
+const sendMessage = async ({ id, data }: { id: string; data: SendMessageDto }): Promise<GroupCircleMessage> => {
+    const response = await api.post<GroupCircleMessage>(`/group-circles/${id}/messages`, data);
+    return response.data;
 };
 
 export const useGetGroupCircles = (params: GroupCirclesQueryParams = {}) => {
@@ -63,6 +81,26 @@ export const useRemoveGroupCircleMember = () => {
         mutationFn: removeGroupCircleMember,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: [GROUP_CIRCLE_QUERY_KEY] });
+        },
+    });
+};
+
+export const useGetGroupCircleMessages = (id: string | null, params: MessageQueryParams = {}) => {
+    return useQuery({
+        queryKey: [GROUP_CIRCLE_MESSAGES_QUERY_KEY, id, params],
+        queryFn: () => fetchGroupCircleMessages(id!, params),
+        enabled: !!id,
+        refetchInterval: 5000, // Poll every 5 seconds for basic real-time
+    });
+};
+
+export const useSendMessage = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: sendMessage,
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: [GROUP_CIRCLE_MESSAGES_QUERY_KEY, variables.id] });
         },
     });
 };

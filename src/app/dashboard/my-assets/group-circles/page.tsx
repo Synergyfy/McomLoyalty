@@ -28,9 +28,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { useCreateGroupCircle, useGetGroupCircles, useUpdateGroupCircle, useRemoveGroupCircleMember } from "@/services/group-circle/hook";
-import { CreateGroupCircleDto, UpdateGroupCircleDto, GroupCircleType, GroupCircleDuration, GroupCircleVisibility, GroupCircleInteractionLevel, GroupCircle as ApiGroupCircle } from "@/services/group-circle/types";
+import { useCreateGroupCircle, useGetGroupCircles, useUpdateGroupCircle, useRemoveGroupCircleMember, useGetGroupCircleMessages, useSendMessage } from "@/services/group-circle/hook";
+import { CreateGroupCircleDto, UpdateGroupCircleDto, GroupCircleType, GroupCircleDuration, GroupCircleVisibility, GroupCircleInteractionLevel, GroupCircle as ApiGroupCircle, SendMessageDto } from "@/services/group-circle/types";
 import { useGetNetworkContacts } from "@/services/network-contacts/hook";
+import { useGetBusinessProfile } from "@/services/business/hook";
 
 
 // --- Types & Constants ---
@@ -471,6 +472,8 @@ export default function GroupCirclesPage() {
     // Chat
     const [chatMessages, setChatMessages] = useState(SAMPLE_MESSAGES);
     const [chatInput, setChatInput] = useState("");
+    const [chatType, setChatType] = useState<'GROUP' | 'DIRECT'>('GROUP');
+    const [chatMemberId, setChatMemberId] = useState<string | null>(null);
 
     // Create Circle Wizard State
     const [createStep, setCreateStep] = useState(1);
@@ -483,9 +486,20 @@ export default function GroupCirclesPage() {
     });
 
     const { data: networkContactsData } = useGetNetworkContacts({ limit: 100 });
+    const { data: profile } = useGetBusinessProfile();
     const createCircleMutation = useCreateGroupCircle();
     const updateCircleMutation = useUpdateGroupCircle();
     const removeMemberMutation = useRemoveGroupCircleMember();
+
+    const { data: messagesData, isLoading: isLoadingMessages } = useGetGroupCircleMessages(
+        selectedCircleId,
+        {
+            type: chatType,
+            memberId: chatType === 'DIRECT' ? chatMemberId || undefined : undefined,
+            limit: 50
+        }
+    );
+    const sendMessageMutation = useSendMessage();
 
     // Computed
     const missingMandatory = useMemo(() => {
@@ -568,16 +582,35 @@ export default function GroupCirclesPage() {
         toast.info("Invite functionality will be integrated with API next.");
     };
 
-    const handleSendMessage = () => {
-        if (!chatInput.trim()) return;
-        setChatMessages([...chatMessages, { sender: 'me', text: chatInput, time: 'Now' }]);
-        setChatInput("");
-    }
+    const handleSendMessage = async () => {
+        if (!chatInput.trim() || !selectedCircleId) return;
+
+        try {
+            const payload: SendMessageDto = {
+                content: chatInput,
+                recipientId: chatType === 'DIRECT' ? chatMemberId || undefined : undefined
+            };
+
+            await sendMessageMutation.mutateAsync({
+                id: selectedCircleId,
+                data: payload
+            });
+            setChatInput("");
+        } catch (error) {
+            toast.error("Failed to send message");
+        }
+    };
 
     const handleMemberAction = (action: string) => {
         if (!activeMember) return;
-        toast.success(`${action} for ${activeMember.name}`);
-        if (action === "Message") setChatOpen(true);
+        if (action === "Message") {
+            setChatType('DIRECT');
+            setChatMemberId(activeMember.id);
+            setChatOpen(true);
+            toast.info(`Switched to Direct Message with ${activeMember.name}`);
+        } else {
+            toast.success(`${action} for ${activeMember.name}`);
+        }
     };
 
     const handleRemoveMember = async () => {
@@ -1069,29 +1102,63 @@ export default function GroupCirclesPage() {
                     {/* Chat Panel - Fixed Height & Scrollable */}
                     <Card className="flex-none flex flex-col border-t-4 border-t-orange-500 shadow-lg h-[500px] overflow-hidden">
                         <CardHeader className="py-3 px-4 border-b bg-zinc-50/50 flex flex-row items-center justify-between space-y-0 flex-none">
-                            <CardTitle className="text-sm flex items-center gap-2 font-bold"><MessageSquare className="w-4 h-4 text-orange-500" /> Circle Chat</CardTitle>
-                            <Badge variant="outline" className="text-[10px] font-normal">Online: 12</Badge>
+                            <CardTitle className="text-sm flex items-center gap-2 font-bold cursor-pointer hover:text-orange-600 transition-colors" onClick={() => {
+                                setChatType('GROUP');
+                                setChatMemberId(null);
+                            }}>
+                                <MessageSquare className="w-4 h-4 text-orange-500" />
+                                {chatType === 'GROUP' ? 'Circle Chat' : `DM: ${selectedCircle?.members.find(m => m.id === chatMemberId)?.name || 'Member'}`}
+                            </CardTitle>
+                            {chatType === 'DIRECT' && (
+                                <Badge variant="outline" className="text-[10px] font-normal cursor-pointer hover:bg-zinc-100" onClick={() => {
+                                    setChatType('GROUP');
+                                    setChatMemberId(null);
+                                }}>Back to Group</Badge>
+                            )}
+                            {chatType === 'GROUP' && <Badge variant="outline" className="text-[10px] font-normal">Group</Badge>}
                         </CardHeader>
                         <ScrollArea className="flex-1 p-4 bg-white dark:bg-zinc-950">
                             <div className="space-y-4">
-                                <div className="text-center text-[10px] text-muted-foreground my-2 uppercase tracking-widest">Today</div>
-                                {chatMessages.map((msg, idx) => (
-                                    <div key={idx} className={cn("flex gap-2", msg.sender === 'me' ? "flex-row-reverse" : "")}>
-                                        <div className={cn(
-                                            "w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm mt-1",
-                                            msg.sender === 'me' ? "bg-orange-100 text-orange-600" : "bg-blue-100 text-blue-600"
-                                        )}>
-                                            {msg.sender === 'me' ? "ME" : "JD"}
-                                        </div>
-                                        <div className={cn(
-                                            "p-3 rounded-2xl text-xs max-w-[80%] shadow-sm",
-                                            msg.sender === 'me' ? "bg-orange-600 text-white rounded-tr-none" : "bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-100 rounded-tl-none"
-                                        )}>
-                                            <p>{msg.text}</p>
-                                            <span className={cn("text-[9px] block mt-1 opacity-70", msg.sender === 'me' ? "text-orange-100" : "text-zinc-400")}>{msg.time}</span>
-                                        </div>
+                                {isLoadingMessages ? (
+                                    <div className="flex justify-center py-10">
+                                        <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
                                     </div>
-                                ))}
+                                ) : messagesData?.data && messagesData.data.length > 0 ? (
+                                    messagesData.data
+                                        .filter(msg => {
+                                            if (chatType === 'GROUP') return msg.type === 'GROUP';
+                                            return msg.type === 'DIRECT' && (msg.senderId === chatMemberId || msg.recipientId === chatMemberId);
+                                        })
+                                        .reverse()
+                                        .map((msg, idx) => {
+                                            const isMe = msg.senderId === profile?.id;
+                                            return (
+                                                <div key={msg.id} className={cn("flex gap-2", isMe ? "flex-row-reverse" : "")}>
+                                                    <div className={cn(
+                                                        "w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm mt-1",
+                                                        isMe ? "bg-orange-100 text-orange-600" : "bg-blue-100 text-blue-600"
+                                                    )}>
+                                                        {msg.senderName.substring(0, 2).toUpperCase()}
+                                                    </div>
+                                                    <div className={cn(
+                                                        "p-3 rounded-2xl text-xs max-w-[80%] shadow-sm",
+                                                        isMe ? "bg-orange-600 text-white rounded-tr-none" : "bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-100 rounded-tl-none"
+                                                    )}>
+                                                        {!isMe && chatType === 'GROUP' && <span className="block font-bold text-[10px] mb-1 opacity-70">{msg.senderName}</span>}
+                                                        <p>{msg.content}</p>
+                                                        <span className={cn("text-[9px] block mt-1 opacity-70", isMe ? "text-orange-100" : "text-zinc-400")}>
+                                                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                ) : (
+                                    <div className="text-center py-10 opacity-50">
+                                        <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-20" />
+                                        <p className="text-xs">No messages yet. {chatType === 'DIRECT' ? 'Start your conversation!' : 'Say hello to the group!'}</p>
+                                    </div>
+                                )}
                             </div>
                         </ScrollArea>
                         <div className="p-3 border-t bg-zinc-50/50">

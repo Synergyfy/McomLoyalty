@@ -295,6 +295,29 @@ All contributions for the business.
 
 #### `POST /group-circles/:id/messages`
 Send message.
+
+- **Params**:
+  ```json
+  {
+    "id": "circle-uuid"
+  }
+  ```
+- **Request body (schema)**:
+  ```json
+  {
+    SendMessageDto{
+content*	string
+Message content
+
+recipientId	string
+ID of the recipient member for Direct Messages (optional)
+
+senderId	string
+ID of the sender (optional, defaults to authenticated user)
+
+}
+  }
+  ```
 - **Response Data**:
   ```json
   {
@@ -309,6 +332,45 @@ Send message.
 
 #### `GET /group-circles/:id/messages`
 Get message history.
+
+- **Params**
+
+id *
+string
+(path)
+id
+page *
+number
+(query)
+The page number.
+
+Default value : 1
+
+1
+limit *
+number
+(query)
+The number of items per page.
+
+Default value : 10
+
+10
+type
+string
+(query)
+Filter by message type (GROUP or DIRECT)
+
+Available values : GROUP, DIRECT
+
+
+--
+memberId
+string
+(query)
+Filter messages involving a specific member (sender or recipient)
+
+memberId
+
 - **Response Data**:
   ```json
   {
