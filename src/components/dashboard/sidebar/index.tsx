@@ -21,38 +21,51 @@ import {
   LayoutDashboard,
   Loader2,
   Stamp,
+  ChevronLeft,
+  ChevronRight,
+  Store
 } from 'lucide-react';
 import { useLinkClasses } from '@/app/hooks';
 import TierBadge from '../../ui/tierBadge';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useGetBusinessProfile } from '@/services/business/hook';
 import { useGetBusinessSubscription } from '@/services/tiers/hook';
 import { useRouter } from 'next/navigation';
 import { useLogout } from '@/services/auth/hook';
 import { toast } from 'sonner';
 import { BusinessProfile } from '@/services/business/types';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface BusinessSidebarProps {
   isOpen: boolean;
-  profile?: Partial<BusinessProfile>; // Optional prop for impersonation
-  isLoading?: boolean; // Optional prop for unified loading state
+  isCollapsed?: boolean;
+  toggleCollapse?: () => void;
+  profile?: Partial<BusinessProfile>;
+  isLoading?: boolean;
 }
+
+const StoreIcon = ({ isCollapsed }: { isCollapsed?: boolean }) => (
+  <Store className={isCollapsed ? "w-6 h-6" : "w-5 h-5"} />
+);
 
 export default function BusinessSidebar({
   isOpen,
+  isCollapsed = false,
+  toggleCollapse,
   profile: propProfile,
   isLoading: propIsLoading,
 }: BusinessSidebarProps) {
-  const [isStaffOpen, setIsStaffOpen] = useState(false);
-  const [isCampaignsOpen, setIsCampaignsOpen] = useState(false)
-  const [isVouchersOpen, setIsVouchersOpen] = useState(false);
-  const [isMyAssetsOpen, setIsMyAssetsOpen] = useState(false);
+  const [openSubmenus, setOpenSubmenus] = useState<Record<string, boolean>>({});
+
+  const toggleSubmenu = (key: string) => {
+    setOpenSubmenus(prev => ({ ...prev, [key]: !prev[key] }));
+  }
+
   const linkClasses = useLinkClasses();
 
   const { data: hookProfile, isLoading: hookIsLoadingProfile } = useGetBusinessProfile();
   const { data: subscription } = useGetBusinessSubscription();
 
-  // Prioritize prop data if provided
   const profile = propProfile ?? hookProfile;
   const isLoading = propIsLoading ?? hookIsLoadingProfile;
 
@@ -61,12 +74,8 @@ export default function BusinessSidebar({
 
   const isFreeTier = useMemo(() => subscription?.tier === 'Free', [subscription]);
 
-  console.log('isFreeTier', isFreeTier);
-
   const enhancedLinkClasses = (path: string, exact: boolean = false) => {
     let classes = linkClasses(path, exact);
-    // Disable everything except subscription if on Free tier
-    // We strictly check if the path is NOT subscription related
     if (isFreeTier && !path.includes('/dashboard/subscription')) {
       classes += ' opacity-50 pointer-events-none cursor-not-allowed';
     }
@@ -82,277 +91,238 @@ export default function BusinessSidebar({
       onError: (error) => {
         console.error('Logout failed:', error);
         toast.error('Logout failed. Please try again.');
-        // Even if server logout fails, clear client-side and redirect for better UX
         router.push('/login');
       }
     });
   };
 
+  // Helper for consistent link rendering
+  const SidebarItem = ({
+    icon: Icon,
+    label,
+    href,
+    activePath,
+    hasSubmenu = false,
+    submenuKey = '',
+    children
+  }: {
+    icon: any,
+    label: string,
+    href?: string,
+    activePath?: string,
+    hasSubmenu?: boolean,
+    submenuKey?: string,
+    children?: React.ReactNode
+  }) => {
+
+    const Content = () => (
+      <div className={`flex items-center w-full px-3 py-2 rounded-lg transition-all ${!hasSubmenu && href ? enhancedLinkClasses(href!, activePath === href) : 'text-gray-700 hover:bg-orange-50 hover:text-orange-600 cursor-pointer'} ${isCollapsed ? 'justify-center' : ''}`}>
+        <Icon className={`${isCollapsed ? 'mr-0' : 'mr-3'} shrink-0`} size={20} />
+        {!isCollapsed && (
+          <div className="flex-1 flex justify-between items-center overflow-hidden">
+            <span className="truncate">{label}</span>
+            {hasSubmenu && <span className="text-gray-400 text-xs ml-2">{openSubmenus[submenuKey] ? '−' : '+'}</span>}
+          </div>
+        )}
+      </div>
+    );
+
+    // Wrapper for tooltip
+    const TooltipWrapper = ({ children }: { children: React.ReactNode }) => (
+      isCollapsed ? (
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>{children}</TooltipTrigger>
+            <TooltipContent side="right" className="font-semibold">{label}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : <>{children}</>
+    );
+
+    if (hasSubmenu) {
+      return (
+        <li>
+          <TooltipWrapper>
+            <button className="w-full text-left focus:outline-none" onClick={() => !isCollapsed && toggleSubmenu(submenuKey)}>
+              <Content />
+            </button>
+          </TooltipWrapper>
+          {/* Only show submenu if NOT collapsed and OPEN */}
+          <AnimatePresence>
+            {!isCollapsed && openSubmenus[submenuKey] && (
+              <motion.ul
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="ml-8 mt-1 space-y-1 overflow-hidden"
+              >
+                {children}
+              </motion.ul>
+            )}
+          </AnimatePresence>
+        </li>
+      );
+    }
+
+    return (
+      <li>
+        <TooltipWrapper>
+          <Link href={href!} className="block focus:outline-none">
+            <Content />
+          </Link>
+        </TooltipWrapper>
+      </li>
+    );
+  }
+
+  // Helper method for sub-links to avoid prop drilling madness
+  const SubItem = ({ href, label }: { href: string, label: string }) => (
+    <li>
+      <Link href={href} className={enhancedLinkClasses(href)}>
+        {label}
+      </Link>
+    </li>
+  );
+
   return (
     <div
       className={`
-        fixed top-0 left-0 h-full w-64 bg-white text-gray-800 p-4 z-50 shadow-2xl overflow-y-auto
-        transform transition-transform duration-300 ease-in-out
-        md:translate-x-0
+        fixed top-0 left-0 h-full bg-white text-gray-800 p-4 z-50 shadow-2xl 
+        transform transition-all duration-300 ease-in-out
+        flex flex-col
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:translate-x-0
+        ${isCollapsed ? 'w-20' : 'w-64'}
       `}
     >
-      {/* Business Name*/}
-      <div className="mb-6">
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <h1 className="text-3xl font-semibold text-orange-500">
-            {isLoading ? <Loader2 className="h-8 w-8 animate-spin" /> : profile?.name || 'Business'}
-          </h1>
-          {!isLoading && profile?.role && (
-            <p className="text-sm text-gray-500 mt-1">
-              {profile.role}
-            </p>
-          )}
-        </motion.div>
-      </div>
-
-      {/* 🔗 Navigation Links */}
-      <ul className="space-y-2 text-sm font-medium">
-        <li>
-          <Link href="/dashboard" className={enhancedLinkClasses('/dashboard', true)}>
-            <LayoutDashboard className="mr-3" />
-            Overview
-          </Link>
-        </li>
-
-        <li>
-          <Link href="/dashboard/rewards" className={enhancedLinkClasses('/dashboard/rewards')}>
-            <Gift className="mr-3" />
-            Rewards
-          </Link>
-        </li>
-
-        <li>
-          <Link href="/dashboard/stamp-rewards" className={enhancedLinkClasses('/dashboard/stamp-rewards')}>
-            <Stamp className="mr-3" />
-            Stamp Rewards
-          </Link>
-        </li>
-
-        <li>
-          <button
-            className={enhancedLinkClasses('/dashboard/campaigns')}
-            onClick={() => setIsCampaignsOpen(!isCampaignsOpen)}
-          >
-            <span className="flex items-center justify-between w-full">
-              <span className="flex items-center">
-                <Megaphone className="mr-3" />
-                Campaigns
-              </span>
-              <span className="text-gray-400 text-xs">{isCampaignsOpen ? '−' : '+'}</span>
-            </span>
-          </button>
-          {isCampaignsOpen && (
-            <ul className="ml-8 mt-2 space-y-1">
-              <li>
-                <Link href="/dashboard/campaigns/list" className={enhancedLinkClasses('/dashboard/campaigns/list')}>
-
-                  View Campaigns
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboard/campaign-performance" className={enhancedLinkClasses('/dashboard/campaign-performance')}>
-
-                  Campaign Performance
-                </Link>
-              </li>
-            </ul>
-          )}
-        </li>
-        <li>
-          <button
-            className={enhancedLinkClasses('/dashboard/vouchers')}
-            onClick={() => setIsVouchersOpen(!isVouchersOpen)}
-          >
-            <span className="flex items-center justify-between w-full">
-              <span className="flex items-center">
-                <Ticket className="mr-3" />
-                Vouchers
-              </span>
-              <span className="text-gray-400 text-xs">{isVouchersOpen ? '−' : '+'}</span>
-            </span>
-          </button>
-          {isVouchersOpen && (
-            <ul className="ml-8 mt-2 space-y-1">
-              <li>
-                <Link href="/dashboard/vouchers/list" className={enhancedLinkClasses('/dashboard/vouchers/list')}>
-                  View Vouchers
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboard/vouchers/create" className={enhancedLinkClasses('/dashboard/vouchers/create')}>
-                  Create Voucher
-                </Link>
-              </li>
-            </ul>
-          )}
-        </li>
-
-        <li>
-          <Link href="/dashboard/wishlist-insights" className={enhancedLinkClasses('/dashboard/wishlist-insights')}>
-            <Heart className="mr-3" />
-            Wishlist Insights
-          </Link>
-        </li>
-
-
-
-        <li>
-          <Link href="/dashboard/customer-activities" className={enhancedLinkClasses('/dashboard/customer-activities')}>
-            <Activity className="mr-3" />
-            Customer Activities
-          </Link>
-        </li>
-
-        <li>
-          <Link href="/dashboard/matching-points" className={enhancedLinkClasses('/dashboard/matching-points')}>
-            <Coins className="mr-3" />
-            Matching Points
-          </Link>
-        </li>
-
-        <li>
-          <Link href="/dashboard/deals" className={enhancedLinkClasses('/dashboard/deals')}>
-            <Tag className="mr-3" />
-            Deals
-          </Link>
-        </li>
-
-        {/* 👥 Staff Dropdown */}
-        <li>
-          <button
-            className={enhancedLinkClasses('/dashboard/staff')}
-            onClick={() => setIsStaffOpen(!isStaffOpen)}
-          >
-            <span className="flex items-center justify-between w-full">
-              <span className="flex items-center">
-                <Users className="mr-3" />
-                Staff Management
-              </span>
-              <span className="text-gray-400 text-xs">{isStaffOpen ? '−' : '+'}</span>
-            </span>
-          </button>
-
-          {isStaffOpen && (
-            <ul className="ml-8 mt-2 space-y-1">
-              <li>
-                <Link href="/dashboard/staff" className={enhancedLinkClasses('/dashboard/staff', true)}>
-                  View Staff
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboard/staff/add" className={enhancedLinkClasses('/dashboard/staff/add', true)}>
-                  Add Staff
-                </Link>
-              </li>
-              <div className="border-t border-gray-100 my-1 pt-1"></div>
-              <li>
-                <Link href="/dashboard/staff/campaigns" className={enhancedLinkClasses('/dashboard/staff/campaigns')}>
-                  Staff Campaigns
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboard/staff/customers" className={enhancedLinkClasses('/dashboard/staff/customers')}>
-                  Staff Customers
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboard/staff/redeem" className={enhancedLinkClasses('/dashboard/staff/redeem')}>
-                  Redeem Terminal
-                </Link>
-              </li>
-            </ul>
-          )}
-        </li>
-      </ul>
-
-      {/* Divider */}
-      <div className="my-6 border-t border-gray-200"></div>
-
-      {/* 👤 Settings & Logout */}
-      <div className="space-y-2">
+      {/* Collapse Toggle (Desktop Only) */}
+      <div className="hidden md:flex absolute -right-3 top-10 z-50">
         <button
-          className={enhancedLinkClasses('/dashboard/my-assets')}
-          onClick={() => setIsMyAssetsOpen(!isMyAssetsOpen)}
+          onClick={toggleCollapse}
+          className="bg-orange-600 text-white p-1 rounded-full shadow-md hover:bg-orange-700 transition-colors border-2 border-white hover:scale-110 active:scale-95 transform duration-200"
         >
-          <span className="flex items-center justify-between w-full">
-            <span className="flex items-center">
-              <Award className="mr-3" />
-              My Network
-            </span>
-            <span className="text-gray-400 text-xs">{isMyAssetsOpen ? '−' : '+'}</span>
-          </span>
-        </button>
-        {isMyAssetsOpen && (
-          <ul className="ml-8 mt-2 space-y-1">
-            <li><Link href="/dashboard/my-assets" className={linkClasses('/dashboard/my-assets')}>Contacts</Link></li>
-            <li><Link href="/dashboard/my-assets/group-circles" className={linkClasses('/dashboard/my-assets/group-circles')}>Group Circles</Link></li>
-            <li><Link href="/dashboard/my-assets/qr-plaques" className={linkClasses('/dashboard/my-assets/qr-plaques')}>QR Plaques</Link></li>
-
-            <Link href="/dashboard/affiliate" className={linkClasses('/dashboard/affiliate')}>
-              Affiliate
-            </Link>
-            <li><Link href="/dashboard/my-assets/nfc-cards" className={linkClasses('/dashboard/my-assets/nfc-cards')}>NFC Cards</Link></li>
-            <li>
-            </li>
-            {/* <li><Link href="/dashboard/my-assets/storefront-media" className={linkClasses('/dashboard/my-assets/storefront-media')}>Storefront & Media</Link></li>
-            <li><Link href="/dashboard/my-assets/marketing-materials" className={linkClasses('/dashboard/my-assets/marketing-materials')}>Marketing Materials</Link></li>
-            <li><Link href="/dashboard/my-assets/partner-network" className={linkClasses('/dashboard/my-assets/partner-network')}>Partner Network</Link></li>
-            <li><Link href="/dashboard/my-assets/revenue-analytics" className={linkClasses('/dashboard/my-assets/revenue-analytics')}>Revenue & Analytics</Link></li> */}
-          </ul>
-        )}
-        <Link href="/dashboard/profile" className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition ${isFreeTier ? 'opacity-50 pointer-events-none cursor-not-allowed' : ''}`}>
-          <User className="mr-3" size={18} />
-          Business Profile
-        </Link>
-        <Link href="/dashboard/tier" className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition ${isFreeTier ? 'opacity-50 pointer-events-none cursor-not-allowed' : ''}`}>
-          <Star className="mr-3" size={18} />
-          Tier
-        </Link>
-        <Link href="/dashboard/subscription" className="flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition">
-          <CreditCard className="mr-3" size={18} />
-          Subscription
-        </Link>
-        <Link href="/dashboard/account" className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition ${isFreeTier ? 'opacity-50 pointer-events-none cursor-not-allowed' : ''}`}>
-          <Settings className="mr-3" size={18} />
-          Settings
-        </Link>
-        <Link href="/dashboard/support" className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition ${isFreeTier ? 'opacity-50 pointer-events-none cursor-not-allowed' : ''}`}>
-          <LifeBuoy className="mr-3" size={18} />
-          Support & Help
-        </Link>
-        <button
-          onClick={handleLogout}
-          disabled={isLoggingOut}
-          className="flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-orange-50 hover:text-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isLoggingOut ? (
-            <Loader2 className="mr-3 animate-spin" size={18} />
-          ) : (
-            <LogOut className="mr-3" size={18} />
-          )}
-          {isLoggingOut ? 'Logging out...' : 'Logout'}
+          {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
       </div>
 
-      {/* 🧩 Bottom Badge */}
-      <div className="absolute bottom-6 left-4 right-4  text-orange-600 flex items-center justify-center gap-2 font-semibold py-2 rounded-full">
-
-        <div className="sm:block md:hidden  lg:hidden xl:hidden">
-          <Link href="/dashboard/tier" className="sm:block md:hidden lg:hidden xl:hidden">
-
-            <TierBadge tier="Gold" />
-          </Link>
+      {/* Business Name Header */}
+      <div className={`flex items-center gap-3 mb-8 flex-none ${isCollapsed ? 'justify-center' : 'px-1'}`}>
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg text-white shrink-0">
+          <StoreIcon isCollapsed={isCollapsed} />
         </div>
+        {!isCollapsed && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="font-bold text-xl tracking-tight text-zinc-800 whitespace-nowrap overflow-hidden"
+          >
+            Mcom Reward
+          </motion.div>
+        )}
       </div>
+
+      {/* Profile Summary (Only if Expanded) */}
+      <div className={`mb-6 flex-none transition-all duration-300 ${isCollapsed ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100 h-auto'}`}>
+        <h1 className="text-2xl font-semibold text-orange-500 truncate">
+          {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : profile?.name || 'Business'}
+        </h1>
+        {!isLoading && profile?.role && (
+          <p className="text-sm text-gray-500 mt-1 truncate">{profile.role}</p>
+        )}
+      </div>
+
+      {/* Scrollable Navigation Area */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden -mx-4 px-4 scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300">
+        <ul className="space-y-1 text-sm font-medium pb-20">
+          <SidebarItem icon={LayoutDashboard} label="Overview" href="/dashboard" />
+
+          <SidebarItem icon={Gift} label="Rewards" href="/dashboard/rewards" />
+
+          <SidebarItem icon={Stamp} label="Stamp Rewards" href="/dashboard/stamp-rewards" />
+
+          <SidebarItem icon={Megaphone} label="Campaigns" hasSubmenu submenuKey="campaigns">
+            <SubItem href="/dashboard/campaigns/list" label="View Campaigns" />
+            <SubItem href="/dashboard/campaign-performance" label="Performance" />
+          </SidebarItem>
+
+          <SidebarItem icon={Ticket} label="Vouchers" hasSubmenu submenuKey="vouchers">
+            <SubItem href="/dashboard/vouchers/list" label="View Vouchers" />
+            <SubItem href="/dashboard/vouchers/create" label="Create Voucher" />
+          </SidebarItem>
+
+          <SidebarItem icon={Heart} label="Wishlist Insights" href="/dashboard/wishlist-insights" />
+
+
+
+          <SidebarItem icon={Coins} label="Matching Points" href="/dashboard/matching-points" />
+
+          <SidebarItem icon={Tag} label="Deals" href="/dashboard/deals" />
+
+          <SidebarItem icon={Users} label="Staff Management" hasSubmenu submenuKey="staff">
+            <SubItem href="/dashboard/staff" label="View Staff" />
+            <SubItem href="/dashboard/staff/add" label="Add Staff" />
+            <div className="border-t border-gray-100 my-1"></div>
+            <SubItem href="/dashboard/staff/campaigns" label="Staff Campaigns" />
+            <SubItem href="/dashboard/staff/customers" label="Staff Customers" />
+            <SubItem href="/dashboard/staff/redeem" label="Redeem Terminal" />
+          </SidebarItem>
+
+          <div className="my-4 border-t border-gray-200"></div>
+
+          <SidebarItem icon={Award} label="My Network" hasSubmenu submenuKey="myassets">
+            <SubItem href="/dashboard/my-assets" label="Contacts" />
+            <SubItem href="/dashboard/my-assets/group-circles" label="Group Circles" />
+            <SubItem href="/dashboard/my-assets/qr-plaques" label="QR Plaques" />
+            <SubItem href="/dashboard/affiliate" label="Affiliate" />
+            <SubItem href="/dashboard/my-assets/nfc-cards" label="NFC Cards" />
+            <SubItem href="/dashboard/customer-activities" label="Customer Activities" />
+          </SidebarItem>
+
+          <SidebarItem icon={User} label="Business Profile" href="/dashboard/profile" />
+
+          <SidebarItem icon={Star} label="Tier" href="/dashboard/tier" />
+
+          <SidebarItem icon={CreditCard} label="Subscription" href="/dashboard/subscription" />
+
+          <SidebarItem icon={Settings} label="Settings" href="/dashboard/account" />
+
+          <SidebarItem icon={LifeBuoy} label="Support & Help" href="/dashboard/support" />
+
+          <li>
+            <TooltipProvider>
+              {isCollapsed ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={handleLogout}
+                      disabled={isLoggingOut}
+                      className="flex items-center justify-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-orange-50 hover:text-red-600 transition disabled:opacity-50"
+                    >
+                      {isLoggingOut ? <Loader2 className="animate-spin" size={20} /> : <LogOut size={20} />}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">Logout</TooltipContent>
+                </Tooltip>
+              ) : (
+                <button
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-orange-50 hover:text-red-600 transition disabled:opacity-50"
+                >
+                  {isLoggingOut ? <Loader2 className="mr-3 animate-spin" size={20} /> : <LogOut className="mr-3" size={20} />}
+                  <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
+                </button>
+              )}
+            </TooltipProvider>
+          </li>
+        </ul>
+      </div>
+
+      {/* Bottom Badge (Hide if collapsed) */}
+      {!isCollapsed && (
+        <div className="absolute bottom-6 left-4 right-4 flex items-center justify-center pointer-events-none">
+          {/* Badge or promos can go here */}
+        </div>
+      )}
     </div>
   );
 }

@@ -16,12 +16,14 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { data: businessSubscription, isLoading: isBusinessSubLoading } = useGetBusinessSubscription();
   const { data: mySubscription, isLoading: isMySubLoading } = useGetMySubscription();
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  const toggleCollapse = () => setIsSidebarCollapsed(!isSidebarCollapsed);
 
   useEffect(() => {
     if (!isBusinessSubLoading && businessSubscription?.tier === 'Free') {
@@ -45,10 +47,14 @@ export default function DashboardLayout({
         )}
 
         {/* Sidebar */}
-        <BusinessSidebar isOpen={isSidebarOpen} />
+        <BusinessSidebar
+          isOpen={isSidebarOpen}
+          isCollapsed={isSidebarCollapsed}
+          toggleCollapse={toggleCollapse}
+        />
 
         {/* Main content */}
-        <div className="flex-1 md:ml-64 flex flex-col">
+        <div className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
           {/* Trial Banner - Show if is trial or for demo purposes if nothing else */}
           {mySubscription?.isTrial && mySubscription.expiresAt && (
             <TrialBanner
