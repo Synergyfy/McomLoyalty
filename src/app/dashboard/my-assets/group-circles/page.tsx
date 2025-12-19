@@ -22,6 +22,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useCreateGroupCircle, useGetGroupCircles } from "@/services/group-circle/hook";
+import { CreateGroupCircleDto, GroupCircleType, GroupCircleDuration, GroupCircleVisibility, GroupCircleInteractionLevel, GroupCircle as ApiGroupCircle } from "@/services/group-circle/types";
+import { useGetNetworkContacts } from "@/services/network-contacts/hook";
+
 
 // --- Types & Constants ---
 
@@ -61,13 +65,13 @@ const ORBIT_CONFIG: Record<number, { label: string; radius: number; color: strin
 };
 
 const GROUP_CIRCLE_TYPES = [
-    { id: "marketing", name: "Marketing Circle", icon: Zap, color: "bg-blue-600", gradient: "from-blue-600 to-blue-800", mandatory: true },
-    { id: "advertising", name: "Advertising Circle", icon: Globe, color: "bg-orange-600", gradient: "from-orange-600 to-red-600", mandatory: true },
-    { id: "finance", name: "Smart Money Partner", icon: Briefcase, color: "bg-green-600", gradient: "from-green-600 to-emerald-700", mandatory: false },
-    { id: "nearby", name: "Nearby Campaign", icon: MapPin, color: "bg-orange-500", gradient: "from-orange-500 to-amber-600", mandatory: false },
-    { id: "hyperlocal", name: "Hyperlocal Campaign", icon: MapPin, color: "bg-cyan-600", gradient: "from-cyan-600 to-blue-700", mandatory: false },
-    { id: "national", name: "National Campaign", icon: Globe, color: "bg-violet-600", gradient: "from-violet-600 to-purple-700", mandatory: false },
-    { id: "global", name: "Global Campaign", icon: Globe, color: "bg-indigo-600", gradient: "from-indigo-600 to-violet-700", mandatory: false },
+    { id: "MARKETING", name: "Marketing Circle", icon: Zap, color: "bg-blue-600", gradient: "from-blue-600 to-blue-800", mandatory: true },
+    { id: "ADVERTISING", name: "Advertising Circle", icon: Globe, color: "bg-orange-600", gradient: "from-orange-600 to-red-600", mandatory: true },
+    { id: "SMART_MONEY", name: "Smart Money Partner", icon: Briefcase, color: "bg-green-600", gradient: "from-green-600 to-emerald-700", mandatory: false },
+    { id: "NEARBY", name: "Nearby Campaign", icon: MapPin, color: "bg-orange-500", gradient: "from-orange-500 to-amber-600", mandatory: false },
+    { id: "HYPERLOCAL", name: "Hyperlocal Campaign", icon: MapPin, color: "bg-cyan-600", gradient: "from-cyan-600 to-blue-700", mandatory: false },
+    { id: "NATIONAL", name: "National Campaign", icon: Globe, color: "bg-violet-600", gradient: "from-violet-600 to-purple-700", mandatory: false },
+    { id: "GLOBAL", name: "Global Campaign", icon: Globe, color: "bg-indigo-600", gradient: "from-indigo-600 to-violet-700", mandatory: false },
 ];
 
 const POTENTIAL_MEMBERS = [
@@ -418,7 +422,28 @@ function InviteMemberDialog({
 
 export default function GroupCirclesPage() {
     const [activeTab, setActiveTab] = useState<"marketing" | "advertising" | "finance" | "all">("all");
-    const [circles, setCircles] = useState<GroupCircle[]>(INITIAL_CIRCLES);
+    const { data: circlesData, isLoading: isLoadingCircles } = useGetGroupCircles();
+
+    const circles = useMemo(() => {
+        if (!circlesData?.data) return [];
+        return circlesData.data.map(circle => ({
+            ...circle,
+            type: (circle.type === 'SMART_MONEY' ? 'finance' : circle.type.toLowerCase()) as any,
+            durationDays: circle.duration,
+            members: circle.members.map(m => ({
+                id: m.id,
+                name: m.network.fullName,
+                role: (m.role.charAt(0).toUpperCase() + m.role.toLowerCase().slice(1)) as any,
+                orbit: (m.role === 'PERIPHERAL' ? 6 : (m.role === 'OWNER' ? 1 : 3)) as OrbitLevel,
+                status: (m.network.status === 'active' || m.network.status === 'accepted' ? 'active' : 'offline') as any,
+                category: m.network.businessName || m.network.relationshipTag || "Partner",
+                avatar: undefined,
+                contributions: Number(circle.contributionAmount),
+                drawDate: m.drawDate
+            }))
+        }));
+    }, [circlesData]);
+
     const [selectedCircleId, setSelectedCircleId] = useState<string | null>(null);
 
     // Interaction State
@@ -431,10 +456,23 @@ export default function GroupCirclesPage() {
     const [chatMessages, setChatMessages] = useState(SAMPLE_MESSAGES);
     const [chatInput, setChatInput] = useState("");
 
+    // Create Circle Wizard State
+    const [createStep, setCreateStep] = useState(1);
+    const [newCircleData, setNewCircleData] = useState<Partial<CreateGroupCircleDto>>({
+        duration: 90,
+        visibility: 'PRIVATE',
+        interactionLevel: 'READ',
+        contributionAmount: 0,
+        networkIds: []
+    });
+
+    const { data: networkContactsData } = useGetNetworkContacts({ limit: 100 });
+    const createCircleMutation = useCreateGroupCircle();
+
     // Computed
     const missingMandatory = useMemo(() => {
-        const hasMarketing = circles.some(c => c.type === 'marketing');
-        const hasAdvertising = circles.some(c => c.type === 'advertising');
+        const hasMarketing = circles.some(c => c.type.toLowerCase() === 'marketing');
+        const hasAdvertising = circles.some(c => c.type.toLowerCase() === 'advertising');
         const missing = [];
         if (!hasMarketing) missing.push("Marketing Circle");
         if (!hasAdvertising) missing.push("Advertising Circle");
@@ -447,50 +485,41 @@ export default function GroupCirclesPage() {
 
     // Actions
     const handleCreateMandatory = (name: string) => {
-        const typeKey = name.toLowerCase().split(" ")[0]; // "marketing" or "advertising"
+        const typeKey = name.toLowerCase().includes("marketing") ? "MARKETING" : "ADVERTISING";
         const typeDef = GROUP_CIRCLE_TYPES.find(t => t.id === typeKey);
         if (!typeDef) return;
 
-        createCircle(typeDef);
+        setNewCircleData({ ...newCircleData, type: typeDef.id as GroupCircleType });
+        setCreateStep(2);
+        setCreateOpen(true);
     };
 
-    const createCircle = (typeDef: typeof GROUP_CIRCLE_TYPES[0]) => {
-        const newCircle: GroupCircle = {
-            id: `c-${Date.now()}`,
-            name: `My ${typeDef.name}`,
-            type: typeDef.id as any,
-            description: `Default system ${typeDef.name}.`,
-            members: MOCK_MEMBERS_POOL.slice(0, 8), // Default members for demo
-            createdAt: new Date().toISOString(),
-            durationDays: 360
-        };
-        setCircles(prev => [...prev, newCircle]);
-        setSelectedCircleId(newCircle.id);
-        toast.success(`${typeDef.name} created!`);
-        setCreateOpen(false);
+    const handleCreateCircle = async () => {
+        if (!newCircleData.name || !newCircleData.type) {
+            toast.error("Please fill in the required fields");
+            return;
+        }
+
+        try {
+            await createCircleMutation.mutateAsync(newCircleData as CreateGroupCircleDto);
+            toast.success(`${newCircleData.name} created!`);
+            setCreateOpen(false);
+            setCreateStep(1);
+            setNewCircleData({
+                duration: 90,
+                visibility: 'PRIVATE',
+                interactionLevel: 'READ',
+                contributionAmount: 0,
+                networkIds: []
+            });
+        } catch (error) {
+            toast.error("Failed to create circle");
+        }
     };
 
     const handleInviteMembers = (newMemberStub: Partial<Member>) => {
-        if (!selectedCircleId) return;
-
-        const newMember: Member = {
-            id: `m-new-${Date.now()}`,
-            name: newMemberStub.name || "New Member",
-            category: newMemberStub.category || "Unknown",
-            role: "Member",
-            status: "active",
-            orbit: newMemberStub.orbit || 6,
-            avatar: undefined,
-            contributions: 0
-        };
-
-        setCircles(prev => prev.map(c => {
-            if (c.id === selectedCircleId) {
-                return { ...c, members: [...c.members, newMember] };
-            }
-            return c;
-        }));
-        toast.success(`${newMember.name} invited to Orbit ${newMember.orbit}`);
+        // This will be handled by the API in future, keeping for now or updating to mutation
+        toast.info("Invite functionality will be integrated with API next.");
     };
 
     const handleSendMessage = () => {
@@ -526,31 +555,188 @@ export default function GroupCirclesPage() {
                             <Plus className="w-4 h-4 mr-2" /> New Circle
                         </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className={cn(createStep === 2 ? "sm:max-w-[600px]" : "sm:max-w-[425px]")}>
                         <DialogHeader>
-                            <DialogTitle>Create New Circle</DialogTitle>
-                            <DialogDescription>Select the type of circle you want to build.</DialogDescription>
+                            <DialogTitle>{createStep === 1 ? "Create New Circle" : "Circle Details"}</DialogTitle>
+                            <DialogDescription>
+                                {createStep === 1
+                                    ? "Select the type of circle you want to build."
+                                    : "Fill in the details for your new circle."}
+                            </DialogDescription>
                         </DialogHeader>
-                        <div className="grid grid-cols-2 gap-3 py-4">
-                            {GROUP_CIRCLE_TYPES.filter(t => !t.mandatory || (t.mandatory && missingMandatory.length === 0)).map(type => (
-                                <div
-                                    key={type.id}
-                                    onClick={() => createCircle(type)}
-                                    className="p-3 border rounded-xl hover:bg-orange-50 cursor-pointer transition-all hover:border-orange-500 group"
+
+                        <AnimatePresence mode="wait">
+                            {createStep === 1 ? (
+                                <motion.div
+                                    key="step1"
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 20 }}
+                                    className="grid grid-cols-2 gap-3 py-4"
                                 >
-                                    <div className={cn("w-8 h-8 rounded-lg mb-2 flex items-center justify-center text-white", type.gradient)}>
-                                        <type.icon className="w-4 h-4" />
+                                    {GROUP_CIRCLE_TYPES.filter(t => !t.mandatory || (t.mandatory && missingMandatory.some(m => m.toLowerCase().includes(t.id.toLowerCase())))).map(type => (
+                                        <div
+                                            key={type.id}
+                                            onClick={() => {
+                                                setNewCircleData({ ...newCircleData, type: type.id as GroupCircleType });
+                                                setCreateStep(2);
+                                            }}
+                                            className="p-3 border rounded-xl hover:bg-orange-50 cursor-pointer transition-all hover:border-orange-500 group"
+                                        >
+                                            <div className={cn("w-8 h-8 rounded-lg mb-2 flex items-center justify-center text-white", type.gradient)}>
+                                                <type.icon className="w-4 h-4" />
+                                            </div>
+                                            <p className="font-semibold text-sm group-hover:text-orange-700">{type.name}</p>
+                                        </div>
+                                    ))}
+                                    {missingMandatory.length > 0 && (
+                                        <div className="col-span-2 p-3 bg-zinc-100 rounded-lg text-xs text-muted-foreground text-center">
+                                            Complete mandatory circles ({missingMandatory.join(", ")}) before creating custom ones.
+                                        </div>
+                                    )}
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    key="step2"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    className="space-y-4 py-4"
+                                >
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="name">Circle Name</Label>
+                                            <Input
+                                                id="name"
+                                                placeholder="e.g. Savings Group 1"
+                                                value={newCircleData.name || ""}
+                                                onChange={(e) => setNewCircleData({ ...newCircleData, name: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="duration">Duration (Days)</Label>
+                                            <Select
+                                                value={String(newCircleData.duration)}
+                                                onValueChange={(val) => setNewCircleData({ ...newCircleData, duration: Number(val) as GroupCircleDuration })}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select Duration" />
+                                                </SelectTrigger>
+                                                <SelectContent className="z-[9999]" position="popper" sideOffset={5}>
+                                                    {[90, 180, 270, 360].map(d => (
+                                                        <SelectItem key={d} value={String(d)}>{d} Days</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
                                     </div>
-                                    <p className="font-semibold text-sm group-hover:text-orange-700">{type.name}</p>
-                                </div>
-                            ))}
-                            {/* If mandatory missing, simple message or filtered out above */}
-                            {missingMandatory.length > 0 && (
-                                <div className="col-span-2 p-3 bg-zinc-100 rounded-lg text-xs text-muted-foreground text-center">
-                                    Complete mandatory circles ({missingMandatory.join(", ")}) before creating custom ones.
-                                </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="description">Description</Label>
+                                        <Input
+                                            id="description"
+                                            placeholder="Weekly savings circle..."
+                                            value={newCircleData.description || ""}
+                                            onChange={(e) => setNewCircleData({ ...newCircleData, description: e.target.value })}
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="visibility">Visibility</Label>
+                                            <Select
+                                                value={newCircleData.visibility}
+                                                onValueChange={(val) => setNewCircleData({ ...newCircleData, visibility: val as GroupCircleVisibility })}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select Visibility" />
+                                                </SelectTrigger>
+                                                <SelectContent className="z-[9999]" position="popper" sideOffset={5}>
+                                                    <SelectItem value="PRIVATE">Private</SelectItem>
+                                                    <SelectItem value="INVITE_ONLY">Invite Only</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="interaction">Interaction Level</Label>
+                                            <Select
+                                                value={newCircleData.interactionLevel}
+                                                onValueChange={(val) => setNewCircleData({ ...newCircleData, interactionLevel: val as GroupCircleInteractionLevel })}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select Interaction" />
+                                                </SelectTrigger>
+                                                <SelectContent className="z-[9999]" position="popper" sideOffset={5}>
+                                                    <SelectItem value="READ">Read</SelectItem>
+                                                    <SelectItem value="MESSAGE">Message</SelectItem>
+                                                    <SelectItem value="COLLABORATE">Collaborate</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="amount">Contribution Amount</Label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-2.5 text-muted-foreground">£</span>
+                                            <Input
+                                                id="amount"
+                                                type="number"
+                                                className="pl-7"
+                                                placeholder="50"
+                                                value={newCircleData.contributionAmount || ""}
+                                                onChange={(e) => setNewCircleData({ ...newCircleData, contributionAmount: Number(e.target.value) })}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Network Contacts</Label>
+                                        <ScrollArea className="h-[120px] w-full border rounded-md p-2">
+                                            <div className="space-y-2">
+                                                {networkContactsData?.data.map((contact) => (
+                                                    <div key={contact.id} className="flex items-center space-x-2">
+                                                        <Switch
+                                                            id={`contact-${contact.id}`}
+                                                            checked={newCircleData.networkIds?.includes(contact.id)}
+                                                            onCheckedChange={(checked) => {
+                                                                const currentIds = newCircleData.networkIds || [];
+                                                                if (checked) {
+                                                                    setNewCircleData({ ...newCircleData, networkIds: [...currentIds, contact.id] });
+                                                                } else {
+                                                                    setNewCircleData({ ...newCircleData, networkIds: currentIds.filter(id => id !== contact.id) });
+                                                                }
+                                                            }}
+                                                        />
+                                                        <Label htmlFor={`contact-${contact.id}`} className="text-sm font-normal cursor-pointer">
+                                                            {contact.fullName} {contact.businessName ? `(${contact.businessName})` : ''}
+                                                        </Label>
+                                                    </div>
+                                                ))}
+                                                {(!networkContactsData || networkContactsData.data.length === 0) && (
+                                                    <p className="text-xs text-muted-foreground text-center py-4">No contacts found</p>
+                                                )}
+                                            </div>
+                                        </ScrollArea>
+                                    </div>
+                                </motion.div>
                             )}
-                        </div>
+                        </AnimatePresence>
+
+                        <DialogFooter className="flex justify-between sm:justify-between w-full">
+                            {createStep === 2 && (
+                                <Button variant="ghost" onClick={() => setCreateStep(1)}>Back</Button>
+                            )}
+                            {createStep === 2 && (
+                                <Button
+                                    onClick={handleCreateCircle}
+                                    disabled={createCircleMutation.isPending}
+                                    className="bg-orange-600 hover:bg-orange-700 text-white"
+                                >
+                                    {createCircleMutation.isPending ? "Creating..." : "Create Circle"}
+                                </Button>
+                            )}
+                        </DialogFooter>
                     </DialogContent>
                 </Dialog>
             </div>
@@ -603,7 +789,16 @@ export default function GroupCirclesPage() {
                     <CardContent className="flex-1 overflow-hidden p-3 pt-0">
                         <ScrollArea className="h-full pr-3 relative">
                             <div className="space-y-3 pt-2">
-                                {circles.filter(c => activeTab === 'all' || (activeTab === 'finance' ? c.type === 'finance' : c.type !== 'finance')).map((circle, idx) => {
+                                {isLoadingCircles ? (
+                                    <div className="flex flex-col items-center justify-center h-40 space-y-2">
+                                        <div className="w-8 h-8 border-4 border-orange-600 border-t-transparent rounded-full animate-spin" />
+                                        <p className="text-xs text-muted-foreground animate-pulse">Loading circles...</p>
+                                    </div>
+                                ) : circles.length === 0 ? (
+                                    <div className="text-center py-10">
+                                        <p className="text-xs text-muted-foreground">No circles found</p>
+                                    </div>
+                                ) : circles.filter(c => activeTab === 'all' || (activeTab === 'finance' ? c.type === 'finance' : c.type !== 'finance')).map((circle, idx) => {
                                     const typeDef = GROUP_CIRCLE_TYPES.find(t => t.id === circle.type);
                                     return (
                                         <motion.div
