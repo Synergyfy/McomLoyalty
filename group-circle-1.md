@@ -212,13 +212,90 @@ contributionAmount	number
 
 #### `POST /group-circles/:id/members`
 Add a member.
-- **Response Data**:
+
+- **Request body (schema)**: AddMemberDto{
+
+networkId*	string
+role	string
+Enum:
+[ CORE, PERIPHERAL, BANKER, PARTNER ]
+
+}
+- **Response Data example**:
   ```json
-  {
-    "id": "member-uuid",
-    "role": "PERIPHERAL",
-    "network": { "id": "net-uuid", "fullName": "Jane Doe" }
-  }
+ {
+  "role": "CORE",
+  "groupCircle": {
+    "id": "808db07c-e503-4d69-b73f-e7c8169c47c3",
+    "createdAt": "2025-12-19T15:29:34.372Z",
+    "updatedAt": "2025-12-19T17:58:05.326Z",
+    "deletedAt": null,
+    "name": "test",
+    "description": "test",
+    "type": "MARKETING",
+    "duration": 90,
+    "visibility": "PRIVATE",
+    "interactionLevel": "READ",
+    "status": "active",
+    "contributionAmount": "0",
+    "payoutFrequency": null,
+    "currentRound": 0,
+    "startDate": "2025-12-19T15:29:34.366Z",
+    "members": [
+      {
+        "id": "611e1df1-3de4-470a-8546-43eb18bf8c77",
+        "createdAt": "2025-12-19T15:29:34.435Z",
+        "updatedAt": "2025-12-19T15:29:34.435Z",
+        "deletedAt": null,
+        "role": "PERIPHERAL",
+        "drawDate": null,
+        "network": {
+          "id": "8418fb28-76ed-4a01-97c0-36d92a558110",
+          "createdAt": "2025-12-13T09:40:08.399Z",
+          "updatedAt": "2025-12-13T11:01:30.362Z",
+          "deletedAt": null,
+          "hasSharingPermission": true,
+          "fullName": "mark man",
+          "businessName": "Frank Business",
+          "email": "okeyemesinwa@gmail.com",
+          "phone": "+2349024913156",
+          "locationTag": "nearby",
+          "relationshipTag": "customer",
+          "status": "pending",
+          "permission": "pending",
+          "isOnboarded": false,
+          "onboardedType": null,
+          "onboardedBusinessId": null,
+          "onboardedPartnerId": null
+        }
+      }
+    ]
+  },
+  "network": {
+    "id": "6f97e82c-69c1-49b7-9f13-f4bb7ebcc183",
+    "createdAt": "2025-12-19T17:50:55.297Z",
+    "updatedAt": "2025-12-19T17:50:55.297Z",
+    "deletedAt": null,
+    "hasSharingPermission": true,
+    "fullName": "john doe",
+    "businessName": "synergyfy",
+    "email": "frankemesinwa@gmail.com",
+    "phone": "+2347064890703",
+    "locationTag": "hyperlocal",
+    "relationshipTag": "supplier",
+    "status": "pending",
+    "permission": "pending",
+    "isOnboarded": false,
+    "onboardedType": null,
+    "onboardedBusinessId": null,
+    "onboardedPartnerId": null
+  },
+  "drawDate": null,
+  "id": "b9f9b3bf-5509-4da0-8adc-db7227abc783",
+  "createdAt": "2025-12-20T07:02:09.804Z",
+  "updatedAt": "2025-12-20T07:02:09.804Z",
+  "deletedAt": null
+}
   ```
 
 #### `DELETE /group-circles/:id/members/:memberId`

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api';
-import { CreateGroupCircleDto, GroupCircle, GroupCirclesQueryParams, GroupCirclesResponse, UpdateGroupCircleDto, SendMessageDto, GroupCircleMessage, MessageQueryParams, MessagesResponse } from './types';
+import { CreateGroupCircleDto, GroupCircle, GroupCirclesQueryParams, GroupCirclesResponse, UpdateGroupCircleDto, SendMessageDto, GroupCircleMessage, MessageQueryParams, MessagesResponse, AddMemberDto } from './types';
 
 const GROUP_CIRCLE_QUERY_KEY = 'groupCircles';
 const GROUP_CIRCLE_MESSAGES_QUERY_KEY = 'groupCircleMessages';
@@ -43,6 +43,10 @@ const fetchGroupCircleMessages = async (id: string, params: MessageQueryParams):
 const sendMessage = async ({ id, data }: { id: string; data: SendMessageDto }): Promise<GroupCircleMessage> => {
     const response = await api.post<GroupCircleMessage>(`/group-circles/${id}/messages`, data);
     return response.data;
+};
+
+const addCircleMember = async ({ id, data }: { id: string; data: AddMemberDto }): Promise<void> => {
+    await api.post(`/group-circles/${id}/members`, data);
 };
 
 export const useGetGroupCircles = (params: GroupCirclesQueryParams = {}) => {
@@ -101,6 +105,17 @@ export const useSendMessage = () => {
         mutationFn: sendMessage,
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: [GROUP_CIRCLE_MESSAGES_QUERY_KEY, variables.id] });
+        },
+    });
+};
+
+export const useAddCircleMember = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: addCircleMember,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [GROUP_CIRCLE_QUERY_KEY] });
         },
     });
 };
