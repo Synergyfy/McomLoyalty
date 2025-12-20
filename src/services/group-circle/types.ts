@@ -12,6 +12,11 @@ export type PayoutFrequency = 'WEEKLY' | 'MONTHLY';
 
 export type MemberRole = 'OWNER' | 'ADMIN' | 'MEMBER' | 'BANKER' | 'GUEST' | 'PERIPHERAL';
 
+export interface AddMemberDto {
+    networkId: string;
+    role: 'CORE' | 'PERIPHERAL' | 'BANKER' | 'PARTNER';
+}
+
 export interface CreateGroupCircleDto {
     name: string;
     description: string;
