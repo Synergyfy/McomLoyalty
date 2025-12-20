@@ -272,7 +272,7 @@ function InviteMemberDialog({
     const [searchQuery, setSearchQuery] = useState("");
 
     const { data: networkContactsData, isLoading: isLoadingContacts } = useGetNetworkContacts({
-        fullName: searchQuery,
+        search: searchQuery,
         page: 1,
         limit: 50
     });
