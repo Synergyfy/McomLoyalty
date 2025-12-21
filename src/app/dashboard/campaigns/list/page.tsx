@@ -250,7 +250,8 @@ export default function CampaignsListPage() {
         {campaigns.map(campaign => (
           <Card
             key={campaign.id}
-            className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 transform hover:-translate-y-1 transition-transform duration-300"
+            className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 transform hover:-translate-y-1 transition-transform duration-300 cursor-pointer"
+            onClick={() => router.push(`/dashboard/campaigns/edit/${campaign.id}`)}
           >
             <div className="relative h-48 w-full overflow-hidden bg-gray-200">
               {(campaign.banner_url || campaign.bannerUrl) && (
@@ -325,6 +326,7 @@ export default function CampaignsListPage() {
                   size="icon"
                   className="w-full border-blue-600 text-blue-600 hover:bg-blue-50"
                   title="View Campaign"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <Link href={`/dashboard/campaigns/${campaign.id}`}>
                     <Eye className="h-4 w-4" />
@@ -337,6 +339,7 @@ export default function CampaignsListPage() {
                   size="icon"
                   className="w-full border-orange-600 text-orange-600 hover:bg-orange-50"
                   title="Edit Campaign"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <Link href={`/dashboard/campaigns/edit/${campaign.id}`}>
                     <Pencil className="h-4 w-4" />
@@ -347,7 +350,10 @@ export default function CampaignsListPage() {
                   variant="outline"
                   size="icon"
                   className="w-full border-gray-600 text-gray-600 hover:bg-gray-50"
-                  onClick={() => handleCopyLink(campaign.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCopyLink(campaign.id);
+                  }}
                   title="Copy Link"
                 >
                   {copiedCampaignId === campaign.id ? (
@@ -361,7 +367,10 @@ export default function CampaignsListPage() {
                   variant="outline"
                   size="icon"
                   className="w-full border-purple-600 text-purple-600 hover:bg-purple-50"
-                  onClick={() => handleOpenQRModal(campaign.id, campaign.name)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenQRModal(campaign.id, campaign.name);
+                  }}
                   title="Generate QR Code"
                 >
                   <QrCode className="h-4 w-4" />

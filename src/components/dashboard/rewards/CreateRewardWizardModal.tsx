@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { CloudinaryUpload } from '@/components/ui/cloudinary-upload';
 import Image from 'next/image';
@@ -43,6 +44,8 @@ export default function CreateRewardWizardModal({ isOpen, onClose, reward, onSav
   const [description, setDescription] = useState(reward?.description || '');
   // const [value, setValue] = useState<number | string>(reward?.value || 0); // Removed Value
   const [pointsRequired, setPointsRequired] = useState<number | string>(reward?.pointsRequired || 0);
+  const [stampsRequired, setStampsRequired] = useState<number | string>(reward?.stampsRequired || 0);
+  const [rewardType, setRewardType] = useState<string>(reward?.rewardType || 'Voucher');
   const [maxPoints, setMaxPoints] = useState<number | string>(reward?.maxPoints || 0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(reward?.image || null);
@@ -70,6 +73,8 @@ export default function CreateRewardWizardModal({ isOpen, onClose, reward, onSav
     setDescription(reward?.description || '');
     // setValue(reward?.value || 0);
     setPointsRequired(reward?.pointsRequired || 0);
+    setStampsRequired(reward?.stampsRequired || 0);
+    setRewardType(reward?.rewardType || 'Voucher');
     setMaxPoints(reward?.maxPoints || 0);
     setSelectedFile(null);
     setImagePreviewUrl(reward?.image || null);
@@ -132,6 +137,23 @@ export default function CreateRewardWizardModal({ isOpen, onClose, reward, onSav
     // Only update if the value is valid and within range
     if (!isNaN(numValue) && numValue >= 0) {
       setPointsRequired(inputValue);
+    }
+  };
+
+  const handleStampsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+
+    // Allow empty string for user to clear the field
+    if (inputValue === '') {
+      setStampsRequired('');
+      return;
+    }
+
+    const numValue = Number(inputValue);
+
+    // Only update if the value is valid and within range
+    if (!isNaN(numValue) && numValue >= 0) {
+      setStampsRequired(inputValue);
     }
   };
 
@@ -200,6 +222,8 @@ export default function CreateRewardWizardModal({ isOpen, onClose, reward, onSav
         image: imageUrl,
         gallery: finalGalleryUrls,
         quantity: Number(quantity),
+        stampsRequired: Number(stampsRequired),
+        rewardType,
         disabled,
         createdAt: reward?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -267,11 +291,40 @@ export default function CreateRewardWizardModal({ isOpen, onClose, reward, onSav
                     </p>
                   )}
                 </div>
+                <div>
+                  <label htmlFor="stamps" className="block text-sm font-medium mb-1">Stamps Required</label>
+                  <Input
+                    id="stamps"
+                    type="number"
+                    placeholder="0"
+                    min="0"
+                    value={stampsRequired}
+                    onChange={handleStampsChange}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">The number of stamps required to redeem this reward.</p>
+                </div>
               </div>
-              <div>
-                <label htmlFor="quantity" className="block text-sm font-medium mb-1">Quantity</label>
-                <Input id="quantity" type="number" placeholder="0" value={quantity} onChange={(e) => setQuantity(e.target.value === '' ? '' : Number(e.target.value))} />
-                <p className="text-xs text-gray-500 mt-1">The total number of units available for this reward.</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="quantity" className="block text-sm font-medium mb-1">Quantity</label>
+                  <Input id="quantity" type="number" placeholder="0" value={quantity} onChange={(e) => setQuantity(e.target.value === '' ? '' : Number(e.target.value))} />
+                  <p className="text-xs text-gray-500 mt-1">The total number of units available for this reward.</p>
+                </div>
+                <div>
+                  <label htmlFor="rewardType" className="block text-sm font-medium mb-1">Reward Type</label>
+                  <Select value={rewardType} onValueChange={setRewardType}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Voucher" textValue="Voucher">Voucher</SelectItem>
+                      <SelectItem value="Product" textValue="Product">Product</SelectItem>
+                      <SelectItem value="Service" textValue="Service">Service</SelectItem>
+                      <SelectItem value="Discount" textValue="Discount">Discount</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500 mt-1">The type of reward.</p>
+                </div>
               </div>
 
               <div>
@@ -368,8 +421,16 @@ export default function CreateRewardWizardModal({ isOpen, onClose, reward, onSav
                       <span>{pointsRequired}</span>
                     </div>
                     <div className="flex justify-between">
+                      <span className="font-medium">Stamps Required:</span>
+                      <span>{stampsRequired}</span>
+                    </div>
+                    <div className="flex justify-between">
                       <span className="font-medium">Quantity:</span>
                       <span>{quantity}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Type:</span>
+                      <span>{rewardType}</span>
                     </div>
                   </div>
                 </CardContent>
