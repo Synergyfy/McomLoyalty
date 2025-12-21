@@ -24,8 +24,12 @@ export default function DashboardLayout({
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   useEffect(() => {
+    // Check if subscription data is loaded and tier is Free
     if (!isBusinessSubLoading && businessSubscription?.tier === 'Free') {
+      // Prevent redirect loop if already on subscription page
       if (!pathname.includes('/dashboard/subscription')) {
+        // Ensure we don't redirect if we are in a potentially transient state or just paid
+        // But since we invalidated queries on checkout success, this 'Free' check should be accurate.
         router.push('/dashboard/subscription');
       }
     }
