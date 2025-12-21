@@ -30,7 +30,7 @@ export default function ConsumerDetailsPage() {
   if (isUserLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-50">
-        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
       </div>
     );
   }
@@ -152,7 +152,7 @@ export default function ConsumerDetailsPage() {
 
                   {/* Join Campaign Button (Visual only or disabled for Admin) */}
                   <div className="flex justify-center mt-8">
-                      <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105 opacity-50 cursor-not-allowed">
+                      <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105 opacity-50 cursor-not-allowed">
                         Join Campaign (Disabled for Admin)
                       </Button>
                   </div>

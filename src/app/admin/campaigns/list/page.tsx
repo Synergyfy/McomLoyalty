@@ -162,7 +162,7 @@ export default function AdminCampaignsPage() {
 
                   <div className="flex gap-2 mt-4">
                     <Link href={`/admin/campaigns/${campaign.id}/overview`} className="flex-1">
-                      <Button className="w-full py-2 text-md font-semibold bg-orange-600 hover:bg-orange-700 transition-colors duration-200">
+                      <Button className="w-full py-2 text-md font-semibold bg-blue-600 hover:bg-blue-700 transition-colors duration-200">
                         View Campaign
                       </Button>
                     </Link>

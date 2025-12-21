@@ -90,7 +90,7 @@ export default function CampaignOverviewPage() {
 
             <div className="flex-1 text-white">
               <div className="flex flex-wrap items-center gap-3 mb-3">
-                <Badge className="bg-orange-500 hover:bg-orange-600 text-white border-none px-3 py-1 text-sm uppercase tracking-wide">
+                <Badge className="bg-blue-500 hover:bg-blue-600 text-white border-none px-3 py-1 text-sm uppercase tracking-wide">
                   {campaignTypeName?.replace('_', ' ') || 'Campaign'}
                 </Badge>
                 {audienceType && (
@@ -186,7 +186,7 @@ export default function CampaignOverviewPage() {
             {/* About Section */}
             <section>
               <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                <Info className="w-8 h-8 text-orange-600" />
+                <Info className="w-8 h-8 text-blue-600" />
                 About This Campaign
               </h2>
               <div className="prose prose-lg text-gray-600 max-w-none leading-relaxed">
@@ -206,7 +206,7 @@ export default function CampaignOverviewPage() {
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden sticky top-24">
               <div className="p-6 bg-gray-50 border-b border-gray-100">
                 <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <Gift className="w-5 h-5 text-orange-600" />
+                  <Gift className="w-5 h-5 text-blue-600" />
                   Rewards ({campaign.rewards?.length || 0})
                 </h3>
               </div>

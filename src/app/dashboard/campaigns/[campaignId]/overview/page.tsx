@@ -136,7 +136,7 @@ export default function CustomerCampaignOverviewPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <Card className="bg-white shadow-lg border-none">
                         <CardContent className="p-6 flex items-center gap-4">
-                            <div className="p-3 bg-blue-100 rounded-full text-blue-600">
+                            <div className="p-3 bg-orange-100 rounded-full text-orange-600">
                                 <Calendar className="w-6 h-6" />
                             </div>
                             <div>
@@ -147,7 +147,7 @@ export default function CustomerCampaignOverviewPage() {
                     </Card>
                     <Card className="bg-white shadow-lg border-none">
                         <CardContent className="p-6 flex items-center gap-4">
-                            <div className="p-3 bg-blue-100 rounded-full text-blue-600">
+                            <div className="p-3 bg-orange-100 rounded-full text-orange-600">
                                 <Calendar className="w-6 h-6" />
                             </div>
                             <div>
@@ -222,7 +222,7 @@ export default function CustomerCampaignOverviewPage() {
                         <Card className="border-none shadow-md overflow-hidden">
                             <CardHeader className="bg-gray-50 border-b border-gray-100">
                                 <div className="flex items-center gap-2">
-                                    <LayoutTemplate className="w-5 h-5 text-blue-600" />
+                                    <LayoutTemplate className="w-5 h-5 text-orange-600" />
                                     <CardTitle className="text-lg font-bold text-gray-800">Campaign Pages</CardTitle>
                                 </div>
                             </CardHeader>

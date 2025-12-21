@@ -101,7 +101,7 @@ export default function AdminBusinessImpersonationPage() {
   if (isLoading) {
     return (
       <div className="fixed inset-0 z-[100] flex h-screen items-center justify-center bg-gray-50">
-        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
         <p className="ml-2">Loading Business Dashboard...</p>
       </div>
     );
