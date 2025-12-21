@@ -168,7 +168,7 @@ export default function AdminStampRewardsPage() {
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <p className="text-red-500 mb-4">Error loading stamp rewards.</p>
-                    <Button onClick={() => refetch()} className="bg-orange-600 hover:bg-orange-700">
+                    <Button onClick={() => refetch()} className="bg-blue-600 hover:bg-blue-700">
                         <RefreshCw className="h-4 w-4 mr-2" />
                         Retry
                     </Button>
@@ -178,18 +178,18 @@ export default function AdminStampRewardsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50/30 dark:from-gray-900 dark:to-gray-950">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30 dark:from-gray-900 dark:to-gray-950">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
                             <div className="flex items-center gap-3 mb-2">
-                                <div className="p-3 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-lg shadow-orange-500/25">
+                                <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg shadow-blue-500/25">
                                     <Stamp className="h-7 w-7 text-white" />
                                 </div>
                                 <div>
-                                    <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">
+                                    <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
                                         Stamp Reward Templates
                                     </h1>
                                     <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
@@ -200,7 +200,7 @@ export default function AdminStampRewardsPage() {
                         </div>
                         <Button
                             onClick={handleCreate}
-                            className="gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all"
+                            className="gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all"
                         >
                             <Plus className="h-5 w-5" />
                             Create Stamp Reward
@@ -226,8 +226,8 @@ export default function AdminStampRewardsPage() {
                     <Card className="bg-white dark:bg-gray-800 border-0 shadow-lg hover:shadow-xl transition-shadow">
                         <CardContent className="p-4">
                             <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-orange-100 dark:bg-orange-900/50 rounded-xl">
-                                    <Sparkles className="h-5 w-5 text-orange-600" />
+                                <div className="p-2.5 bg-blue-100 dark:bg-blue-900/50 rounded-xl">
+                                    <Sparkles className="h-5 w-5 text-blue-600" />
                                 </div>
                                 <div>
                                     <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.draft}</p>
@@ -239,8 +239,8 @@ export default function AdminStampRewardsPage() {
                     <Card className="bg-white dark:bg-gray-800 border-0 shadow-lg hover:shadow-xl transition-shadow">
                         <CardContent className="p-4">
                             <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-blue-100 dark:bg-blue-900/50 rounded-xl">
-                                    <Users className="h-5 w-5 text-blue-600" />
+                                <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl">
+                                    <Users className="h-5 w-5 text-indigo-600" />
                                 </div>
                                 <div>
                                     <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalBusinesses}</p>
@@ -274,7 +274,7 @@ export default function AdminStampRewardsPage() {
                                     placeholder="Search stamp rewards..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-10 h-11 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:border-orange-500 focus:ring-orange-500"
+                                    className="pl-10 h-11 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500"
                                 />
                             </div>
                             <div className="flex gap-3">
@@ -297,7 +297,7 @@ export default function AdminStampRewardsPage() {
                                                 <Button
                                                     variant={viewMode === 'grid' ? 'default' : 'ghost'}
                                                     size="icon"
-                                                    className={`rounded-none h-11 w-11 ${viewMode === 'grid' ? 'bg-orange-600 hover:bg-orange-700' : ''}`}
+                                                    className={`rounded-none h-11 w-11 ${viewMode === 'grid' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
                                                     onClick={() => setViewMode('grid')}
                                                 >
                                                     <LayoutGrid className="h-4 w-4" />
@@ -312,7 +312,7 @@ export default function AdminStampRewardsPage() {
                                                 <Button
                                                     variant={viewMode === 'list' ? 'default' : 'ghost'}
                                                     size="icon"
-                                                    className={`rounded-none h-11 w-11 ${viewMode === 'list' ? 'bg-orange-600 hover:bg-orange-700' : ''}`}
+                                                    className={`rounded-none h-11 w-11 ${viewMode === 'list' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
                                                     onClick={() => setViewMode('list')}
                                                 >
                                                     <List className="h-4 w-4" />
@@ -331,8 +331,8 @@ export default function AdminStampRewardsPage() {
                 {filteredStampRewards.length === 0 ? (
                     <Card className="border-0 shadow-lg">
                         <CardContent className="py-16 text-center">
-                            <div className="p-4 bg-orange-100 dark:bg-orange-900/30 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                                <Stamp className="h-8 w-8 text-orange-500" />
+                            <div className="p-4 bg-blue-100 dark:bg-blue-900/30 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                                <Stamp className="h-8 w-8 text-blue-500" />
                             </div>
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                                 No stamp rewards found
@@ -343,7 +343,7 @@ export default function AdminStampRewardsPage() {
                                     : 'Create your first stamp reward template to get started.'}
                             </p>
                             {!searchTerm && filterStatus === 'all' && (
-                                <Button onClick={handleCreate} className="gap-2 bg-orange-600 hover:bg-orange-700">
+                                <Button onClick={handleCreate} className="gap-2 bg-blue-600 hover:bg-blue-700">
                                     <Plus className="h-4 w-4" />
                                     Create Your First Template
                                 </Button>

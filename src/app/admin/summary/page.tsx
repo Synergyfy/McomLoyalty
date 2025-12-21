@@ -33,7 +33,7 @@ export default function AdminControlSummaryPage() {
 
   const controlAreas = [
     {
-      icon: <Briefcase className="h-8 w-8 text-orange-500" />,
+      icon: <Briefcase className="h-8 w-8 text-blue-500" />,
       title: 'Sectors & Categories',
       description: 'Define and organize business sectors.',
       count: `${summaryData.sectors} Sectors`,
@@ -123,7 +123,7 @@ export default function AdminControlSummaryPage() {
                   <div className="grid grid-cols-2 gap-4 w-full">
                     {area.links.map((link) => (
                       <Link key={link.href} href={link.href} passHref>
-                        <Button variant={link.variant || 'default'} className="w-full text-sm group-hover:bg-orange-500 group-hover:text-white transition-colors">
+                        <Button variant={link.variant || 'default'} className="w-full text-sm group-hover:bg-blue-600 group-hover:text-white transition-colors">
                           {link.text}
                           <ArrowRight className="ml-2 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </Button>
@@ -132,7 +132,7 @@ export default function AdminControlSummaryPage() {
                   </div>
                 ) : (
                   <Link href={area.link || '#'} passHref className="w-full">
-                    <Button className="w-full text-sm group-hover:bg-orange-500 group-hover:text-white transition-colors" disabled={area.disabled}>
+                    <Button className="w-full text-sm group-hover:bg-blue-600 group-hover:text-white transition-colors" disabled={area.disabled}>
                       {area.linkText}
                       <ArrowRight className="ml-2 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </Button>

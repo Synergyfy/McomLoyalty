@@ -6,10 +6,12 @@ import { Loader2, CheckCircle, XCircle } from "lucide-react"
 import { usePayPalVerify } from "@/services/payment/hook"
 import { toast } from "sonner"
 import Link from "next/link"
+import { useQueryClient } from "@tanstack/react-query"
 
 function PayPalReturnContent() {
     const params = useSearchParams()
     const router = useRouter()
+    const queryClient = useQueryClient()
     const [verificationStatus, setVerificationStatus] = useState<'pending' | 'success' | 'error'>('pending')
 
     const token = params.get("token") // PayPal transaction ID
@@ -31,6 +33,12 @@ function PayPalReturnContent() {
             {
                 onSuccess: (data) => {
                     console.log("PayPal verification response:", data)
+
+                    // Invalidate queries to update subscription status
+                    queryClient.removeQueries({ queryKey: ['businessSubscription'] })
+                    queryClient.removeQueries({ queryKey: ['subscription'] })
+                    queryClient.invalidateQueries({ queryKey: ['tiers'] })
+
                     setVerificationStatus('success')
                     toast.success("Payment verified successfully!")
 

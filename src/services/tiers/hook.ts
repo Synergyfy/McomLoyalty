@@ -29,6 +29,7 @@ export const useGetMySubscription = (businessId?: string) => {
     return useQuery({
         queryKey: [SUBSCRIPTION_QUERY_KEY, businessId],
         queryFn: () => getMySubscription(businessId),
+        staleTime: 0, // Always check for fresh data as this controls access
     });
 };
 
@@ -55,5 +56,6 @@ export const useGetBusinessSubscription = () => {
     return useQuery({
         queryKey: ['businessSubscription'],
         queryFn: getBusinessSubscription,
+        staleTime: 0, // Always check for fresh data as this controls access
     });
 };

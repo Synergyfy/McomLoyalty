@@ -190,8 +190,8 @@ export default function BusinessStampRewardsPage() {
                     <Card className="bg-white dark:bg-gray-800 border-0 shadow-lg">
                         <CardContent className="p-4">
                             <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-blue-100 dark:bg-blue-900/50 rounded-xl">
-                                    <Users className="h-5 w-5 text-blue-600" />
+                                <div className="p-2.5 bg-orange-100 dark:bg-orange-900/50 rounded-xl">
+                                    <Users className="h-5 w-5 text-orange-600" />
                                 </div>
                                 <div>
                                     <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.totalCustomersEnrolled || 0}</p>

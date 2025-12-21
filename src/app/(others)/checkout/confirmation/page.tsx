@@ -2,14 +2,27 @@
 
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Suspense } from 'react'
+import { Suspense, useEffect } from 'react'
 import { CheckCircle2 } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 
 // Inner component (actually uses the hook)
 function ConfirmationContent() {
   const params = useSearchParams()
+  const queryClient = useQueryClient()
   const plan = params.get('plan') || 'Bronze'
   const billing = params.get('billing') || 'quarterly'
+
+  useEffect(() => {
+    // Reset subscription queries to ensure fresh data on dashboard load.
+    // We use resetQueries (or removeQueries) to clear the cache so that the
+    // DashboardLayout enters a loading state instead of using stale "Free" data
+    // which would cause an immediate redirect back to subscription page.
+    queryClient.removeQueries({ queryKey: ['businessSubscription'] })
+    queryClient.removeQueries({ queryKey: ['subscription'] })
+    // We can keep invalidate for tiers as it is less critical for access control
+    queryClient.invalidateQueries({ queryKey: ['tiers'] })
+  }, [queryClient])
 
   return (
     <main className="min-h-screen px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto py-16">
