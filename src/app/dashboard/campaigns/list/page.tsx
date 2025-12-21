@@ -323,7 +323,7 @@ export default function CampaignsListPage() {
                   asChild
                   variant="outline"
                   size="icon"
-                  className="w-full border-blue-600 text-blue-600 hover:bg-blue-50"
+                  className="w-full border-orange-600 text-orange-600 hover:bg-orange-50"
                   title="View Campaign"
                 >
                   <Link href={`/dashboard/campaigns/${campaign.id}`}>

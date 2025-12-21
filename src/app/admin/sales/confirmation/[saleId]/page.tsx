@@ -97,7 +97,7 @@ export default function SaleConfirmationPage() {
               <Mail className="mr-2 h-4 w-4" /> Email Confirmation
             </Button>
             <Link href="/admin/sales/dashboard" passHref>
-              <Button className="w-full sm:w-auto bg-orange-600 hover:bg-orange-700">
+              <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700">
                 Go to Sales Dashboard
               </Button>
             </Link>

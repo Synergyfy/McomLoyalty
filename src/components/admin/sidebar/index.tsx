@@ -18,12 +18,12 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
 
   const linkClasses = (path: string) => {
     const isActive = pathname === path;
-    return `flex items-center p-2 rounded-lg transition-colors duration-200 ${isActive ? 'bg-orange-600 text-white' : 'text-gray-600 hover:bg-orange-100 hover:text-orange-600'}`;
+    return `flex items-center p-2 rounded-lg transition-colors duration-200 ${isActive ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-blue-100 hover:text-blue-600'}`;
   };
 
   const parentLinkClasses = (basePath: string) => {
     const isActive = pathname.startsWith(basePath);
-    return `flex items-center justify-between p-2 rounded-lg transition-colors duration-200 cursor-pointer ${isActive ? 'bg-orange-600 text-white' : 'text-gray-600 hover:bg-orange-100 hover:text-orange-600'}`;
+    return `flex items-center justify-between p-2 rounded-lg transition-colors duration-200 cursor-pointer ${isActive ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-blue-100 hover:text-blue-600'}`;
   };
 
   return (
@@ -37,7 +37,7 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
       `}
     >
       <div className="p-4 pb-6">
-        <h2 className="text-2xl font-bold text-orange-600">Admin Panel</h2>
+        <h2 className="text-2xl font-bold text-blue-600">Admin Panel</h2>
       </div>
 
       <ul className="space-y-2 px-4 pb-4 overflow-y-auto flex-1">

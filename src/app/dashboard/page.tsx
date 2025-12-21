@@ -263,7 +263,7 @@ const PointsSummary = ({
         </div>
         <div>
           <p className="text-sm text-gray-500">Matching Available</p>
-          <p className="text-2xl font-bold text-blue-600">{summary.matchingAvailable.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-orange-600">{summary.matchingAvailable.toLocaleString()}</p>
         </div>
       </CardContent>
     </Card>
