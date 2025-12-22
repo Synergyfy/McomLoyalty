@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import MediaLibrary, { MediaAsset } from '@/components/dashboard/media-library/MediaLibrary';
 
+// Create QR Plaque Page - Allows creating custom plaques with QR codes from library or device
 export default function CreatePlaquePage() {
     const router = useRouter();
     const [name, setName] = useState('');
