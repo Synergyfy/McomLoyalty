@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,8 @@ import { PlaquePreview } from '@/components/plaque/PlaquePreview';
 import { ArrowLeft, Save, Printer, Upload } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import MediaLibrary, { MediaAsset } from '@/components/dashboard/media-library/MediaLibrary';
 
 export default function CreatePlaquePage() {
     const router = useRouter();
@@ -19,17 +21,12 @@ export default function CreatePlaquePage() {
     const [description, setDescription] = useState('FOR PAYMENT');
     const [extraInfo, setExtraInfo] = useState('');
     const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setQrCodeUrl(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
+    const handleSelectAsset = (asset: MediaAsset) => {
+        setQrCodeUrl(asset.url);
+        setIsLibraryOpen(false);
+        toast.success(`Selected QR Code: ${asset.name}`);
     };
 
     const handleSave = () => {
@@ -158,18 +155,12 @@ export default function CreatePlaquePage() {
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    onClick={() => fileInputRef.current?.click()}
+                                    onClick={() => setIsLibraryOpen(true)}
                                 >
                                     <Upload className="mr-2 h-4 w-4" /> Upload QR Code
                                 </Button>
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={handleFileChange}
-                                />
-                                {qrCodeUrl && <span className="text-sm text-green-600">Image uploaded</span>}
+
+                                {qrCodeUrl && <span className="text-sm text-green-600">Image selected</span>}
                             </div>
                         </div>
 
@@ -214,6 +205,21 @@ export default function CreatePlaquePage() {
                     </div>
                 </div>
             </div>
+
+            {/* Media Library Dialog */}
+            <Dialog open={isLibraryOpen} onOpenChange={setIsLibraryOpen}>
+                <DialogContent className="max-w-5xl h-[80vh] flex flex-col p-0 overflow-hidden">
+                    <DialogHeader className="px-6 py-4 border-b">
+                        <DialogTitle>Select from Media Library</DialogTitle>
+                    </DialogHeader>
+                    <div className="flex-1 overflow-hidden">
+                        <MediaLibrary
+                            isModal
+                            onSelect={handleSelectAsset}
+                        />
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
