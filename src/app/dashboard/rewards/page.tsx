@@ -10,6 +10,7 @@ import {
   useGetAllRewards,
   useUpdateBusinessReward,
   useCreateBusinessReward,
+  useAddBusinessReward,
   useRemoveBusinessReward,
 } from '@/services/business-reward/hooks';
 import { useGetBusinessTierUsage } from '@/services/business/hook';
@@ -208,6 +209,7 @@ export default function BusinessRewardsPage() {
 
   const { mutate: updateBusinessReward } = useUpdateBusinessReward();
   const { mutateAsync: createBusinessReward } = useCreateBusinessReward();
+  const { mutateAsync: addBusinessReward } = useAddBusinessReward();
   const { mutate: removeBusinessReward, isPending: isDeletingReward } = useRemoveBusinessReward();
   const [editingBusinessRewardId, setEditingBusinessRewardId] = useState<string | null>(null);
 
@@ -280,6 +282,41 @@ export default function BusinessRewardsPage() {
             }
           }
         });
+      } else if (selectedTemplate && !editingBusinessRewardId) {
+        // Add template flow
+        const payload: CreateBusinessRewardDto = {
+          title: rewardData.title,
+          description: rewardData.description,
+          point_required: rewardData.pointsRequired,
+          image: rewardData.image,
+          gallery: rewardData.gallery,
+          quantity: rewardData.quantity,
+          disabled: rewardData.disabled,
+          reward_type: rewardData.rewardType || 'Voucher',
+          stamps_required: rewardData.stampsRequired,
+          status: RewardStatus.ACTIVE,
+        };
+
+        addBusinessReward({ rewardId: selectedTemplate.id, payload }).then(() => {
+          toast.success('Reward added successfully');
+          setIsEditClaimedModalOpen(false);
+          setSelectedTemplate(null);
+          resolve();
+        }).catch((error) => {
+          console.error("Error adding reward:", error);
+          const axiosError = error as AxiosError<{ message: string }>;
+          const errorMessage = axiosError?.response?.data?.message || 'Failed to add reward';
+
+          if (errorMessage.includes("Points required cannot exceed the maximum points set by admin")) {
+            setTierLimitMessage(errorMessage);
+            setIsTierLimitModalOpen(true);
+            // Do NOT close the edit modal
+          } else {
+            toast.error(errorMessage);
+          }
+          reject(error);
+        });
+
       } else {
         // Create new reward flow
         const payload: CreateBusinessRewardDto = {
@@ -315,7 +352,7 @@ export default function BusinessRewardsPage() {
         });
       }
     });
-  }, [editingBusinessRewardId, updateBusinessReward, createBusinessReward]);
+  }, [editingBusinessRewardId, updateBusinessReward, createBusinessReward, addBusinessReward, selectedTemplate]);
 
   const handleEditBusinessReward = useCallback((businessReward: BusinessReward) => {
     setEditingBusinessRewardId(businessReward.id);
@@ -513,6 +550,7 @@ export default function BusinessRewardsPage() {
           isOpen={isClaimModalOpen}
           onClose={() => setIsClaimModalOpen(false)}
           onCreateFromScratch={handleCreateFromScratch}
+          onSelectTemplate={handleSelectReward}
         />
 
         <EditClaimedRewardModal
