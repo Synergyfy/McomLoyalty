@@ -178,8 +178,8 @@ export default function CampaignsListPage() {
   const { data: createdCampaignsData, isLoading: isLoadingCreated } = useGetMyCreatedCampaigns(createdPage, limit);
   const { data: claimedCampaignsData, isLoading: isLoadingClaimed } = useGetMyClaimedCampaigns(claimedPage, limit);
   const { data: claimableCampaignsData } = useGetClaimableCampaigns(1, 20);
-  const { data: tierUsageData } = useGetBusinessTierUsage();
-  const { data: subscriptionData } = useGetMySubscription();
+  const { data: tierUsageData, isLoading: isLoadingTierUsage } = useGetBusinessTierUsage();
+  const { data: subscriptionData, isLoading: isLoadingSubscription } = useGetMySubscription();
 
   const handleOpenQRModal = (campaignId: string, campaignName: string) => {
     setSelectedCampaignForQR({ id: campaignId, name: campaignName });
@@ -414,14 +414,21 @@ export default function CampaignsListPage() {
 
           <ClaimableCampaignsTicker />
 
-          {tierUsageData && (
+          {isLoadingTierUsage || isLoadingSubscription ? (
+             <div className="mb-8 max-w-md h-24 bg-gray-200 animate-pulse rounded-lg"></div>
+          ) : (tierUsageData || subscriptionData) ? (
             <div className="mb-8 max-w-md">
               <UsageCard
                 title="Campaign Usage"
-                usage={tierUsageData.features.campaigns}
+                usage={tierUsageData?.features?.campaigns || {
+                  limit: subscriptionData?.tier?.configuration?.quotas?.maxActiveCampaigns ?? 0,
+                  used: 0,
+                  remaining: subscriptionData?.tier?.configuration?.quotas?.maxActiveCampaigns ?? 0,
+                  extraPoints: 0
+                }}
               />
             </div>
-          )}
+          ) : null}
 
           <Tabs defaultValue="created" className="w-full">
             <TabsList className="mb-8">
