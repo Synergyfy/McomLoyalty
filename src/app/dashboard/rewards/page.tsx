@@ -248,6 +248,8 @@ export default function BusinessRewardsPage() {
             image: rewardData.image,
             gallery: rewardData.gallery,
             quantity: rewardData.quantity,
+            reward_type: rewardData.rewardType,
+            stamps_required: rewardData.stampsRequired,
             disabled: rewardData.disabled,
           },
         }, {
@@ -288,7 +290,8 @@ export default function BusinessRewardsPage() {
           gallery: rewardData.gallery,
           quantity: rewardData.quantity,
           disabled: rewardData.disabled,
-          reward_type: 'Voucher',
+          reward_type: rewardData.rewardType || 'Voucher',
+          stamps_required: rewardData.stampsRequired,
           status: RewardStatus.ACTIVE,
         };
 
@@ -325,6 +328,8 @@ export default function BusinessRewardsPage() {
       value: businessReward.value,
       disabled: businessReward.disabled,
       pointsRequired: businessReward.pointRequired,
+      stampsRequired: businessReward.stampsRequired,
+      rewardType: businessReward.rewardType,
       quantity: businessReward.quantity || 0,
     };
     handleOpenCreateModal(mergedReward);
@@ -395,7 +400,8 @@ export default function BusinessRewardsPage() {
                 {businessRewardsData?.data.map((businessReward: BusinessReward) => (
                   <Card
                     key={businessReward.id}
-                    className="flex flex-col hover:shadow-lg transition-shadow duration-200"
+                    className="flex flex-col hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                    onClick={() => handleEditBusinessReward(businessReward)}
                   >
                     <CardHeader className="pb-4">
                       <div className="flex items-start justify-between">
@@ -429,7 +435,7 @@ export default function BusinessRewardsPage() {
                         </div>
 
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                             <Button
                               variant="ghost"
                               size="icon"

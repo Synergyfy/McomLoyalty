@@ -9,6 +9,8 @@ export interface Reward {
   gallery?: string[];
   quantity: number;
   disabled: boolean;
+  stampsRequired?: number;
+  rewardType?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -40,6 +42,7 @@ export interface BusinessReward {
   value: number;
   disabled: boolean;
   rewardType?: string;
+  stampsRequired?: number;
   rewardSource?: string;
   audience?: string;
   expiryDatetime?: string;
@@ -60,6 +63,7 @@ export interface CreateBusinessRewardDto {
   expiry_datetime?: Date;
   status?: RewardStatus;
   reward_type?: string;
+  stamps_required?: number;
   disabled?: boolean;
 }
 
@@ -77,5 +81,7 @@ export interface UpdateBusinessRewardDto {
   gallery?: string[];
   expiry_datetime?: Date;
   status?: RewardStatus;
+  reward_type?: string;
+  stamps_required?: number;
   disabled?: boolean;
 }
