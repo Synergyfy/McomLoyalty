@@ -18,7 +18,6 @@ import { BusinessReward, Reward, PaginationMeta, CreateBusinessRewardDto, Reward
 import LoadingSpinner from '@/components/ui/Loading';
 import UsageCard from '@/components/dashboard/shared/UsageCard';
 import ClaimRewardModal from '@/components/dashboard/rewards/ClaimRewardModal';
-import EditClaimedRewardModal from '@/components/dashboard/rewards/EditClaimedRewardModal';
 import UpgradePlanModal from '@/components/dashboard/rewards/UpgradePlanModal';
 import CreateRewardWizardModal from '@/components/dashboard/rewards/CreateRewardWizardModal';
 import TierLimitModal from '@/components/dashboard/campaigns/TierLimitModal';
@@ -185,7 +184,6 @@ const Pagination = ({
 
 export default function BusinessRewardsPage() {
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
-  const [isEditClaimedModalOpen, setIsEditClaimedModalOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<Reward | null>(null);
@@ -224,8 +222,10 @@ export default function BusinessRewardsPage() {
 
   const handleSelectReward = useCallback((reward: Reward) => {
     setSelectedTemplate(reward);
+    setEditingReward(reward);
+    setEditingBusinessRewardId(null);
     setIsClaimModalOpen(false);
-    setIsEditClaimedModalOpen(true);
+    setIsCreateModalOpen(true);
   }, []);
 
   const handleCreateFromScratch = useCallback(() => {
@@ -299,7 +299,7 @@ export default function BusinessRewardsPage() {
 
         addBusinessReward({ rewardId: selectedTemplate.id, payload }).then(() => {
           toast.success('Reward added successfully');
-          setIsEditClaimedModalOpen(false);
+          setIsCreateModalOpen(false);
           setSelectedTemplate(null);
           resolve();
         }).catch((error) => {
@@ -551,14 +551,6 @@ export default function BusinessRewardsPage() {
           onClose={() => setIsClaimModalOpen(false)}
           onCreateFromScratch={handleCreateFromScratch}
           onSelectTemplate={handleSelectReward}
-        />
-
-        <EditClaimedRewardModal
-          isOpen={isEditClaimedModalOpen}
-          onClose={() => setIsEditClaimedModalOpen(false)}
-          rewardTemplate={selectedTemplate}
-          onSave={handleSaveReward}
-          userPlan={currentUser.plan as 'starter' | 'co-branded' | 'white-label'}
         />
 
         <UpgradePlanModal
