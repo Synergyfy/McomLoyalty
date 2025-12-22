@@ -10,6 +10,7 @@ import {
   useGetAllRewards,
   useUpdateBusinessReward,
   useCreateBusinessReward,
+  useAddBusinessReward,
   useRemoveBusinessReward,
 } from '@/services/business-reward/hooks';
 import { useGetBusinessTierUsage } from '@/services/business/hook';
@@ -17,7 +18,6 @@ import { BusinessReward, Reward, PaginationMeta, CreateBusinessRewardDto, Reward
 import LoadingSpinner from '@/components/ui/Loading';
 import UsageCard from '@/components/dashboard/shared/UsageCard';
 import ClaimRewardModal from '@/components/dashboard/rewards/ClaimRewardModal';
-import EditClaimedRewardModal from '@/components/dashboard/rewards/EditClaimedRewardModal';
 import UpgradePlanModal from '@/components/dashboard/rewards/UpgradePlanModal';
 import CreateRewardWizardModal from '@/components/dashboard/rewards/CreateRewardWizardModal';
 import TierLimitModal from '@/components/dashboard/campaigns/TierLimitModal';
@@ -184,7 +184,6 @@ const Pagination = ({
 
 export default function BusinessRewardsPage() {
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
-  const [isEditClaimedModalOpen, setIsEditClaimedModalOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<Reward | null>(null);
@@ -208,6 +207,7 @@ export default function BusinessRewardsPage() {
 
   const { mutate: updateBusinessReward } = useUpdateBusinessReward();
   const { mutateAsync: createBusinessReward } = useCreateBusinessReward();
+  const { mutateAsync: addBusinessReward } = useAddBusinessReward();
   const { mutate: removeBusinessReward, isPending: isDeletingReward } = useRemoveBusinessReward();
   const [editingBusinessRewardId, setEditingBusinessRewardId] = useState<string | null>(null);
 
@@ -222,8 +222,10 @@ export default function BusinessRewardsPage() {
 
   const handleSelectReward = useCallback((reward: Reward) => {
     setSelectedTemplate(reward);
+    setEditingReward(reward);
+    setEditingBusinessRewardId(null);
     setIsClaimModalOpen(false);
-    setIsEditClaimedModalOpen(true);
+    setIsCreateModalOpen(true);
   }, []);
 
   const handleCreateFromScratch = useCallback(() => {
@@ -280,6 +282,41 @@ export default function BusinessRewardsPage() {
             }
           }
         });
+      } else if (selectedTemplate && !editingBusinessRewardId) {
+        // Add template flow
+        const payload: CreateBusinessRewardDto = {
+          title: rewardData.title,
+          description: rewardData.description,
+          point_required: rewardData.pointsRequired,
+          image: rewardData.image,
+          gallery: rewardData.gallery,
+          quantity: rewardData.quantity,
+          disabled: rewardData.disabled,
+          reward_type: rewardData.rewardType || 'Voucher',
+          stamps_required: rewardData.stampsRequired,
+          status: RewardStatus.ACTIVE,
+        };
+
+        addBusinessReward({ rewardId: selectedTemplate.id, payload }).then(() => {
+          toast.success('Reward added successfully');
+          setIsCreateModalOpen(false);
+          setSelectedTemplate(null);
+          resolve();
+        }).catch((error) => {
+          console.error("Error adding reward:", error);
+          const axiosError = error as AxiosError<{ message: string }>;
+          const errorMessage = axiosError?.response?.data?.message || 'Failed to add reward';
+
+          if (errorMessage.includes("Points required cannot exceed the maximum points set by admin")) {
+            setTierLimitMessage(errorMessage);
+            setIsTierLimitModalOpen(true);
+            // Do NOT close the edit modal
+          } else {
+            toast.error(errorMessage);
+          }
+          reject(error);
+        });
+
       } else {
         // Create new reward flow
         const payload: CreateBusinessRewardDto = {
@@ -315,7 +352,7 @@ export default function BusinessRewardsPage() {
         });
       }
     });
-  }, [editingBusinessRewardId, updateBusinessReward, createBusinessReward]);
+  }, [editingBusinessRewardId, updateBusinessReward, createBusinessReward, addBusinessReward, selectedTemplate]);
 
   const handleEditBusinessReward = useCallback((businessReward: BusinessReward) => {
     setEditingBusinessRewardId(businessReward.id);
@@ -513,14 +550,7 @@ export default function BusinessRewardsPage() {
           isOpen={isClaimModalOpen}
           onClose={() => setIsClaimModalOpen(false)}
           onCreateFromScratch={handleCreateFromScratch}
-        />
-
-        <EditClaimedRewardModal
-          isOpen={isEditClaimedModalOpen}
-          onClose={() => setIsEditClaimedModalOpen(false)}
-          rewardTemplate={selectedTemplate}
-          onSave={handleSaveReward}
-          userPlan={currentUser.plan as 'starter' | 'co-branded' | 'white-label'}
+          onSelectTemplate={handleSelectReward}
         />
 
         <UpgradePlanModal
