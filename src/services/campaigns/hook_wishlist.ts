@@ -17,6 +17,9 @@ export const useCreateCampaignFromWishlist = () => {
     mutationFn: createCampaignFromWishlist,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [CAMPAIGNS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: ['businessTierUsage'] });
+      queryClient.invalidateQueries({ queryKey: ['generalAnalytics'] });
+      queryClient.invalidateQueries({ queryKey: ['businessSetupStatus'] });
     },
   });
 };

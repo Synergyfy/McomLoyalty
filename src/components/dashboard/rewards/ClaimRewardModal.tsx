@@ -5,20 +5,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
-import { useGetUnaddedRewards, useAddBusinessReward } from '@/services/business-reward/hooks';
+import { useGetUnaddedRewards } from '@/services/business-reward/hooks';
 import LoadingSpinner from '@/components/ui/Loading';
-import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { ChevronLeft, ChevronRight, MoreHorizontal, Search } from 'lucide-react';
-import TierLimitModal from '@/components/dashboard/campaigns/TierLimitModal';
 import SubscriptionRequiredModal from './SubscriptionRequiredModal';
-import { AxiosError } from 'axios';
 import { useDebounce } from 'use-debounce';
+import { Reward } from '@/services/business-reward/types';
 
 interface ClaimRewardModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreateFromScratch: () => void;
+  onSelectTemplate: (reward: Reward) => void;
 }
 
 interface PaginationProps {
@@ -161,18 +160,14 @@ export default function ClaimRewardModal({
   isOpen,
   onClose,
   onCreateFromScratch,
+  onSelectTemplate,
 }: ClaimRewardModalProps) {
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery] = useDebounce(searchQuery, 300);
   const limit = 6;
   const { data: unaddedRewards, isLoading, isError, refetch } = useGetUnaddedRewards(page, limit, debouncedSearchQuery, { enabled: isOpen });
-  const addRewardMutation = useAddBusinessReward();
-  const [points, setPoints] = useState<{ [key: string]: number }>({});
-  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [addingRewardId, setAddingRewardId] = useState<string | null>(null);
 
   useEffect(() => {
     setPage(1);
@@ -190,47 +185,6 @@ export default function ClaimRewardModal({
       onClose();
     }
   }, [isError, isOpen, onClose]);
-
-  useEffect(() => {
-    if (unaddedRewards) {
-      const initialPoints = unaddedRewards.data.reduce((acc, reward) => {
-        acc[reward.id] = reward.maxPoints;
-        return acc;
-      }, {} as { [key: string]: number });
-      setPoints((prev) => ({ ...prev, ...initialPoints }));
-    }
-  }, [unaddedRewards]);
-
-  const handleAddReward = (rewardId: string) => {
-    setAddingRewardId(rewardId);
-    const pointRequired = points[rewardId];
-    addRewardMutation.mutate(
-      { rewardId, pointRequired },
-      {
-        onSuccess: () => {
-          toast.success('Reward added successfully!');
-          setAddingRewardId(null);
-          onClose();
-        },
-        onError: (error) => {
-          setAddingRewardId(null);
-          const axiosError = error as AxiosError<{ message: string }>;
-          const message = axiosError.response?.data?.message || 'Failed to add reward.';
-
-          if (message.includes('Points required cannot exceed') || message.includes('You have reached your limit of')) {
-            setErrorMessage(message);
-            setIsErrorModalOpen(true);
-          } else {
-            toast.error('Failed to add reward.');
-          }
-        },
-      }
-    );
-  };
-
-  const handlePointsChange = (rewardId: string, value: string) => {
-    setPoints((prev) => ({ ...prev, [rewardId]: Number(value) }));
-  };
 
   return (
     <>
@@ -283,27 +237,14 @@ export default function ClaimRewardModal({
                         <span className="font-medium text-xs">Maximum Points:</span>
                         <span className='text-xs'>{reward.maxPoints}</span>
                       </div>
-                      <div>
-                        <label htmlFor={`points-${reward.id}`} className="font-medium text-xs">
-                          Set Your Points
-                        </label>
-                        <Input
-                          id={`points-${reward.id}`}
-                          type="number"
-                          value={points[reward.id] || ''}
-                          onChange={(e) => handlePointsChange(reward.id, e.target.value)}
-                          className="mt-1"
-                        />
-                      </div>
                     </div>
                   </CardContent>
                   <CardFooter>
                     <Button
                       className="w-full"
-                      onClick={() => handleAddReward(reward.id)}
-                      disabled={addRewardMutation.isPending}
+                      onClick={() => onSelectTemplate(reward)}
                     >
-                      {addingRewardId === reward.id ? 'Adding...' : 'Add Reward'}
+                      Add Reward
                     </Button>
                   </CardFooter>
                 </Card>
@@ -328,11 +269,6 @@ export default function ClaimRewardModal({
           </div>
         </DialogContent>
       </Dialog>
-      <TierLimitModal
-        isOpen={isErrorModalOpen}
-        onClose={() => setIsErrorModalOpen(false)}
-        message={errorMessage}
-      />
       <SubscriptionRequiredModal
         isOpen={isSubscriptionModalOpen}
         onClose={() => setIsSubscriptionModalOpen(false)}

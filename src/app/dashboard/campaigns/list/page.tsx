@@ -178,8 +178,8 @@ export default function CampaignsListPage() {
   const { data: createdCampaignsData, isLoading: isLoadingCreated } = useGetMyCreatedCampaigns(createdPage, limit);
   const { data: claimedCampaignsData, isLoading: isLoadingClaimed } = useGetMyClaimedCampaigns(claimedPage, limit);
   const { data: claimableCampaignsData } = useGetClaimableCampaigns(1, 20);
-  const { data: tierUsageData } = useGetBusinessTierUsage();
-  const { data: subscriptionData } = useGetMySubscription();
+  const { data: tierUsageData, isLoading: isLoadingTierUsage } = useGetBusinessTierUsage();
+  const { data: subscriptionData, isLoading: isLoadingSubscription } = useGetMySubscription();
 
   const handleOpenQRModal = (campaignId: string, campaignName: string) => {
     setSelectedCampaignForQR({ id: campaignId, name: campaignName });
@@ -250,7 +250,8 @@ export default function CampaignsListPage() {
         {campaigns.map(campaign => (
           <Card
             key={campaign.id}
-            className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 transform hover:-translate-y-1 transition-transform duration-300"
+            className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 transform hover:-translate-y-1 transition-transform duration-300 cursor-pointer"
+            onClick={() => router.push(`/dashboard/campaigns/edit/${campaign.id}`)}
           >
             <div className="relative h-48 w-full overflow-hidden bg-gray-200">
               {(campaign.banner_url || campaign.bannerUrl) && (
@@ -325,6 +326,7 @@ export default function CampaignsListPage() {
                   size="icon"
                   className="w-full border-orange-600 text-orange-600 hover:bg-orange-50"
                   title="View Campaign"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <Link href={`/dashboard/campaigns/${campaign.id}`}>
                     <Eye className="h-4 w-4" />
@@ -337,6 +339,7 @@ export default function CampaignsListPage() {
                   size="icon"
                   className="w-full border-orange-600 text-orange-600 hover:bg-orange-50"
                   title="Edit Campaign"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <Link href={`/dashboard/campaigns/edit/${campaign.id}`}>
                     <Pencil className="h-4 w-4" />
@@ -347,7 +350,10 @@ export default function CampaignsListPage() {
                   variant="outline"
                   size="icon"
                   className="w-full border-gray-600 text-gray-600 hover:bg-gray-50"
-                  onClick={() => handleCopyLink(campaign.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCopyLink(campaign.id);
+                  }}
                   title="Copy Link"
                 >
                   {copiedCampaignId === campaign.id ? (
@@ -361,7 +367,10 @@ export default function CampaignsListPage() {
                   variant="outline"
                   size="icon"
                   className="w-full border-purple-600 text-purple-600 hover:bg-purple-50"
-                  onClick={() => handleOpenQRModal(campaign.id, campaign.name)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenQRModal(campaign.id, campaign.name);
+                  }}
                   title="Generate QR Code"
                 >
                   <QrCode className="h-4 w-4" />
@@ -414,14 +423,21 @@ export default function CampaignsListPage() {
 
           <ClaimableCampaignsTicker />
 
-          {tierUsageData && (
+          {isLoadingTierUsage || isLoadingSubscription ? (
+             <div className="mb-8 max-w-md h-24 bg-gray-200 animate-pulse rounded-lg"></div>
+          ) : (tierUsageData || subscriptionData) ? (
             <div className="mb-8 max-w-md">
               <UsageCard
                 title="Campaign Usage"
-                usage={tierUsageData.features.campaigns}
+                usage={tierUsageData?.features?.campaigns || {
+                  limit: subscriptionData?.tier?.configuration?.quotas?.maxActiveCampaigns ?? 0,
+                  used: 0,
+                  remaining: subscriptionData?.tier?.configuration?.quotas?.maxActiveCampaigns ?? 0,
+                  extraPoints: 0
+                }}
               />
             </div>
-          )}
+          ) : null}
 
           <Tabs defaultValue="created" className="w-full">
             <TabsList className="mb-8">

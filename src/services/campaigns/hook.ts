@@ -50,6 +50,9 @@ export const useCreateCampaign = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [CAMPAIGNS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: ['businessTierUsage'] });
+      queryClient.invalidateQueries({ queryKey: ['generalAnalytics'] });
+      queryClient.invalidateQueries({ queryKey: ['businessSetupStatus'] });
     },
   });
 };
@@ -61,6 +64,9 @@ export const useUpdateCampaign = () => {
     mutationFn: updateBusinessCampaign,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [CAMPAIGNS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: ['businessTierUsage'] });
+      queryClient.invalidateQueries({ queryKey: ['generalAnalytics'] });
+      queryClient.invalidateQueries({ queryKey: ['businessSetupStatus'] });
     },
   });
 };
@@ -116,6 +122,9 @@ export const useClaimCampaign = () => {
     mutationFn: claimCampaign,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [CAMPAIGNS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: ['businessTierUsage'] });
+      queryClient.invalidateQueries({ queryKey: ['generalAnalytics'] });
+      queryClient.invalidateQueries({ queryKey: ['businessSetupStatus'] });
     },
   });
 };
@@ -221,6 +230,9 @@ export const useDeleteCampaign = () => {
     mutationFn: deleteCampaign,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [CAMPAIGNS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: ['businessTierUsage'] });
+      queryClient.invalidateQueries({ queryKey: ['generalAnalytics'] });
+      queryClient.invalidateQueries({ queryKey: ['businessSetupStatus'] });
     },
   });
 };

@@ -73,6 +73,9 @@ export const useCreateBusinessReward = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['businessRewards'] });
       queryClient.invalidateQueries({ queryKey: ['unaddedRewards'] });
+      queryClient.invalidateQueries({ queryKey: ['businessTierUsage'] });
+      queryClient.invalidateQueries({ queryKey: ['generalAnalytics'] });
+      queryClient.invalidateQueries({ queryKey: ['businessSetupStatus'] });
     },
   });
 };
@@ -93,16 +96,17 @@ export const useAddBusinessReward = () => {
   return useMutation({
     mutationFn: ({
       rewardId,
-      pointRequired,
-      quantity,
+      payload,
     }: {
       rewardId: string;
-      pointRequired: number;
-      quantity?: number;
-    }) => addBusinessReward(rewardId, { point_required: pointRequired, quantity }),
+      payload: CreateBusinessRewardDto;
+    }) => addBusinessReward(rewardId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['businessRewards'] });
       queryClient.invalidateQueries({ queryKey: ['unaddedRewards'] });
+      queryClient.invalidateQueries({ queryKey: ['businessTierUsage'] });
+      queryClient.invalidateQueries({ queryKey: ['generalAnalytics'] });
+      queryClient.invalidateQueries({ queryKey: ['businessSetupStatus'] });
     },
   });
 };
@@ -117,6 +121,9 @@ export const useRemoveBusinessReward = () => {
     mutationFn: removeBusinessReward,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['businessRewards'] });
+      queryClient.invalidateQueries({ queryKey: ['businessTierUsage'] });
+      queryClient.invalidateQueries({ queryKey: ['generalAnalytics'] });
+      queryClient.invalidateQueries({ queryKey: ['businessSetupStatus'] });
     },
   });
 };
@@ -146,6 +153,9 @@ export const useUpdateBusinessReward = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['businessRewards'] });
       queryClient.invalidateQueries({ queryKey: ['allRewards'] });
+      queryClient.invalidateQueries({ queryKey: ['businessTierUsage'] });
+      queryClient.invalidateQueries({ queryKey: ['generalAnalytics'] });
+      queryClient.invalidateQueries({ queryKey: ['businessSetupStatus'] });
     },
   });
 };
