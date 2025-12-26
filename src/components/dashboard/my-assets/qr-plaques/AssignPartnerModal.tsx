@@ -86,7 +86,7 @@ export default function AssignPartnerModal({ isOpen, onClose, onAssign, plaqueId
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="Select relationship" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[10000]">
                 <SelectItem value="partner">Partner</SelectItem>
                 <SelectItem value="supplier">Supplier</SelectItem>
                 <SelectItem value="affiliate">Affiliate</SelectItem>
@@ -102,7 +102,7 @@ export default function AssignPartnerModal({ isOpen, onClose, onAssign, plaqueId
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="Select location" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[10000]">
                 <SelectItem value="nearby">Nearby</SelectItem>
                 <SelectItem value="hyperlocal">Hyperlocal</SelectItem>
                 <SelectItem value="national">National</SelectItem>
