@@ -25,7 +25,7 @@ import ContactUsPagePreview from './previews/ContactUsPagePreview';
 import FooterPreview from './previews/FooterPreview';
 import { useCreateCampaign, useUpdateCampaign } from '@/services/campaigns/hook';
 import { useCreateCampaignFromWishlist } from '@/services/campaigns/hook_wishlist';
-import { CreateCampaignPayload, CampaignResponse, UpdateCampaignPayload } from '@/services/campaigns/types';
+import { CreateCampaignPayload, CampaignResponse, UpdateCampaignPayload, BusinessCampaign } from '@/services/campaigns/types';
 import { CreateCampaignFromWishlistDto } from '@/services/campaigns/types_wishlist';
 import { toast } from 'sonner';
 
