@@ -305,3 +305,18 @@ export const useGetMyCampaigns = (page: number = 1, limit: number = 10) => {
     queryFn: () => getMyCampaigns(page, limit),
   });
 };
+
+// Get Participant Mall Reward History
+const getParticipantMallRewardHistory = async (page: number, limit: number): Promise<ParticipantHistoryResponse> => {
+  const { data } = await api.get<ParticipantHistoryResponse>('/participant/mall-reward-history', {
+    params: { page, limit },
+  });
+  return data;
+};
+
+export const useGetParticipantMallRewardHistory = (page: number = 1, limit: number = 10) => {
+  return useQuery({
+    queryKey: ['participantMallRewardHistory', page, limit],
+    queryFn: () => getParticipantMallRewardHistory(page, limit),
+  });
+};

@@ -268,8 +268,8 @@ export default function WalletPage() {
                          <TableCell>{dateDisplay}</TableCell>
                          <TableCell className="capitalize">{tx.type.replace(/_/g, ' ').toLowerCase()}</TableCell>
                          <TableCell className="max-w-[200px] truncate" title={tx.reference}>{tx.reference}</TableCell>
-                         <TableCell className={`text-right font-medium ${tx.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                           {tx.amount > 0 ? '+' : ''}£{Number(tx.amount).toFixed(2)}
+                         <TableCell className={`text-right font-medium ${Number(tx.amount) > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                           {Number(tx.amount) > 0 ? '+' : ''}£{Number(tx.amount).toFixed(2)}
                          </TableCell>
                        </TableRow>
                      );

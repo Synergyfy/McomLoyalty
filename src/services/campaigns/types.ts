@@ -119,6 +119,9 @@ export interface Reward {
   id: string;
   title: string;
   points_required: number;
+  pointsRequired?: number;
+  stamps_required?: number;
+  stampsRequired?: number;
   value: number;
   description: string;
   image: string;
@@ -237,7 +240,9 @@ export interface ParticipantCampaignSearchResponse {
   businessRewards: {
     id: string;
     title: string;
-    pointRequired: number;
+    pointRequired?: number;
+    points_required?: number;
+    stamps_required?: number;
   }[];
 }
 
@@ -245,7 +250,10 @@ export interface OngoingCampaignReward {
   id: string;
   title: string;
   pointsRequired: number;
+  points_required?: number;
   pointRequired?: number; // Variant from some API responses
+  stamps_required?: number;
+  stampsRequired?: number;
   value: number;
   description: string;
   image: string;
@@ -307,6 +315,8 @@ export interface OngoingCampaign {
   rewards: OngoingCampaignReward[];
   businessRewards?: OngoingCampaignReward[];
   participantCount: number;
+  howToEarn?: string[];
+  termsAndConditions?: string[];
 }
 
 export interface PaginatedOngoingCampaignsResponse extends PaginationMeta {
@@ -354,6 +364,7 @@ export interface TopReward {
   id: string;
   rTitle: string;
   rPointsRequired: number;
+  rStampsRequired?: number;
   totalRedemptions: string;
 }
 

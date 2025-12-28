@@ -222,11 +222,13 @@ export default function CreateRewardWizardModal({ isOpen, onClose, reward, onSav
         description,
         value: 0, // Value removed from UI, defaulting to 0
         pointsRequired: Number(pointsRequired),
+        points_required: Number(pointsRequired),
         maxPoints: Number(maxPoints) > 0 ? Number(maxPoints) : Number(pointsRequired),
         image: imageUrl,
         gallery: finalGalleryUrls,
         quantity: Number(quantity),
         stampsRequired: Number(stampsRequired),
+        stamps_required: Number(stampsRequired),
         rewardType,
         disabled,
         is_mall_integrated: isMallIntegrated,

@@ -103,10 +103,44 @@ export default function CampaignDetailsPage() {
             <CardHeader>
               <CardTitle>About this Campaign</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-gray-700 leading-relaxed">
-                {campaign.campaignMessage}
-              </p>
+            <CardContent className="space-y-6">
+              <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
+                {/* Render HTML if it looks like HTML, otherwise just text */}
+                {/<[a-z][\s\S]*>/i.test(campaign.campaignMessage) ? (
+                  <div dangerouslySetInnerHTML={{ __html: campaign.campaignMessage }} />
+                ) : (
+                  <p>{campaign.campaignMessage}</p>
+                )}
+              </div>
+
+              {/* How to Participate Section */}
+              {campaign.howToEarn && campaign.howToEarn.length > 0 && (
+                <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
+                  <h3 className="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wider">How to Participate</h3>
+                  <ul className="space-y-3">
+                    {campaign.howToEarn.map((step, index) => (
+                      <li key={index} className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-xs">
+                          {index + 1}
+                        </div>
+                        <p className="text-sm text-gray-700 pt-0.5">{step}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Terms Section */}
+              {campaign.termsAndConditions && campaign.termsAndConditions.length > 0 && (
+                <div className="bg-gray-50/50 rounded-xl p-5 border border-dashed border-gray-200">
+                  <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider">Terms & Conditions</h3>
+                  <ul className="space-y-2 list-disc pl-5 text-gray-600 text-xs text-muted-foreground">
+                    {campaign.termsAndConditions.map((term, index) => (
+                      <li key={index}>{term}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               <div className="flex flex-wrap gap-4 pt-2">
                 <div className="flex items-center gap-2 text-sm bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full">
@@ -190,8 +224,7 @@ export default function CampaignDetailsPage() {
                 <ProcessRedemptionModal
                   campaignId={campaign.id}
                   campaignName={campaign.name}
-                  rewards={campaign.rewards}
-                  businessRewards={campaign.businessRewards}
+                  businessRewards={campaign.businessRewards || []}
                 />
               </CardContent>
             </Card>

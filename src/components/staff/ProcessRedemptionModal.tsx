@@ -16,10 +16,10 @@ import { OngoingCampaignReward } from "@/services/campaigns/types";
 interface ProcessRedemptionModalProps {
     campaignId: string;
     campaignName: string;
-    rewards: OngoingCampaignReward[];
+    businessRewards: OngoingCampaignReward[];
 }
 
-export function ProcessRedemptionModal({ campaignId, campaignName, rewards }: ProcessRedemptionModalProps) {
+export function ProcessRedemptionModal({ campaignId, campaignName, businessRewards = [] }: ProcessRedemptionModalProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedRewardId, setSelectedRewardId] = useState<string>("");
 
@@ -33,7 +33,7 @@ export function ProcessRedemptionModal({ campaignId, campaignName, rewards }: Pr
     const { mutateAsync: scanParticipant, isPending: isRedeeming } = useScanParticipant();
     const { mutateAsync: generateCode, isPending: isGenerating } = useGenerateCode();
 
-    const selectedReward = rewards.find(r => r.id === selectedRewardId);
+    const selectedReward = businessRewards.find(r => r.id === selectedRewardId);
 
     const handleRedeemSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -122,12 +122,12 @@ export function ProcessRedemptionModal({ campaignId, campaignName, rewards }: Pr
                                 <SelectValue placeholder="Select a reward to redeem" />
                             </SelectTrigger>
                             <SelectContent>
-                                {rewards.filter(r => !r.disabled).map((reward) => (
+                                {businessRewards.filter(r => !r.disabled).map((reward) => (
                                     <SelectItem key={reward.id} value={reward.id}>
-                                        {reward.title} ({reward.pointsRequired} pts)
+                                        {reward.title} ({(reward.pointRequired ?? reward.pointsRequired ?? 0)} pts)
                                     </SelectItem>
                                 ))}
-                                {rewards.length === 0 && (
+                                {businessRewards.length === 0 && (
                                     <SelectItem value="none" disabled>No rewards available</SelectItem>
                                 )}
                             </SelectContent>
