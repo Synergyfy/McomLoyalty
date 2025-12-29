@@ -51,6 +51,7 @@ export interface UpdateQrPlaqueRequest {
   assigneeBusinessName?: string;
   relationshipTag?: RelationshipTag;
   locationTag?: LocationTag;
+  networkContactId?: string;
 }
 
 export interface AdminUpdateQrPlaqueRequest extends UpdateQrPlaqueRequest {
