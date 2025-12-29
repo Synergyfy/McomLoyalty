@@ -55,8 +55,8 @@ export default function AssignPlaqueWizard({ isOpen, onClose, plaqueId }: Assign
                 data: {
                     status: 'PENDING',
                     assigneeName: contact.name,
-                    assigneeEmail: contact.email,
-                    assigneeBusinessName: contact.businessName,
+                    assigneeEmail: contact.email || undefined,
+                    assigneeBusinessName: contact.businessName || undefined,
                     relationshipTag: contact.relationshipTag,
                     locationTag: contact.locationTag
                 }
