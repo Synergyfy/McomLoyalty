@@ -104,6 +104,9 @@ export const useAddRewardToBusiness = () => {
     mutationFn: addRewardToBusiness,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [BUSINESS_REWARDS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: ['businessTierUsage'] });
+      queryClient.invalidateQueries({ queryKey: ['generalAnalytics'] });
+      queryClient.invalidateQueries({ queryKey: ['businessSetupStatus'] });
     },
   });
 };

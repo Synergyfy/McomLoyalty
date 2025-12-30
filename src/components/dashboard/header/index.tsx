@@ -195,7 +195,7 @@ export default function BusinessHeader({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-auto px-2 py-0.5 text-xs text-blue-600 hover:text-blue-700"
+                  className="h-auto px-2 py-0.5 text-xs text-orange-600 hover:text-orange-700"
                   onClick={handleMarkAllRead}
                 >
                   Mark all read
@@ -212,12 +212,12 @@ export default function BusinessHeader({
                 notifications.map((notification) => (
                   <DropdownMenuItem
                     key={notification.id}
-                    className={`flex flex-col items-start p-3 cursor-pointer ${!notification.isRead ? 'bg-blue-50/50' : ''}`}
+                    className={`flex flex-col items-start p-3 cursor-pointer ${!notification.isRead ? 'bg-orange-50/50' : ''}`}
                     onClick={() => handleNotificationClick(notification.id, notification.isRead)}
                   >
                     <div className="flex items-start justify-between w-full">
                       <div className="font-medium truncate pr-2">{notification.title || 'Notification'}</div>
-                      {!notification.isRead && <div className="h-2 w-2 rounded-full bg-blue-500 mt-1.5 flex-shrink-0" />}
+                      {!notification.isRead && <div className="h-2 w-2 rounded-full bg-orange-500 mt-1.5 flex-shrink-0" />}
                     </div>
                     <div className="text-sm text-gray-500 line-clamp-2">{notification.message}</div>
                     <div className="text-xs text-gray-400 mt-1">

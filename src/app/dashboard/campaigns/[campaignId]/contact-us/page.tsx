@@ -50,7 +50,7 @@ export default function CustomerContactUsPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-100">
                         <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                            <div className="p-3 bg-white rounded-full shadow-sm text-blue-500">
+                            <div className="p-3 bg-white rounded-full shadow-sm text-orange-500">
                                 <Mail className="w-6 h-6" />
                             </div>
                             <div>

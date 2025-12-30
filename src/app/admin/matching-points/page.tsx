@@ -149,7 +149,7 @@ export default function MatchingPointsSettingsPage() {
           <Tabs defaultValue="earning-rules">
             <TabsList className="grid w-full grid-cols-4 h-auto"> {/* Changed to 4 columns and auto height for wrapping if needed on small screens */}
               <TabsTrigger value="earning-rules" className="data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-700"><Zap className="mr-2 h-4 w-4" />Earning Rules</TabsTrigger>
-              <TabsTrigger value="badge-levels" className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-700"><Trophy className="mr-2 h-4 w-4" />Badge Levels</TabsTrigger>
+              <TabsTrigger value="badge-levels" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700"><Trophy className="mr-2 h-4 w-4" />Badge Levels</TabsTrigger>
               <TabsTrigger value="sectors"><Briefcase className="mr-2 h-4 w-4" />Sector Ranges</TabsTrigger>
               <TabsTrigger value="campaigns"><Megaphone className="mr-2 h-4 w-4" />Campaign Toggles</TabsTrigger>
             </TabsList>

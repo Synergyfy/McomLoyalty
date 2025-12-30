@@ -17,7 +17,15 @@ export default function AdminLayout({
 
   return (
     <GuideProvider>
-      <div className="min-h-screen md:flex">
+      <div
+        className="min-h-screen md:flex"
+        style={{
+          // @ts-ignore
+          "--primary": "#2563eb",
+          "--primary-foreground": "#ffffff",
+          "--ring": "#2563eb",
+        } as React.CSSProperties}
+      >
         {/* Mobile overlay */}
         {isSidebarOpen && (
           <div

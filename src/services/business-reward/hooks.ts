@@ -6,7 +6,51 @@ import {
   BusinessReward,
   GetRewardsResponse,
   UpdateBusinessRewardDto,
+  GetMallRewardHistoryResponse,
+  MallRewardStats,
 } from './types';
+
+const fetchMallRewardHistory = async (page: number, limit: number) => {
+  const { data } = await api.get<GetMallRewardHistoryResponse>(
+    `/rewards/business/mall-reward-history`, { params: { page, limit } }
+  );
+  return data;
+};
+
+export const useGetMallRewardHistory = (page: number, limit: number) => {
+  return useQuery({
+    queryKey: ['mallRewardHistory', page, limit],
+    queryFn: () => fetchMallRewardHistory(page, limit),
+  });
+};
+
+const fetchMallRewardStats = async () => {
+  const { data } = await api.get<MallRewardStats>(
+    `/rewards/business/mall-reward-stats`
+  );
+  return data;
+};
+
+export const useGetMallRewardStats = () => {
+  return useQuery({
+    queryKey: ['mallRewardStats'],
+    queryFn: fetchMallRewardStats,
+  });
+};
+
+const fetchParticipantMallRewardHistory = async (page: number, limit: number) => {
+  const { data } = await api.get<GetMallRewardHistoryResponse>(
+    `/rewards/participant/mall-reward-history`, { params: { page, limit } }
+  );
+  return data;
+};
+
+export const useGetParticipantMallRewardHistory = (page: number, limit: number) => {
+  return useQuery({
+    queryKey: ['participantMallRewardHistory', page, limit],
+    queryFn: () => fetchParticipantMallRewardHistory(page, limit),
+  });
+};
 
 const fetchBusinessRewards = async (page: number, limit: number, businessId?: string) => {
   const { data } = await api.get<GetBusinessRewardsResponse>(
@@ -73,6 +117,9 @@ export const useCreateBusinessReward = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['businessRewards'] });
       queryClient.invalidateQueries({ queryKey: ['unaddedRewards'] });
+      queryClient.invalidateQueries({ queryKey: ['businessTierUsage'] });
+      queryClient.invalidateQueries({ queryKey: ['generalAnalytics'] });
+      queryClient.invalidateQueries({ queryKey: ['businessSetupStatus'] });
     },
   });
 };
@@ -93,16 +140,17 @@ export const useAddBusinessReward = () => {
   return useMutation({
     mutationFn: ({
       rewardId,
-      pointRequired,
-      quantity,
+      payload,
     }: {
       rewardId: string;
-      pointRequired: number;
-      quantity?: number;
-    }) => addBusinessReward(rewardId, { point_required: pointRequired, quantity }),
+      payload: CreateBusinessRewardDto;
+    }) => addBusinessReward(rewardId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['businessRewards'] });
       queryClient.invalidateQueries({ queryKey: ['unaddedRewards'] });
+      queryClient.invalidateQueries({ queryKey: ['businessTierUsage'] });
+      queryClient.invalidateQueries({ queryKey: ['generalAnalytics'] });
+      queryClient.invalidateQueries({ queryKey: ['businessSetupStatus'] });
     },
   });
 };
@@ -117,6 +165,9 @@ export const useRemoveBusinessReward = () => {
     mutationFn: removeBusinessReward,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['businessRewards'] });
+      queryClient.invalidateQueries({ queryKey: ['businessTierUsage'] });
+      queryClient.invalidateQueries({ queryKey: ['generalAnalytics'] });
+      queryClient.invalidateQueries({ queryKey: ['businessSetupStatus'] });
     },
   });
 };
@@ -146,6 +197,9 @@ export const useUpdateBusinessReward = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['businessRewards'] });
       queryClient.invalidateQueries({ queryKey: ['allRewards'] });
+      queryClient.invalidateQueries({ queryKey: ['businessTierUsage'] });
+      queryClient.invalidateQueries({ queryKey: ['generalAnalytics'] });
+      queryClient.invalidateQueries({ queryKey: ['businessSetupStatus'] });
     },
   });
 };

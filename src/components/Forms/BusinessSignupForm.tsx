@@ -109,16 +109,6 @@ export default function BusinessSignupForm() {
           </div>
 
           <div>
-            <Label htmlFor="referralCode">Referral Code (Optional)</Label>
-            <Input
-              id="referralCode"
-              type="text"
-              placeholder="Enter referral code"
-              {...register("referralCode")}
-            />
-          </div>
-
-          <div>
             <Label htmlFor="password">
               Password <span className="text-red-500">*</span>
             </Label>
@@ -155,26 +145,6 @@ export default function BusinessSignupForm() {
             </Label>
             <Input
               id="referalcode"
-              type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
-              {...register("confirmPassword", {
-                required: "Confirm Password is required",
-                validate: (value) =>
-                  value === watch("password") || "Passwords do not match",
-              })}
-            />
-            {errors.confirmPassword && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.confirmPassword.message}
-              </p>
-            )}
-          </div>
-          <div>
-            <Label htmlFor="confirmPassword">
-              Confirm Password <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="confirmPassword"
               type={showPassword ? "text" : "password"}
               placeholder="••••••••"
               {...register("confirmPassword", {

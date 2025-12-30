@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import { useCreateQrPlaque } from '@/services/qr-plaques/hook';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,18 +9,31 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PlaquePreview } from '@/components/plaque/PlaquePreview';
-import { ArrowLeft, Save, Printer, Upload } from 'lucide-react';
+import { ArrowLeft, Save, Printer, Upload, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import MediaLibrary, { MediaAsset } from '@/components/dashboard/media-library/MediaLibrary';
 
+// Create QR Plaque Page - Allows creating custom plaques with QR codes from library or device
 export default function CreatePlaquePage() {
     const router = useRouter();
+    const { mutate: createPlaque, isPending } = useCreateQrPlaque();
+
     const [name, setName] = useState('');
     const [actionText, setActionText] = useState('SCAN HERE');
     const [description, setDescription] = useState('FOR PAYMENT');
-    const [extraInfo, setExtraInfo] = useState('');
+    const [footerText, setFooterText] = useState('');
     const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
+    const [isLibraryOpen, setIsLibraryOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const contentUrl = qrCodeUrl; // URL for the QR code image
+    const previewQrCodeUrl = qrCodeUrl || '/placeholder-qr-code.png';
+    const handleSelectAsset = (asset: MediaAsset) => {
+        setQrCodeUrl(asset.url);
+        setIsLibraryOpen(false);
+        toast.success(`Selected QR Code: ${asset.name}`);
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -27,6 +41,7 @@ export default function CreatePlaquePage() {
             const reader = new FileReader();
             reader.onloadend = () => {
                 setQrCodeUrl(reader.result as string);
+                toast.success("Image uploaded from device");
             };
             reader.readAsDataURL(file);
         }
@@ -38,35 +53,17 @@ export default function CreatePlaquePage() {
             return;
         }
 
-        try {
-            const existingPlaques = JSON.parse(localStorage.getItem('my_plaques_list') || '[]');
-            const baseCount = 5;
-            const nextNum = baseCount + existingPlaques.length + 1;
-            const newId = `Plaque-${String(nextNum).padStart(3, '0')}`;
-
-            const newPlaque = {
-                id: newId,
-                name: name,
-                partner: name,
-                actionText,
-                description,
-                extraInfo,
-                qrCodeUrl,
-                status: 'Draft',
-                scans: 0,
-                redemptions: 0,
-                linkedOffer: null,
-                price: null,
-                createdAt: new Date().toISOString(),
-            };
-
-            localStorage.setItem('my_plaques_list', JSON.stringify([...existingPlaques, newPlaque]));
-            toast.success("Plaque template saved successfully!");
-            router.push('/dashboard/my-assets/qr-plaques');
-        } catch (error) {
-            console.error("Failed to save plaque", error);
-            toast.error("Failed to save plaque template.");
-        }
+        createPlaque({
+            name,
+            actionText,
+            description,
+            footerText,
+            contentUrl
+        }, {
+            onSuccess: () => {
+                router.push('/dashboard/my-assets/qr-plaques');
+            }
+        });
     };
 
     const handlePrint = () => {
@@ -151,17 +148,29 @@ export default function CreatePlaquePage() {
                             />
                         </div>
 
-                        {/* 4. QR Upload */}
+                        {/* 4. Content URL (Linked Offer) */}
                         <div className="space-y-2">
                             <Label>QR Code Image</Label>
-                            <div className="flex items-center gap-4">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => fileInputRef.current?.click()}
-                                >
-                                    <Upload className="mr-2 h-4 w-4" /> Upload QR Code
-                                </Button>
+                            <div className="flex flex-col gap-3">
+                                <div className="flex gap-3">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="flex-1"
+                                        onClick={() => setIsLibraryOpen(true)}
+                                    >
+                                        <ImageIcon className="mr-2 h-4 w-4" /> Select from Library
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="flex-1"
+                                        onClick={() => fileInputRef.current?.click()}
+                                    >
+                                        <Upload className="mr-2 h-4 w-4" /> Upload from Device
+                                    </Button>
+                                </div>
+
                                 <input
                                     ref={fileInputRef}
                                     type="file"
@@ -169,24 +178,25 @@ export default function CreatePlaquePage() {
                                     className="hidden"
                                     onChange={handleFileChange}
                                 />
-                                {qrCodeUrl && <span className="text-sm text-green-600">Image uploaded</span>}
+                                {qrCodeUrl && <span className="text-sm text-green-600">Image selected</span>}
                             </div>
                         </div>
 
-                        {/* 5. Footer (Extra Info) */}
+                        {/* 5. Footer (Footer Text) */}
                         <div className="space-y-2">
-                            <Label htmlFor="extraInfo">Footer Text (Optional)</Label>
-                            <Textarea
-                                id="extraInfo"
-                                placeholder="e.g. Please check the amount before finalizing."
-                                value={extraInfo}
-                                onChange={(e) => setExtraInfo(e.target.value)}
+                            <Label htmlFor="footerText">Footer Text</Label>
+                            <Input
+                                id="footerText"
+                                placeholder="e.g. Powered by Mcom"
+                                value={footerText}
+                                onChange={(e) => setFooterText(e.target.value)}
                             />
                         </div>
 
                         <div className="pt-4 flex gap-4">
-                            <Button onClick={handleSave} className="flex-1">
-                                <Save className="mr-2 h-4 w-4" /> Save Template
+                            <Button onClick={handleSave} className="flex-1" disabled={isPending}>
+                                <Save className="mr-2 h-4 w-4" />
+                                {isPending ? 'Saving...' : 'Save Template'}
                             </Button>
                         </div>
                     </CardContent>
@@ -207,13 +217,29 @@ export default function CreatePlaquePage() {
                                 title={name}
                                 actionText={actionText}
                                 description={description}
-                                extraInfo={extraInfo}
-                                qrCodeUrl={qrCodeUrl}
+                                extraInfo={footerText}
+                                qrCodeUrl={previewQrCodeUrl}
                             />
+                            <p className="text-xs text-gray-400 mt-2 text-center">QR Code will be generated upon saving.</p>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Media Library Dialog */}
+            <Dialog open={isLibraryOpen} onOpenChange={setIsLibraryOpen}>
+                <DialogContent className="max-w-5xl h-[80vh] flex flex-col p-0 overflow-hidden">
+                    <DialogHeader className="px-6 py-4 border-b">
+                        <DialogTitle>Select from Media Library</DialogTitle>
+                    </DialogHeader>
+                    <div className="flex-1 overflow-hidden">
+                        <MediaLibrary
+                            isModal
+                            onSelect={handleSelectAsset}
+                        />
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
