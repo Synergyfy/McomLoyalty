@@ -53,29 +53,27 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
 
     const isSeasonal = formData.planType === 'seasonal';
 
+    // Rewards are locked for BOTH Seasonal AND Standard plans now per requirement
+    const isRewardLocked = true;
+
     // Get selected tiers (seasonal or standard)
     const selectedTiers = React.useMemo(() => {
         if (!allTiers) return [];
-        if (isSeasonal) {
-            return allTiers.filter(t => formData.target_tier_ids?.includes(t.id));
+        // Both now use target_tier_ids
+        if (formData.target_tier_ids && formData.target_tier_ids.length > 0) {
+             return allTiers.filter(t => formData.target_tier_ids?.includes(t.id));
         }
         return allTiers.filter(t => t.id === formData.target_tier_id);
-    }, [allTiers, formData.target_tier_ids, formData.target_tier_id, isSeasonal]);
+    }, [allTiers, formData.target_tier_ids, formData.target_tier_id]);
 
-    // Auto-populate Start/End dates for seasonal campaigns
+    // Auto-populate Start/End dates ONLY for seasonal campaigns
     useEffect(() => {
         if (isSeasonal && selectedTiers.length > 0) {
-            // Logic: For display purposes we list them all.
-            // For the formData payload, we need a single start/end date.
-            // Taking the earliest start date and latest end date from selected tiers to ensure validity,
-            // though the backend might override this based on tier configuration.
-
             const startDates = selectedTiers.map(t => t.startDate ? new Date(t.startDate) : null).filter(Boolean) as Date[];
             const endDates = selectedTiers.map(t => t.endDate ? new Date(t.endDate) : null).filter(Boolean) as Date[];
 
             if (startDates.length > 0) {
                 const minStart = new Date(Math.min(...startDates.map(d => d.getTime())));
-                // Update if different
                 if (minStart.getTime() !== formData.startDate?.getTime()) {
                     updateFormData({ startDate: minStart });
                 }
@@ -83,7 +81,6 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
 
             if (endDates.length > 0) {
                 const maxEnd = new Date(Math.max(...endDates.map(d => d.getTime())));
-                // Update if different
                 if (maxEnd.getTime() !== formData.endDate?.getTime()) {
                     updateFormData({ endDate: maxEnd });
                 }
@@ -123,7 +120,6 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
     const isFormValid = () => {
         const {
             campaignName,
-            // rewardIds,
             startDate,
             endDate,
             rewardsAvailable,
@@ -135,25 +131,19 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
 
         if (
             !campaignName.trim() ||
-            // rewardIds.length === 0 ||
             !startDate ||
             !endDate ||
-            (!isSeasonal && Number(rewardsAvailable) <= 0) || // Only check rewardsAvailable if not seasonal/locked? Or assumes locked defaults to 0?
+            (!isRewardLocked && Number(rewardsAvailable) <= 0) || // Only check if not locked
             !campaignMessage.trim() ||
             !ctaButtonText.trim()
         ) {
             return false;
         }
 
-        // For seasonal, rewardsAvailable might be 0/undefined if locked, we should allow it.
-        // Or if we default it to something valid.
-
-        // Check if audienceType is empty
         if (audienceType.length === 0) {
             return false;
         }
 
-        // If badge_level is selected, ensure badgeLevels is not empty
         if (audienceType.includes('badge_level') && (!badgeLevels || badgeLevels.length === 0)) {
             return false;
         }
@@ -193,13 +183,13 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
                                 }
                                 updateFormData({ rewardIds: selectedIds });
                             }}
-                            isOptionDisabled={() => (formData.maxRewardsPerCampaign !== undefined && formData.maxRewardsPerCampaign !== -1 && formData.rewardIds.length >= formData.maxRewardsPerCampaign) || isSeasonal}
+                            isOptionDisabled={() => (formData.maxRewardsPerCampaign !== undefined && formData.maxRewardsPerCampaign !== -1 && formData.rewardIds.length >= formData.maxRewardsPerCampaign) || isRewardLocked}
                             styles={selectErrorStyle}
                             isLoading={isLoadingRewards}
-                            placeholder={isSeasonal ? "Locked (Business Owners Only)" : (isLoadingRewards ? "Loading rewards..." : "Select...")}
-                            isDisabled={isSeasonal}
+                            placeholder={isRewardLocked ? "Locked (Business Owners Only)" : (isLoadingRewards ? "Loading rewards..." : "Select...")}
+                            isDisabled={isRewardLocked}
                         />
-                         {isSeasonal ? (
+                         {isRewardLocked ? (
                             <p className="text-sm text-red-500 mt-1">
                                 Only business owners are allowed to add rewards.
                             </p>
@@ -280,9 +270,9 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
                             placeholder="0"
                             value={formData.rewardsAvailable}
                             onChange={(e) => updateFormData({ rewardsAvailable: e.target.value === '' ? '' : Number(e.target.value) })}
-                            disabled={isSeasonal}
+                            disabled={isRewardLocked}
                         />
-                         {isSeasonal ? (
+                         {isRewardLocked ? (
                              <p className="text-sm text-red-500 mt-1">
                                  Only business owners are allowed to set availability.
                              </p>
