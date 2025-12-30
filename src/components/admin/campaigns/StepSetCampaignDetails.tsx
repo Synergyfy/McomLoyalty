@@ -52,6 +52,7 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
     const { data: allTiers } = useGetTiers();
 
     const isSeasonal = formData.planType === 'seasonal';
+    const isMultiTierStandard = !isSeasonal && (formData.target_tier_ids?.length || 0) > 1;
 
     // Rewards are locked for BOTH Seasonal AND Standard plans now per requirement
     const isRewardLocked = true;
@@ -127,17 +128,28 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
             ctaButtonText,
             audienceType,
             badgeLevels,
+            tierSpecificDates
         } = formData;
 
         if (
             !campaignName.trim() ||
-            !startDate ||
-            !endDate ||
             (!isRewardLocked && Number(rewardsAvailable) <= 0) || // Only check if not locked
             !campaignMessage.trim() ||
             !ctaButtonText.trim()
         ) {
             return false;
+        }
+
+        // Date Validation
+        if (isMultiTierStandard) {
+            // Must have dates for all selected tiers
+            const allTiersHaveDates = selectedTiers.every(tier =>
+                tierSpecificDates?.[tier.id]?.startDate && tierSpecificDates?.[tier.id]?.endDate
+            );
+            if (!allTiersHaveDates) return false;
+        } else {
+            // Standard Single or Seasonal
+            if (!startDate || !endDate) return false;
         }
 
         if (audienceType.length === 0) {
@@ -148,6 +160,19 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
             return false;
         }
         return true;
+    };
+
+    const updateTierDate = (tierId: string, field: 'startDate' | 'endDate', date: Date | undefined) => {
+        const currentDates = formData.tierSpecificDates || {};
+        updateFormData({
+            tierSpecificDates: {
+                ...currentDates,
+                [tierId]: {
+                    ...currentDates[tierId],
+                    [field]: date
+                }
+            }
+        });
     };
 
     const rewardOptions = rewards.map(reward => ({ value: reward.id, label: reward.title }));
@@ -205,61 +230,96 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
                         )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <Label>Start Date & Time</Label>
-                             {isSeasonal ? (
-                                <div className="p-2 bg-gray-50 border rounded-md text-sm text-gray-700">
-                                    {selectedTiers.length > 0 ? (
-                                        <ul className="list-disc pl-4 space-y-1">
-                                            {selectedTiers.map(tier => (
-                                                <li key={tier.id}>
-                                                    <span className="font-semibold">{tier.name}:</span> {tier.startDate ? format(new Date(tier.startDate), 'PPP') : 'N/A'}
-                                                </li>
-                                            ))}
-                                        </ul>
+                    <div className="space-y-4">
+                        {isMultiTierStandard ? (
+                            <div className="space-y-6 border rounded-lg p-4 bg-gray-50">
+                                <h4 className="font-semibold text-gray-700">Tier Schedules</h4>
+                                {selectedTiers.map(tier => (
+                                    <div key={tier.id} className="space-y-2 pb-4 border-b last:border-0 last:pb-0">
+                                        <Label className="text-blue-700 font-medium">{tier.name}</Label>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <Label className="text-xs">Start Date</Label>
+                                                <div className="flex items-center rounded-md border px-3 bg-white">
+                                                    <Calendar className="mr-2 h-4 w-4 opacity-50" />
+                                                    <DateTimePicker
+                                                        date={formData.tierSpecificDates?.[tier.id]?.startDate}
+                                                        setDate={(date) => updateTierDate(tier.id, 'startDate', date || undefined)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <Label className="text-xs">End Date</Label>
+                                                <div className="flex items-center rounded-md border px-3 bg-white">
+                                                    <Calendar className="mr-2 h-4 w-4 opacity-50" />
+                                                    <DateTimePicker
+                                                        date={formData.tierSpecificDates?.[tier.id]?.endDate}
+                                                        setDate={(date) => updateTierDate(tier.id, 'endDate', date || undefined)}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <Label>Start Date & Time</Label>
+                                    {isSeasonal ? (
+                                        <div className="p-2 bg-gray-50 border rounded-md text-sm text-gray-700">
+                                            {selectedTiers.length > 0 ? (
+                                                <ul className="list-disc pl-4 space-y-1">
+                                                    {selectedTiers.map(tier => (
+                                                        <li key={tier.id}>
+                                                            <span className="font-semibold">{tier.name}:</span> {tier.startDate ? format(new Date(tier.startDate), 'PPP') : 'N/A'}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <span className="text-gray-400">No seasonal tier selected.</span>
+                                            )}
+                                        </div>
                                     ) : (
-                                        <span className="text-gray-400">No seasonal tier selected.</span>
+                                        <div className="flex items-center rounded-md border px-3">
+                                            <Calendar className="mr-2 h-4 w-4 opacity-50" />
+                                            <DateTimePicker
+                                                date={formData.startDate}
+                                                setDate={(date) => updateFormData({ startDate: date || undefined })}
+                                            />
+                                        </div>
                                     )}
+                                    <p className="text-sm text-gray-500 mt-1">When the campaign will become active.</p>
                                 </div>
-                             ) : (
-                                <div className="flex items-center rounded-md border px-3">
-                                    <Calendar className="mr-2 h-4 w-4 opacity-50" />
-                                    <DateTimePicker
-                                        date={formData.startDate}
-                                        setDate={(date) => updateFormData({ startDate: date || undefined })}
-                                    />
-                                </div>
-                             )}
-                            <p className="text-sm text-gray-500 mt-1">When the campaign will become active.</p>
-                        </div>
-                        <div>
-                            <Label>End Date & Time</Label>
-                            {isSeasonal ? (
-                                <div className="p-2 bg-gray-50 border rounded-md text-sm text-gray-700">
-                                     {selectedTiers.length > 0 ? (
-                                        <ul className="list-disc pl-4 space-y-1">
-                                            {selectedTiers.map(tier => (
-                                                <li key={tier.id}>
-                                                    <span className="font-semibold">{tier.name}:</span> {tier.endDate ? format(new Date(tier.endDate), 'PPP') : 'N/A'}
-                                                </li>
-                                            ))}
-                                        </ul>
+                                <div>
+                                    <Label>End Date & Time</Label>
+                                    {isSeasonal ? (
+                                        <div className="p-2 bg-gray-50 border rounded-md text-sm text-gray-700">
+                                            {selectedTiers.length > 0 ? (
+                                                <ul className="list-disc pl-4 space-y-1">
+                                                    {selectedTiers.map(tier => (
+                                                        <li key={tier.id}>
+                                                            <span className="font-semibold">{tier.name}:</span> {tier.endDate ? format(new Date(tier.endDate), 'PPP') : 'N/A'}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <span className="text-gray-400">No seasonal tier selected.</span>
+                                            )}
+                                        </div>
                                     ) : (
-                                        <span className="text-gray-400">No seasonal tier selected.</span>
+                                        <div className="flex items-center rounded-md border px-3">
+                                            <Calendar className="mr-2 h-4 w-4 opacity-50" />
+                                            <DateTimePicker
+                                                date={formData.endDate}
+                                                setDate={(date) => updateFormData({ endDate: date || undefined })}
+                                            />
+                                        </div>
                                     )}
+                                    <p className="text-sm text-gray-500 mt-1">When the campaign will automatically deactivate.</p>
                                 </div>
-                            ) : (
-                                <div className="flex items-center rounded-md border px-3">
-                                    <Calendar className="mr-2 h-4 w-4 opacity-50" />
-                                    <DateTimePicker
-                                        date={formData.endDate}
-                                        setDate={(date) => updateFormData({ endDate: date || undefined })}
-                                    />
-                                </div>
-                            )}
-                            <p className="text-sm text-gray-500 mt-1">When the campaign will automatically deactivate.</p>
-                        </div>
+                            </div>
+                        )}
                     </div>
 
                     <div>

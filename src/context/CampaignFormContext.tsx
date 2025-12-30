@@ -8,6 +8,7 @@ export interface CampaignFormData {
   campaignName: string;
   target_tier_id?: string;
   target_tier_ids?: string[];
+  tierSpecificDates?: Record<string, { startDate: Date | undefined; endDate: Date | undefined }>;
   maxRewardsPerCampaign?: number;
   rewardIds: string[];
   startDate: Date | undefined;
@@ -64,6 +65,7 @@ const defaultFormData: CampaignFormData = {
   campaignName: '',
   target_tier_id: undefined,
   target_tier_ids: [],
+  tierSpecificDates: {},
   maxRewardsPerCampaign: undefined,
   rewardIds: [],
   startDate: undefined,
