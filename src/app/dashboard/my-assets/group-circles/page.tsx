@@ -51,6 +51,8 @@ interface Member {
     contributions?: number; // For Smart Money
     drawDate?: string; // For Smart Money
     relationshipScore?: number; // 0-100 logic for placement
+    locationTag?: string;
+    relationshipTag?: string;
 }
 
 interface GroupCircle {
@@ -139,8 +141,8 @@ const MultiLayerRadialGraph = ({
                             "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed transition-all duration-1000 select-none pointer-events-none",
                             Number(key) % 2 === 0 ? "border-opacity-40" : "border-opacity-20",
                             config.color,
-                            "dark:border-opacity-30",
-                            focusedOrbits && !focusedOrbits.includes(Number(key)) && "opacity-10 scale-95"
+                            "dark:border-opacity-30"
+                            // focusedOrbits logic removed to keep rings persistent
                         )}
                         style={{
                             width: `${config.radius * 2}%`,
@@ -522,11 +524,13 @@ export default function GroupCirclesPage() {
                     email: m.network.email,
                     role: (m.role.charAt(0).toUpperCase() + m.role.toLowerCase().slice(1)) as any,
                     orbit,
-                    status: (m.network.status === 'active' || m.network.status === 'accepted' ? 'active' : 'offline') as any,
+                    status: (m.network.status === 'accepted' ? 'active' : 'offline') as any,
                     category: m.network.businessName || m.network.relationshipTag || "Partner",
                     avatar: undefined,
                     contributions: Number(circle.contributionAmount),
-                    drawDate: m.drawDate
+                    drawDate: m.drawDate,
+                    locationTag: m.network.locationTag ? (m.network.locationTag.charAt(0).toUpperCase() + m.network.locationTag.slice(1)) : "Unknown",
+                    relationshipTag: m.network.relationshipTag ? (m.network.relationshipTag.charAt(0).toUpperCase() + m.network.relationshipTag.slice(1)) : "Network"
                 };
             })
         }));
@@ -894,19 +898,7 @@ export default function GroupCirclesPage() {
                     </DropdownMenu>
                 </div>
 
-                <div className="flex-none flex gap-1 pl-2 border-l ml-2">
-                    {['all', 'marketing', 'finance'].map(t => (
-                        <Button
-                            key={t}
-                            size="sm"
-                            variant={activeTab === t ? "secondary" : "ghost"}
-                            className={cn("h-8 text-[10px] capitalize rounded-lg px-2", activeTab === t ? "bg-orange-100 text-orange-700" : "")}
-                            onClick={() => setActiveTab(t as any)}
-                        >
-                            {t}
-                        </Button>
-                    ))}
-                </div>
+
             </div>
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
                 <DialogContent className="sm:max-w-[600px]">
@@ -1121,9 +1113,49 @@ export default function GroupCirclesPage() {
                                                 <Button size="icon" variant="ghost" className="h-9 w-9 hover:bg-orange-50 hover:text-orange-600 rounded-xl transition-colors"><Search className="w-4 h-4" /></Button>
                                             </TooltipTrigger><TooltipContent>Search Graph</TooltipContent></Tooltip>
 
-                                            <Tooltip><TooltipTrigger asChild>
-                                                <Button size="icon" variant="ghost" className="h-9 w-9 hover:bg-orange-50 hover:text-orange-600 rounded-xl transition-colors"><Filter className="w-4 h-4" /></Button>
-                                            </TooltipTrigger><TooltipContent>Filter Members</TooltipContent></Tooltip>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button size="icon" variant={focusedOrbits ? "default" : "ghost"} className={cn("h-9 w-9 rounded-xl transition-colors", focusedOrbits ? "bg-orange-600 text-white hover:bg-orange-700" : "hover:bg-orange-50 hover:text-orange-600")}><Filter className="w-4 h-4" /></Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="w-48 bg-white/95 backdrop-blur-md border-orange-100 z-[10000] p-2 rounded-xl">
+                                                    <p className="text-[10px] uppercase font-bold text-muted-foreground px-2 py-1 tracking-widest">Filter by Location</p>
+                                                    <DropdownMenuItem
+                                                        onClick={() => setFocusedOrbits(focusedOrbits?.includes(1) ? null : [1, 2])}
+                                                        className={cn("cursor-pointer rounded-lg gap-2", focusedOrbits?.includes(1) && "bg-orange-50 text-orange-700")}
+                                                    >
+                                                        <div className="w-2.5 h-2.5 rounded-full bg-orange-600" />
+                                                        Nearby
+                                                        {focusedOrbits?.includes(1) && <Check className="w-3.5 h-3.5 ml-auto" />}
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={() => setFocusedOrbits(focusedOrbits?.includes(3) ? null : [3, 4])}
+                                                        className={cn("cursor-pointer rounded-lg gap-2", focusedOrbits?.includes(3) && "bg-orange-50 text-orange-700")}
+                                                    >
+                                                        <div className="w-2.5 h-2.5 rounded-full bg-orange-500" />
+                                                        Hyperlocal
+                                                        {focusedOrbits?.includes(3) && <Check className="w-3.5 h-3.5 ml-auto" />}
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={() => setFocusedOrbits(focusedOrbits?.includes(5) ? null : [5, 6])}
+                                                        className={cn("cursor-pointer rounded-lg gap-2", focusedOrbits?.includes(5) && "bg-orange-50 text-orange-700")}
+                                                    >
+                                                        <div className="w-2.5 h-2.5 rounded-full bg-orange-400" />
+                                                        National
+                                                        {focusedOrbits?.includes(5) && <Check className="w-3.5 h-3.5 ml-auto" />}
+                                                    </DropdownMenuItem>
+                                                    {focusedOrbits && (
+                                                        <>
+                                                            <Separator className="my-1" />
+                                                            <DropdownMenuItem
+                                                                onClick={() => setFocusedOrbits(null)}
+                                                                className="cursor-pointer text-zinc-500 rounded-lg"
+                                                            >
+                                                                Clear Filter
+                                                            </DropdownMenuItem>
+                                                        </>
+                                                    )}
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
 
                                             <div className="w-px h-6 bg-zinc-200 my-auto" />
 
@@ -1164,41 +1196,7 @@ export default function GroupCirclesPage() {
                                     </div>
                                 </div>
 
-                                {/* Bottom Visualization Legend */}
-                                <div className="absolute bottom-6 left-6 z-10 flex gap-4">
-                                    <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur rounded-2xl border p-3 py-2 flex items-center gap-6 shadow-sm">
-                                        <button
-                                            onClick={() => setFocusedOrbits(focusedOrbits?.includes(1) ? null : [1, 2])}
-                                            className={cn(
-                                                "flex items-center gap-2 transition-all hover:scale-105 active:scale-95",
-                                                focusedOrbits?.includes(1) ? "opacity-100" : (focusedOrbits ? "opacity-40 grayscale" : "opacity-100")
-                                            )}
-                                        >
-                                            <div className="w-3 h-3 rounded-full border-2 border-orange-600 bg-orange-100" />
-                                            <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Nearby</span>
-                                        </button>
-                                        <button
-                                            onClick={() => setFocusedOrbits(focusedOrbits?.includes(3) ? null : [3, 4])}
-                                            className={cn(
-                                                "flex items-center gap-2 transition-all hover:scale-105 active:scale-95",
-                                                focusedOrbits?.includes(3) ? "opacity-100" : (focusedOrbits ? "opacity-40 grayscale" : "opacity-100")
-                                            )}
-                                        >
-                                            <div className="w-3 h-3 rounded-full border-2 border-orange-400 bg-orange-50" />
-                                            <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Hyperlocal</span>
-                                        </button>
-                                        <button
-                                            onClick={() => setFocusedOrbits(focusedOrbits?.includes(5) ? null : [5, 6])}
-                                            className={cn(
-                                                "flex items-center gap-2 transition-all hover:scale-105 active:scale-95",
-                                                focusedOrbits?.includes(5) ? "opacity-100" : (focusedOrbits ? "opacity-40 grayscale" : "opacity-100")
-                                            )}
-                                        >
-                                            <div className="w-3 h-3 rounded-full border-2 border-orange-200 bg-zinc-50" />
-                                            <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">National</span>
-                                        </button>
-                                    </div>
-                                </div>
+
 
                                 {/* Floating Action Buttons (Local Context) */}
                                 <div className="absolute bottom-6 right-6 z-10 flex gap-3">
@@ -1288,12 +1286,12 @@ export default function GroupCirclesPage() {
 
                                     <div className="grid grid-cols-2 gap-3 pt-2">
                                         <div className="p-4 bg-zinc-50/50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-700/50">
-                                            <span className="text-[10px] uppercase font-black tracking-widest text-muted-foreground block mb-2">Member Role</span>
-                                            <span className="font-bold text-zinc-800 dark:text-zinc-200">{activeMember.role}</span>
+                                            <span className="text-[10px] uppercase font-black tracking-widest text-muted-foreground block mb-2">Location</span>
+                                            <span className="font-bold text-zinc-800 dark:text-zinc-200">{activeMember.locationTag}</span>
                                         </div>
                                         <div className="p-4 bg-zinc-50/50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-700/50">
-                                            <span className="text-[10px] uppercase font-black tracking-widest text-muted-foreground block mb-2">Network Orbit</span>
-                                            <span className="font-bold text-orange-600">{ORBIT_CONFIG[activeMember.orbit]?.label || "Outer"}</span>
+                                            <span className="text-[10px] uppercase font-black tracking-widest text-muted-foreground block mb-2">Relationship</span>
+                                            <span className="font-bold text-orange-600">{activeMember.relationshipTag}</span>
                                         </div>
                                     </div>
 
