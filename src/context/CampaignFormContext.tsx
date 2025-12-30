@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo } from 'react';
 
 export interface CampaignFormData {
+  planType: 'standard' | 'seasonal' | '';
   campaignType: string;
   campaignName: string;
   target_tier_id?: string;
@@ -57,6 +58,7 @@ interface CampaignFormContextType {
 }
 
 const defaultFormData: CampaignFormData = {
+  planType: '',
   campaignType: '',
   campaignName: '',
   target_tier_id: undefined,

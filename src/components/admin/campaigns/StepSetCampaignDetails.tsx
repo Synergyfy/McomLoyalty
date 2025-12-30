@@ -126,7 +126,7 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Step 2: Set Campaign Details</CardTitle>
+                <CardTitle>Step 3: Set Campaign Details</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="grid gap-4 py-4">

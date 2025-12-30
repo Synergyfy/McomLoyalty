@@ -169,7 +169,7 @@ export default function StepReviewAndCreate({ onBack }: StepProps) {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Step 9: Review and Create Campaign</CardTitle>
+          <CardTitle>Step 10: Review and Create Campaign</CardTitle>
         </CardHeader>
         <CardContent>
           {/* New Comprehensive Preview Section */}
