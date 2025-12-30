@@ -7,6 +7,7 @@ export interface CampaignFormData {
   campaignType: string;
   campaignName: string;
   target_tier_id?: string;
+  target_tier_ids?: string[];
   maxRewardsPerCampaign?: number;
   rewardIds: string[];
   startDate: Date | undefined;
@@ -62,6 +63,7 @@ const defaultFormData: CampaignFormData = {
   campaignType: '',
   campaignName: '',
   target_tier_id: undefined,
+  target_tier_ids: [],
   maxRewardsPerCampaign: undefined,
   rewardIds: [],
   startDate: undefined,

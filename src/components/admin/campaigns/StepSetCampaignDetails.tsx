@@ -16,7 +16,8 @@ import Image from 'next/image';
 import { Calendar, Users, Gift, Tag } from 'lucide-react';
 import { useCampaignForm } from '@/context/CampaignFormContext';
 import { useGetRewards } from '@/services/rewards/hook';
-import { useGetTiers } from '@/services/tiers/hook'; // Add this import
+import { useGetTiers } from '@/services/tiers/hook';
+import { format } from 'date-fns';
 
 interface RewardOption {
     value: string;
@@ -48,6 +49,47 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
     // Fetch rewards from API
     const { data: rewardsData, isLoading: isLoadingRewards } = useGetRewards(1, 1000);
     const rewards = rewardsData?.data || [];
+    const { data: allTiers } = useGetTiers();
+
+    const isSeasonal = formData.planType === 'seasonal';
+
+    // Get selected tiers (seasonal or standard)
+    const selectedTiers = React.useMemo(() => {
+        if (!allTiers) return [];
+        if (isSeasonal) {
+            return allTiers.filter(t => formData.target_tier_ids?.includes(t.id));
+        }
+        return allTiers.filter(t => t.id === formData.target_tier_id);
+    }, [allTiers, formData.target_tier_ids, formData.target_tier_id, isSeasonal]);
+
+    // Auto-populate Start/End dates for seasonal campaigns
+    useEffect(() => {
+        if (isSeasonal && selectedTiers.length > 0) {
+            // Logic: For display purposes we list them all.
+            // For the formData payload, we need a single start/end date.
+            // Taking the earliest start date and latest end date from selected tiers to ensure validity,
+            // though the backend might override this based on tier configuration.
+
+            const startDates = selectedTiers.map(t => t.startDate ? new Date(t.startDate) : null).filter(Boolean) as Date[];
+            const endDates = selectedTiers.map(t => t.endDate ? new Date(t.endDate) : null).filter(Boolean) as Date[];
+
+            if (startDates.length > 0) {
+                const minStart = new Date(Math.min(...startDates.map(d => d.getTime())));
+                // Update if different
+                if (minStart.getTime() !== formData.startDate?.getTime()) {
+                    updateFormData({ startDate: minStart });
+                }
+            }
+
+            if (endDates.length > 0) {
+                const maxEnd = new Date(Math.max(...endDates.map(d => d.getTime())));
+                // Update if different
+                if (maxEnd.getTime() !== formData.endDate?.getTime()) {
+                    updateFormData({ endDate: maxEnd });
+                }
+            }
+        }
+    }, [isSeasonal, selectedTiers, updateFormData, formData.startDate, formData.endDate]);
 
 
     useEffect(() => {
@@ -89,7 +131,6 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
             ctaButtonText,
             audienceType,
             badgeLevels,
-            maxRewardsPerCampaign,
         } = formData;
 
         if (
@@ -97,17 +138,15 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
             // rewardIds.length === 0 ||
             !startDate ||
             !endDate ||
-            Number(rewardsAvailable) <= 0 ||
+            (!isSeasonal && Number(rewardsAvailable) <= 0) || // Only check rewardsAvailable if not seasonal/locked? Or assumes locked defaults to 0?
             !campaignMessage.trim() ||
             !ctaButtonText.trim()
         ) {
             return false;
         }
 
-        // // Check if maxRewardsPerCampaign is enforced
-        // if (maxRewardsPerCampaign && maxRewardsPerCampaign !== -1 && rewardIds.length > maxRewardsPerCampaign) {
-        //     return false;
-        // }
+        // For seasonal, rewardsAvailable might be 0/undefined if locked, we should allow it.
+        // Or if we default it to something valid.
 
         // Check if audienceType is empty
         if (audienceType.length === 0) {
@@ -126,7 +165,7 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Step 3: Set Campaign Details</CardTitle>
+                <CardTitle>Step 4: Set Campaign Details</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="grid gap-4 py-4">
@@ -154,42 +193,81 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
                                 }
                                 updateFormData({ rewardIds: selectedIds });
                             }}
-                            isOptionDisabled={() => formData.maxRewardsPerCampaign !== undefined && formData.maxRewardsPerCampaign !== -1 && formData.rewardIds.length >= formData.maxRewardsPerCampaign}
+                            isOptionDisabled={() => (formData.maxRewardsPerCampaign !== undefined && formData.maxRewardsPerCampaign !== -1 && formData.rewardIds.length >= formData.maxRewardsPerCampaign) || isSeasonal}
                             styles={selectErrorStyle}
                             isLoading={isLoadingRewards}
-                            placeholder={isLoadingRewards ? "Loading rewards..." : "Select..."}
+                            placeholder={isSeasonal ? "Locked (Business Owners Only)" : (isLoadingRewards ? "Loading rewards..." : "Select...")}
+                            isDisabled={isSeasonal}
                         />
-                        <p className="text-sm text-gray-500 mt-1">
-                            (Optional) Choose the rewards to be given out in this campaign. Allowed businesses to set the reward.
-                            {formData.maxRewardsPerCampaign && formData.maxRewardsPerCampaign !== -1 && (
-                                <span className="text-red-500 ml-1">
-                                    (Max {formData.maxRewardsPerCampaign} rewards allowed for this tier)
-                                </span>
-                            )}
-                        </p>
+                         {isSeasonal ? (
+                            <p className="text-sm text-red-500 mt-1">
+                                Only business owners are allowed to add rewards.
+                            </p>
+                        ) : (
+                            <p className="text-sm text-gray-500 mt-1">
+                                (Optional) Choose the rewards to be given out in this campaign. Allowed businesses to set the reward.
+                                {formData.maxRewardsPerCampaign && formData.maxRewardsPerCampaign !== -1 && (
+                                    <span className="text-red-500 ml-1">
+                                        (Max {formData.maxRewardsPerCampaign} rewards allowed for this tier)
+                                    </span>
+                                )}
+                            </p>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <Label>Start Date & Time</Label>
-                            <div className="flex items-center rounded-md border px-3">
-                                <Calendar className="mr-2 h-4 w-4 opacity-50" />
-                                <DateTimePicker
-                                    date={formData.startDate}
-                                    setDate={(date) => updateFormData({ startDate: date || undefined })}
-                                />
-                            </div>
+                             {isSeasonal ? (
+                                <div className="p-2 bg-gray-50 border rounded-md text-sm text-gray-700">
+                                    {selectedTiers.length > 0 ? (
+                                        <ul className="list-disc pl-4 space-y-1">
+                                            {selectedTiers.map(tier => (
+                                                <li key={tier.id}>
+                                                    <span className="font-semibold">{tier.name}:</span> {tier.startDate ? format(new Date(tier.startDate), 'PPP') : 'N/A'}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <span className="text-gray-400">No seasonal tier selected.</span>
+                                    )}
+                                </div>
+                             ) : (
+                                <div className="flex items-center rounded-md border px-3">
+                                    <Calendar className="mr-2 h-4 w-4 opacity-50" />
+                                    <DateTimePicker
+                                        date={formData.startDate}
+                                        setDate={(date) => updateFormData({ startDate: date || undefined })}
+                                    />
+                                </div>
+                             )}
                             <p className="text-sm text-gray-500 mt-1">When the campaign will become active.</p>
                         </div>
                         <div>
                             <Label>End Date & Time</Label>
-                            <div className="flex items-center rounded-md border px-3">
-                                <Calendar className="mr-2 h-4 w-4 opacity-50" />
-                                <DateTimePicker
-                                    date={formData.endDate}
-                                    setDate={(date) => updateFormData({ endDate: date || undefined })}
-                                />
-                            </div>
+                            {isSeasonal ? (
+                                <div className="p-2 bg-gray-50 border rounded-md text-sm text-gray-700">
+                                     {selectedTiers.length > 0 ? (
+                                        <ul className="list-disc pl-4 space-y-1">
+                                            {selectedTiers.map(tier => (
+                                                <li key={tier.id}>
+                                                    <span className="font-semibold">{tier.name}:</span> {tier.endDate ? format(new Date(tier.endDate), 'PPP') : 'N/A'}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <span className="text-gray-400">No seasonal tier selected.</span>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="flex items-center rounded-md border px-3">
+                                    <Calendar className="mr-2 h-4 w-4 opacity-50" />
+                                    <DateTimePicker
+                                        date={formData.endDate}
+                                        setDate={(date) => updateFormData({ endDate: date || undefined })}
+                                    />
+                                </div>
+                            )}
                             <p className="text-sm text-gray-500 mt-1">When the campaign will automatically deactivate.</p>
                         </div>
                     </div>
@@ -202,8 +280,15 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
                             placeholder="0"
                             value={formData.rewardsAvailable}
                             onChange={(e) => updateFormData({ rewardsAvailable: e.target.value === '' ? '' : Number(e.target.value) })}
+                            disabled={isSeasonal}
                         />
-                        <p className="text-sm text-gray-500 mt-1">The total number of rewards that can be claimed.</p>
+                         {isSeasonal ? (
+                             <p className="text-sm text-red-500 mt-1">
+                                 Only business owners are allowed to set availability.
+                             </p>
+                         ) : (
+                            <p className="text-sm text-gray-500 mt-1">The total number of rewards that can be claimed.</p>
+                         )}
                     </div>
 
                     <div>
