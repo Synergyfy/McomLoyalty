@@ -168,9 +168,9 @@ export default function StepReviewAndCreate({ onBack }: StepProps) {
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('tour') === 'true') {
-        router.push('/admin/users/business?tour=true');
+      router.push('/admin/users/business?tour=true');
     } else {
-        router.push('/admin/campaigns/list');
+      router.push('/admin/campaigns/list');
     }
   };
 
