@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Download, Link as LinkIcon, Pencil, Trash2, MoreVertical, Settings, Plus, Printer, Eye, Search } from 'lucide-react';
+import { Download, Link as LinkIcon, Pencil, Trash2, MoreVertical, Settings, Plus, Printer, Eye, Search, ExternalLink } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -255,7 +255,15 @@ export default function QRPlaquesPage() {
                                 ) : (
                                     plaques.map((plaque: QrPlaque) => (
                                         <tr key={plaque.id} className="border-b hover:bg-gray-50 cursor-pointer transition-colors" onClick={() => setViewPlaque(plaque)}>
-                                            <td className="p-4 font-medium">{plaque.id}</td>
+                                            <td className="p-4 font-medium" onClick={(e) => e.stopPropagation()}>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setViewPlaque(plaque)}
+                                                >
+                                                    {plaque.id}
+                                                </Button>
+                                            </td>
                                             <td className="p-4">{plaque.status === 'FOR_SALE' ? plaque.price : plaque.name}</td>
                                             <td className="p-4">
                                                 {plaque.networkContact ? (
@@ -272,7 +280,21 @@ export default function QRPlaquesPage() {
                                                 )}
                                             </td>
                                             <td className="p-4"><span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusClass(plaque.status)}`}>{plaque.status}</span></td>
-                                            <td className="p-4">{plaque.contentUrl || 'N/A'}</td>
+                                            <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                                                {plaque.contentUrl ? (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => window.open(plaque.contentUrl, '_blank')}
+                                                        className="flex items-center gap-2"
+                                                    >
+                                                        <ExternalLink className="h-3 w-3" />
+                                                        Linked Offer Image
+                                                    </Button>
+                                                ) : (
+                                                    <span className="text-gray-400 text-sm">N/A</span>
+                                                )}
+                                            </td>
                                             <td className="p-4">{plaque.scans || 0}</td>
                                             <td className="p-4">{plaque.redemptions || 0}</td>
                                             <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
