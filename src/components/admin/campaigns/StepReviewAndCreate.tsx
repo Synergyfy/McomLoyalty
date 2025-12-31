@@ -117,37 +117,14 @@ export default function StepReviewAndCreate({ onBack }: StepProps) {
     }
 
     try {
-        // Iterate and create campaign for each tier
-        const createPromises = targetTierIds.map(async (tierId) => {
-            let startDateStr = '';
-            let endDateStr = '';
-
-            // Date Resolution Logic
-            if (formData.planType === 'seasonal') {
-                // For seasonal, get from tier configuration
-                const tier = allTiers?.find(t => t.id === tierId);
-                if (tier?.startDate && tier?.endDate) {
-                    startDateStr = new Date(tier.startDate).toISOString();
-                    endDateStr = new Date(tier.endDate).toISOString();
-                } else if (!tier) {
-                     // Fallback if tier not found but selected (shouldn't happen)
-                     throw new Error(`Tier not found for id ${tierId}`);
-                }
-
-                // If seasonal and dates missing, that's an error
-                if (!startDateStr || !endDateStr) {
-                    throw new Error(`Missing dates for seasonal tier ${tierId}`);
-                }
-            }
-            // For standard plans, we intentionally leave dates empty/null as requested.
-            // (Previous logic for multi-tier standard dates is removed)
-
+        // If Standard plan, use single request with all tier IDs
+        if (formData.planType === 'standard') {
             const payload: CreateCampaignPayload = {
-              name: formData.campaignName, // Note: Might want to append tier name if names must be unique? Assuming name can be same.
+              name: formData.campaignName,
               campaign_type: formData.campaignType || 'qr_code',
               campaign_message: formData.campaignMessage,
-              start_date: startDateStr,
-              end_date: endDateStr,
+              start_date: '', // Standard plans use empty dates
+              end_date: '',
               quantity: Number(formData.rewardsAvailable) || 0,
               audience_type: formData.audienceType[0] || 'members',
               signUpPoint: 0,
@@ -171,26 +148,84 @@ export default function StepReviewAndCreate({ onBack }: StepProps) {
               contact_phone_number: formData.contactPhone || '',
               footer_text: formData.footerText || '',
               ...(formData.rewardIds && formData.rewardIds.length > 0 ? { reward_ids: formData.rewardIds } : {}),
-              // We likely need to pass the target_tier_id in the payload if the backend supports it now,
-              // or rely on context/headers if that's how it's done.
-              // Assuming we add it to payload as discussed in plan, but looking at CreateCampaignPayload interface
-              // in previous turns, it didn't have target_tier_id.
-              // However, typically Admin endpoints need it.
-              // If not in type, I should cast or add it if the backend expects it.
-              // Given I can't change backend, I will assume the prompt implies I should try to send it.
-              // Checking types.ts content I read earlier... it does NOT have target_tier_id.
-              // I'll add it as an extra property casting to any to avoid TS errors if strict, or just leave it out if logic is handled elsewhere.
-              // Wait, previous instructions mentioned: "Since this is an Admin wizard, it is critical that the campaign is associated with the selected tier."
-              // I will append it.
-              ...({ target_tier_id: tierId } as any)
+              target_tier_ids: targetTierIds,
             };
 
-            return createCampaign(payload);
-        });
+            await createCampaign(payload);
+        } else {
+            // Iterate and create campaign for each tier (e.g. Seasonal)
+            const createPromises = targetTierIds.map(async (tierId) => {
+                let startDateStr = '';
+                let endDateStr = '';
 
-        await Promise.all(createPromises);
+                // Date Resolution Logic
+                if (formData.planType === 'seasonal') {
+                    // For seasonal, get from tier configuration
+                    const tier = allTiers?.find(t => t.id === tierId);
+                    if (tier?.startDate && tier?.endDate) {
+                        startDateStr = new Date(tier.startDate).toISOString();
+                        endDateStr = new Date(tier.endDate).toISOString();
+                    } else if (!tier) {
+                         // Fallback if tier not found but selected (shouldn't happen)
+                         throw new Error(`Tier not found for id ${tierId}`);
+                    }
 
-        console.log('All campaigns created successfully');
+                    // If seasonal and dates missing, that's an error
+                    if (!startDateStr || !endDateStr) {
+                        throw new Error(`Missing dates for seasonal tier ${tierId}`);
+                    }
+                }
+
+                const payload: CreateCampaignPayload = {
+                  name: formData.campaignName, // Note: Might want to append tier name if names must be unique? Assuming name can be same.
+                  campaign_type: formData.campaignType || 'qr_code',
+                  campaign_message: formData.campaignMessage,
+                  start_date: startDateStr,
+                  end_date: endDateStr,
+                  quantity: Number(formData.rewardsAvailable) || 0,
+                  audience_type: formData.audienceType[0] || 'members',
+                  signUpPoint: 0,
+                  banner_url: bannerUrl,
+                  logo_url: logoUrl,
+                  cta_text: formData.ctaButtonText,
+                  cta_background_color: formData.ctaBgColor,
+                  cta_text_color: formData.ctaTextColor,
+                  text_color: formData.bgColorTextColor,
+                  background_color: formData.bgColor,
+                  reward_type: 'regular',
+                  regular_points_threshold: 0,
+                  matching_points_threshold: 0,
+                  earn_point_page_title: formData.earnTitle || '',
+                  earn_point_page_description: formData.earnText || '',
+                  redeem_reward_page_title: formData.redeemTitle || '',
+                  redeem_reward_page_description: formData.redeemText || '',
+                  contact_us_page_title: formData.contactTitle || '',
+                  contact_us_page_description: formData.contactText || '',
+                  contact_email: formData.contactEmail || '',
+                  contact_phone_number: formData.contactPhone || '',
+                  footer_text: formData.footerText || '',
+                  ...(formData.rewardIds && formData.rewardIds.length > 0 ? { reward_ids: formData.rewardIds } : {}),
+                  // We likely need to pass the target_tier_id in the payload if the backend supports it now,
+                  // or rely on context/headers if that's how it's done.
+                  // Assuming we add it to payload as discussed in plan, but looking at CreateCampaignPayload interface
+                  // in previous turns, it didn't have target_tier_id.
+                  // However, typically Admin endpoints need it.
+                  // If not in type, I should cast or add it if the backend expects it.
+                  // Given I can't change backend, I will assume the prompt implies I should try to send it.
+                  // Checking types.ts content I read earlier... it does NOT have target_tier_id.
+                  // I'll add it as an extra property casting to any to avoid TS errors if strict, or just leave it out if logic is handled elsewhere.
+                  // Wait, previous instructions mentioned: "Since this is an Admin wizard, it is critical that the campaign is associated with the selected tier."
+                  // I will append it.
+                  ...({ target_tier_id: tierId } as any)
+                };
+
+                return createCampaign(payload);
+            });
+
+            await Promise.all(createPromises);
+        }
+
+        console.log('Campaign(s) created successfully');
         setShowSuccessDialog(true);
         setIsUploading(false);
 
