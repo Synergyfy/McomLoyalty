@@ -128,7 +128,10 @@ export default function PointRewardCard({
                     <div className="p-2.5 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-center">
                         <div className="flex items-center justify-center gap-1 text-blue-600 dark:text-blue-400">
                             <Star className="h-3.5 w-3.5" />
-                            <span className="text-lg font-bold">{reward.pointRequired}</span>
+                            <span className="text-lg font-bold">
+                                {reward.points_required ?? (reward as any).pointsRequired ?? reward.pointRequired ?? 0}
+                            </span>
+
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Points Required</p>
                     </div>
@@ -137,6 +140,22 @@ export default function PointRewardCard({
                             {reward.quantity ?? '∞'}
                         </span>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Quantity</p>
+                    </div>
+                </div>
+
+                {/* Additional Metrics */}
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                    <div className="p-2.5 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-center border border-purple-100 dark:border-purple-800/30">
+                        <span className="text-lg font-bold text-purple-700 dark:text-purple-400">
+                            {reward.totalRedemptions ?? 0}
+                        </span>
+                        <p className="text-[10px] uppercase tracking-wider font-semibold text-purple-500 mt-0.5">Total Redemptions</p>
+                    </div>
+                    <div className="p-2.5 bg-orange-50 dark:bg-orange-900/20 rounded-lg text-center border border-orange-100 dark:border-orange-800/30">
+                        <span className="text-lg font-bold text-orange-700 dark:text-orange-400">
+                            {reward.totalPointsRedeemed ?? 0}
+                        </span>
+                        <p className="text-[10px] uppercase tracking-wider font-semibold text-orange-500 mt-0.5">Points Redeemed</p>
                     </div>
                 </div>
             </CardContent>

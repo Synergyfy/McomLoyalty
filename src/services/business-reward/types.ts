@@ -40,7 +40,9 @@ export interface BusinessReward {
   id: string;
   quantity: number | null;
   pointRequired: number;
+  pointsRequired?: number;
   points_required?: number;
+
   reward: Reward;
   createdAt: string;
   updatedAt: string;
@@ -62,7 +64,10 @@ export interface BusinessReward {
   is_mall_integrated?: boolean;
   mall_reward_type?: 'VOUCHER' | 'GIFT_CARD' | 'COUPON';
   mall_reward_value?: number;
+  totalRedemptions?: number;
+  totalPointsRedeemed?: number;
 }
+
 
 export interface GetBusinessRewardsResponse extends PaginationMeta {
   data: BusinessReward[];
