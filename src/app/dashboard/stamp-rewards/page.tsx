@@ -99,6 +99,7 @@ export default function BusinessStampRewardsPage() {
     const [tierLimitMessage, setTierLimitMessage] = useState('');
     const [editingReward, setEditingReward] = useState<Reward | null>(null);
     const [editingBusinessRewardId, setEditingBusinessRewardId] = useState<string | null>(null);
+    const [creationModes, setCreationModes] = useState<('point' | 'stamp')[]>(['point']);
 
     // Delete confirmation for point rewards
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -220,6 +221,7 @@ export default function BusinessStampRewardsPage() {
             quantity: businessReward.quantity || 0,
         };
         setEditingReward(mergedReward);
+        setCreationModes(['point']);
         setIsCreatePointRewardModalOpen(true);
     }, []);
 
@@ -259,21 +261,18 @@ export default function BusinessStampRewardsPage() {
         }
     }, []);
 
-    const handleSelectPointReward = useCallback(() => {
+    const handleContinueRewardCreation = useCallback((modes: ('point' | 'stamp')[]) => {
         setIsRewardTypeSelectionOpen(false);
+        setCreationModes(modes);
         setEditingReward(null);
         setEditingBusinessRewardId(null);
         setIsCreatePointRewardModalOpen(true);
     }, []);
 
-    const handleSelectStampReward = useCallback(() => {
-        setIsRewardTypeSelectionOpen(false);
-        setIsCreateStampRewardModalOpen(true);
-    }, []);
-
     const handleSelectTemplate = useCallback((reward: Reward) => {
         setIsClaimModalOpen(false);
         setEditingReward(reward);
+        setCreationModes(['point']); // Templates are usually point rewards for now, or we can infer type
         setEditingBusinessRewardId(null); // Not editing an existing one, but creating from template
         setIsCreatePointRewardModalOpen(true);
     }, []);
@@ -798,8 +797,7 @@ export default function BusinessStampRewardsPage() {
             <RewardTypeSelectionDialog
                 isOpen={isRewardTypeSelectionOpen}
                 onClose={() => setIsRewardTypeSelectionOpen(false)}
-                onSelectPointReward={handleSelectPointReward}
-                onSelectStampReward={handleSelectStampReward}
+                onContinue={handleContinueRewardCreation}
             />
 
             {/* Create Point Reward Modal */}
@@ -812,6 +810,7 @@ export default function BusinessStampRewardsPage() {
                 }}
                 reward={editingReward}
                 onSave={handleSavePointReward}
+                enabledModes={creationModes}
             />
 
             {/* Create Stamp Reward Modal */}
