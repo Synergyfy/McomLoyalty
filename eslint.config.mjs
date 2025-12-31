@@ -23,6 +23,10 @@ const eslintConfig = [
   {
     rules: {
       "react/no-unescaped-entities": "off",
+      "@typescript-eslint/no-unused-vars": "error",
+      "@typescript-eslint/no-explicit-any": "error",
+      "@next/next/no-img-element": "error",
+      "react-hooks/exhaustive-deps": "warn"
     },
   },
 ];
