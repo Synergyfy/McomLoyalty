@@ -16,7 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { Reward } from '@/services/business-reward/types';
 import { useUploadToCloudinary } from '@/services/upload/hook';
 import { toast } from 'sonner';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Star } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -44,25 +44,27 @@ export default function CreateRewardWizardModal({
   onClose,
   reward,
   onSave,
-  enabledModes = ['point', 'stamp'],
-  initialIsPointsEnabled = true,
-  initialIsStampsEnabled = false
+  enabledModes,
+  initialIsPointsEnabled,
+  initialIsStampsEnabled
 }: CreateRewardWizardModalProps) {
   const router = useRouter();
   const { mutateAsync: uploadToCloudinary } = useUploadToCloudinary();
   const [step, setStep] = useState(1);
   const totalSteps = 2;
 
-  // Derive modes from props (priority to enabledModes if provided, otherwise backward fallback)
+  // Derive modes from props (priority to enabledModes if provided)
   const finalEnabledModes = useMemo(() => {
-    // If enabledModes is just the default and initialIs are provided, we should probably respect initialIs
-    // but the system is moving towards enabledModes.
-    // For now, let's merge them: if initialIs are true but not in enabledModes, add them.
-    const modes = [...enabledModes];
-    if (initialIsPointsEnabled && !modes.includes('point')) modes.push('point');
-    if (initialIsStampsEnabled && !modes.includes('stamp')) modes.push('stamp');
-    return modes;
+    // If enabledModes is explicitly passed, use it.
+    if (enabledModes) return enabledModes;
+
+    // Fallback to initialIs... props for backward compatibility
+    const modes: ('point' | 'stamp')[] = [];
+    if (initialIsPointsEnabled !== false) modes.push('point'); // Default to true if undefined
+    if (initialIsStampsEnabled === true) modes.push('stamp');
+    return modes.length > 0 ? modes : ['point']; // Final fallback
   }, [enabledModes, initialIsPointsEnabled, initialIsStampsEnabled]);
+
 
   const isPointsEnabled = finalEnabledModes.includes('point');
   const isStampsEnabled = finalEnabledModes.includes('stamp');
@@ -93,6 +95,13 @@ export default function CreateRewardWizardModal({
   const [disabled, setDisabled] = useState<boolean>(reward?.disabled || false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+
+  // Stamp Icon Customization
+  const [imageSourceType, setImageSourceType] = useState<'BUSINESS_LOGO' | 'LIBRARY_ASSET' | 'EMOJI' | 'CUSTOM_URL'>(reward?.image_source_type || 'BUSINESS_LOGO');
+  const [stampEmoji, setStampEmoji] = useState(reward?.stamp_emoji || '☕');
+  const [customEmoji, setCustomEmoji] = useState(reward?.emoji || '🚀');
+  const [selectedStampFile, setSelectedStampFile] = useState<File | null>(null);
+  const [stampImagePreviewUrl, setStampImagePreviewUrl] = useState<string | null>(null);
 
   // Track which fields have been touched/attempted
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -135,6 +144,11 @@ export default function CreateRewardWizardModal({
     setShowAllErrors(false);
     setIsSubmitting(false);
     setShowConfirmation(false);
+    setImageSourceType(reward?.image_source_type || 'BUSINESS_LOGO');
+    setStampEmoji(reward?.stamp_emoji || '☕');
+    setCustomEmoji(reward?.emoji || '🚀');
+    setSelectedStampFile(null);
+    setStampImagePreviewUrl(reward?.image_source_type === 'BUSINESS_LOGO' ? reward?.stamp_emoji || null : null);
   };
 
   useEffect(() => {
@@ -147,6 +161,12 @@ export default function CreateRewardWizardModal({
     setSelectedFile(file);
     setImagePreviewUrl(previewUrl);
     setTouched(prev => ({ ...prev, image: true }));
+  };
+
+  const handleStampImageSelect = (file: File | null, previewUrl: string | null) => {
+    setSelectedStampFile(file);
+    setStampImagePreviewUrl(previewUrl);
+    setTouched(prev => ({ ...prev, stampImage: true }));
   };
 
   const handleGallerySelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -314,6 +334,12 @@ export default function CreateRewardWizardModal({
         imageUrl = uploadResult.secure_url;
       }
 
+      let finalStampEmoji = stampEmoji;
+      if (imageSourceType === 'BUSINESS_LOGO' && selectedStampFile) {
+        const stampUploadResult = await uploadToCloudinary({ file: selectedStampFile, folder: 'rewards/stamps' });
+        finalStampEmoji = stampUploadResult.secure_url;
+      }
+
       // Upload gallery images
       for (const file of galleryFiles) {
         try {
@@ -352,6 +378,9 @@ export default function CreateRewardWizardModal({
         mall_reward_value: Number(mallRewardValue),
         createdAt: reward?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        image_source_type: imageSourceType,
+        stamp_emoji: finalStampEmoji,
+        emoji: customEmoji,
       };
 
       await onSave(rewardData);
@@ -393,18 +422,18 @@ export default function CreateRewardWizardModal({
             {/* Progress indicator with validation status */}
             <div className="flex items-center gap-2 mt-3">
               <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors ${step === 1
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
-                  : isStep1Valid
-                    ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300'
-                    : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
+                : isStep1Valid
+                  ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300'
+                  : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
                 }`}>
                 {step > 1 && isStep1Valid && <CheckCircle2 className="h-3 w-3" />}
                 1. Details
               </div>
               <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
               <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors ${step === 2
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
-                  : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
+                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
                 }`}>
                 2. Review
               </div>
@@ -652,6 +681,73 @@ export default function CreateRewardWizardModal({
                   </div>
                 )}
               </div>
+
+              {/* Stamp Customization (Visible only if stamps enabled) */}
+              {isStampsEnabled && (
+                <div className="p-4 border rounded-lg bg-blue-50/30 dark:bg-blue-900/10 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold flex items-center gap-2">
+                      <Star className="h-4 w-4 text-blue-500" />
+                      Stamp Customization
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wider">Stamp Icon Source</label>
+                      <Select value={imageSourceType} onValueChange={(val: any) => setImageSourceType(val)}>
+                        <SelectTrigger className="w-full bg-white">
+                          <SelectValue placeholder="Select stamp source" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="BUSINESS_LOGO">Business Logo</SelectItem>
+                          <SelectItem value="LIBRARY_ASSET">Library Asset</SelectItem>
+                          <SelectItem value="EMOJI">Emoji</SelectItem>
+                          <SelectItem value="CUSTOM_URL">Custom URL</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label htmlFor="stamp_emoji" className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wider">
+                          {imageSourceType === 'BUSINESS_LOGO' ? 'Stamp Logo' : 'Stamp Emoji'}
+                        </label>
+                        {imageSourceType === 'BUSINESS_LOGO' ? (
+                          <div className="space-y-3">
+                            <CloudinaryUpload onFileSelect={handleStampImageSelect} />
+                            {stampImagePreviewUrl && (
+                              <div className="relative h-12 w-12 rounded-lg overflow-hidden border bg-white">
+                                <Image src={stampImagePreviewUrl} alt="Stamp Preview" layout="fill" objectFit="cover" />
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <Input
+                            id="stamp_emoji"
+                            placeholder="e.g. ☕"
+                            value={stampEmoji}
+                            onChange={(e) => setStampEmoji(e.target.value)}
+                            className="bg-white"
+                          />
+                        )}
+                      </div>
+                      {imageSourceType === 'EMOJI' && (
+                        <div>
+                          <label htmlFor="emoji" className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wider">Specific Emoji</label>
+                          <Input
+                            id="emoji"
+                            placeholder="e.g. 🚀"
+                            value={customEmoji}
+                            onChange={(e) => setCustomEmoji(e.target.value)}
+                            className="bg-white"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Mall Integration - Default ON */}
               <div className="border p-4 rounded-lg space-y-4 bg-gradient-to-r from-orange-50/50 to-amber-50/50 dark:from-orange-900/10 dark:to-amber-900/10">
