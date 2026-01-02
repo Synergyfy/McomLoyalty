@@ -48,9 +48,9 @@ export default function BusinessProfilePage() {
         categoryName: profile.category?.name || 'N/A',
         instagram,
         whatsapp,
-        sectorId: profile.sectorId,
+        sectorId: profile.sector?.id,
         categoryId: profile.category?.id,
-        subCategoryId: profile.subCategoryId,
+        subCategoryId: profile.subCategory?.id,
       });
     }
   }, [profile]);
@@ -119,7 +119,7 @@ export default function BusinessProfilePage() {
       }
 
       // Fix: Only send UUID strings if they exist. Do not send objects or empty strings.
-      if (form.sectorId !== profile.sectorId && form.sectorId) {
+      if (form.sectorId !== profile.sector?.id && form.sectorId) {
         payload.sector = form.sectorId;
       }
 
@@ -127,7 +127,7 @@ export default function BusinessProfilePage() {
         payload.category = form.categoryId;
       }
 
-      if (form.subCategoryId !== profile.subCategoryId && form.subCategoryId) {
+      if (form.subCategoryId !== profile.subCategory?.id && form.subCategoryId) {
         payload.subCategory = form.subCategoryId;
       }
 
