@@ -371,6 +371,8 @@ export default function CreateRewardWizardModal({
         stamps_required: isStampsEnabled ? Number(stampsRequired) : 0,
         is_points_enabled: isPointsEnabled,
         is_stamps_enabled: isStampsEnabled,
+        isPointsEnabled: isPointsEnabled,
+        isStampsEnabled: isStampsEnabled,
         rewardType,
         disabled,
         is_mall_integrated: isMallIntegrated,
