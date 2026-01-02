@@ -24,15 +24,15 @@ import ConfigurePlaqueModal from '@/components/dashboard/my-assets/qr-plaques/Co
 import DeactivateConfirmationModal from '@/components/dashboard/my-assets/qr-plaques/DeactivateConfirmationModal';
 import PlaqueDetailsModal from '@/components/dashboard/my-assets/qr-plaques/PlaqueDetailsModal';
 
-const chartData = [
-    { name: 'Mon', scans: 0, redemptions: 0 },
-    { name: 'Tue', scans: 0, redemptions: 0 },
-    { name: 'Wed', scans: 0, redemptions: 0 },
-    { name: 'Thu', scans: 0, redemptions: 0 },
-    { name: 'Fri', scans: 0, redemptions: 0 },
-    { name: 'Sat', scans: 0, redemptions: 0 },
-    { name: 'Sun', scans: 0, redemptions: 0 },
-];
+// const chartData = [
+//     { name: 'Mon', scans: 0, redemptions: 0 },
+//     { name: 'Tue', scans: 0, redemptions: 0 },
+//     { name: 'Wed', scans: 0, redemptions: 0 },
+//     { name: 'Thu', scans: 0, redemptions: 0 },
+//     { name: 'Fri', scans: 0, redemptions: 0 },
+//     { name: 'Sat', scans: 0, redemptions: 0 },
+//     { name: 'Sun', scans: 0, redemptions: 0 },
+// ];
 
 interface PaginatedPlaques {
     data: QrPlaque[];
@@ -244,7 +244,7 @@ export default function QRPlaquesPage() {
                                     <th className="p-4">Assigned To</th>
                                     <th className="p-4">Status</th>
                                     <th className="p-4">Linked Offer</th>
-                                    <th className="p-4">Scans</th>
+                                    {/* <th className="p-4">Scans</th> */}
                                     <th className="p-4">Redemptions</th>
                                     <th className="p-4 text-center">Actions</th>
                                 </tr>
@@ -295,7 +295,7 @@ export default function QRPlaquesPage() {
                                                     <span className="text-gray-400 text-sm">N/A</span>
                                                 )}
                                             </td>
-                                            <td className="p-4">{plaque.scans || 0}</td>
+                                            {/* <td className="p-4">{plaque.scans || 0}</td> */}
                                             <td className="p-4">{plaque.redemptions || 0}</td>
                                             <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
                                                 <DropdownMenu>
@@ -318,7 +318,7 @@ export default function QRPlaquesPage() {
                     )}
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow">
+                {/* <div className="bg-white p-6 rounded-lg shadow">
                     <h3 className="text-lg font-semibold mb-4">Scans & Redemptions</h3>
                     <ResponsiveContainer width="100%" height={300}>
                         <BarChart data={chartData}>
@@ -326,7 +326,7 @@ export default function QRPlaquesPage() {
                             <Bar dataKey="scans" fill="#fb923c" /><Bar dataKey="redemptions" fill="#ea580c" />
                         </BarChart>
                     </ResponsiveContainer>
-                </div>
+                </div> */}
             </div>
 
             <PlaqueDetailsModal isOpen={!!viewPlaque} onClose={() => setViewPlaque(null)} plaque={viewPlaque} onPrint={setPlaqueToPrint} />
