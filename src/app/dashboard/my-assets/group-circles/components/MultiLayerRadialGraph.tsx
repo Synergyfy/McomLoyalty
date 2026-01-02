@@ -37,6 +37,7 @@ export const ORBIT_CONFIG: Record<number, { label: string; radius: number; color
 
 interface MultiLayerRadialGraphProps {
     members: Member[];
+    onMemberClick: (m: Member) => void;
     currentMemberId?: string | null;
     focusedOrbits?: number[] | null;
     profileImage?: string;
