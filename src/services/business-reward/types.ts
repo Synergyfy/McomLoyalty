@@ -128,8 +128,6 @@ export interface CreateBusinessRewardDto {
   stamps_required?: number;
   is_points_enabled?: boolean;
   is_stamps_enabled?: boolean;
-  isPointsEnabled?: boolean;
-  isStampsEnabled?: boolean;
   disabled?: boolean;
   is_mall_integrated?: boolean;
   mall_reward_type?: 'VOUCHER' | 'GIFT_CARD' | 'COUPON';
@@ -157,8 +155,6 @@ export interface UpdateBusinessRewardDto {
   stamps_required?: number;
   is_points_enabled?: boolean;
   is_stamps_enabled?: boolean;
-  isPointsEnabled?: boolean;
-  isStampsEnabled?: boolean;
   disabled?: boolean;
   is_mall_integrated?: boolean;
   mall_reward_type?: 'VOUCHER' | 'GIFT_CARD' | 'COUPON';

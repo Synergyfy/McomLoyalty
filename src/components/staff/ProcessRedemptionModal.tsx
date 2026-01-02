@@ -17,9 +17,11 @@ interface ProcessRedemptionModalProps {
     campaignId: string;
     campaignName: string;
     businessRewards: OngoingCampaignReward[];
+    rewardMode?: 'points' | 'stamps';
 }
 
-export function ProcessRedemptionModal({ campaignId, campaignName, businessRewards = [] }: ProcessRedemptionModalProps) {
+export function ProcessRedemptionModal({ campaignId, campaignName, businessRewards = [], rewardMode = 'points' }: ProcessRedemptionModalProps) {
+    const isStampMode = rewardMode === 'stamps';
     const [isOpen, setIsOpen] = useState(false);
     const [selectedRewardId, setSelectedRewardId] = useState<string>("");
 
@@ -46,7 +48,8 @@ export function ProcessRedemptionModal({ campaignId, campaignName, businessRewar
                 campaignId,
                 participantCode,
                 type: 'REDEEM',
-                rewardId: selectedRewardId
+                rewardId: selectedRewardId,
+                redemptionMethod: isStampMode ? 'stamps' : 'points'
             });
             toast.success(`Successfully redeemed ${selectedReward?.title} for ${participantCode}.`);
             setIsOpen(false);
@@ -122,11 +125,18 @@ export function ProcessRedemptionModal({ campaignId, campaignName, businessRewar
                                 <SelectValue placeholder="Select a reward to redeem" />
                             </SelectTrigger>
                             <SelectContent>
-                                {businessRewards.filter(r => !r.disabled).map((reward) => (
-                                    <SelectItem key={reward.id} value={reward.id}>
-                                        {reward.title} ({(reward.pointRequired ?? reward.pointsRequired ?? 0)} pts)
-                                    </SelectItem>
-                                ))}
+                                {businessRewards.filter(r => !r.disabled).map((reward) => {
+                                    const required = isStampMode 
+                                        ? (reward.stampsRequired ?? reward.stamps_required ?? 0)
+                                        : (reward.pointsRequired ?? reward.pointRequired ?? 0);
+                                    const unit = isStampMode ? 'stamps' : 'pts';
+
+                                    return (
+                                        <SelectItem key={reward.id} value={reward.id}>
+                                            {reward.title} ({required} {unit})
+                                        </SelectItem>
+                                    );
+                                })}
                                 {businessRewards.length === 0 && (
                                     <SelectItem value="none" disabled>No rewards available</SelectItem>
                                 )}
