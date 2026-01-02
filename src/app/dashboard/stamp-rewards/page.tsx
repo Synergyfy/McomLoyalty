@@ -137,13 +137,22 @@ export default function BusinessStampRewardsPage() {
 
     // Wizard-based rewards filtered by type
     const wizardStampRewards = useMemo(() => {
-        return pointRewards.filter(r => r.is_stamps_enabled === true);
+        return pointRewards.filter(r =>
+            r.isStampsEnabled === true ||
+            r.is_stamps_enabled === true ||
+            (Number(r.stampsRequired) > 0) ||
+            (Number(r.stamps_required) > 0)
+        );
     }, [pointRewards]);
 
     const wizardPointRewards = useMemo(() => {
         return pointRewards.filter(r =>
+            r.isPointsEnabled === true ||
             r.is_points_enabled === true ||
-            (r.is_points_enabled === undefined && r.is_stamps_enabled !== true)
+            (r.isPointsEnabled === undefined && r.is_points_enabled === undefined && (Number(r.stampsRequired) === 0 && Number(r.stamps_required) === 0)) ||
+            (Number(r.pointsRequired) > 0) ||
+            (Number(r.points_required) > 0) ||
+            (Number(r.pointRequired) > 0)
         );
     }, [pointRewards]);
 
@@ -238,8 +247,8 @@ export default function BusinessStampRewardsPage() {
             disabled: businessReward.disabled,
             pointsRequired: businessReward.pointRequired,
             stampsRequired: businessReward.stampsRequired,
-            is_points_enabled: businessReward.is_points_enabled,
-            is_stamps_enabled: businessReward.is_stamps_enabled,
+            is_points_enabled: businessReward.is_points_enabled || businessReward.isPointsEnabled,
+            is_stamps_enabled: businessReward.is_stamps_enabled || businessReward.isStampsEnabled,
             quantity: businessReward.quantity || 0,
             image_source_type: businessReward.image_source_type,
             stamp_emoji: businessReward.stamp_emoji,
@@ -249,9 +258,17 @@ export default function BusinessStampRewardsPage() {
 
         // Construct modes from current reward state
         const modes: ('point' | 'stamp')[] = [];
-        if (businessReward.is_points_enabled) modes.push('point');
-        if (businessReward.is_stamps_enabled) modes.push('stamp');
-        if (modes.length === 0) modes.push('point'); // Fallback
+        if (businessReward.is_points_enabled || businessReward.isPointsEnabled) modes.push('point');
+        if (businessReward.is_stamps_enabled || businessReward.isStampsEnabled) modes.push('stamp');
+        if (modes.length === 0) {
+            // Fallback: If no flags but has stamps required, it's a stamp reward
+            if (Number(businessReward.stampsRequired) > 0 || Number(businessReward.stamps_required) > 0) modes.push('stamp');
+            // If no flags but has point required, it's a point reward
+            if (Number(businessReward.pointRequired) > 0 || Number(businessReward.pointsRequired) > 0 || Number(businessReward.points_required) > 0) modes.push('point');
+
+            // Final fallback if still empty
+            if (modes.length === 0) modes.push('point');
+        }
 
         setCreationModes(modes);
         setIsCreatePointRewardModalOpen(true);
@@ -327,6 +344,8 @@ export default function BusinessStampRewardsPage() {
                         stamps_required: rewardData.stampsRequired,
                         is_points_enabled: rewardData.is_points_enabled,
                         is_stamps_enabled: rewardData.is_stamps_enabled,
+                        isPointsEnabled: rewardData.is_points_enabled,
+                        isStampsEnabled: rewardData.is_stamps_enabled,
                         image: rewardData.image,
                         gallery: rewardData.gallery,
                         quantity: rewardData.quantity,
@@ -370,6 +389,8 @@ export default function BusinessStampRewardsPage() {
                     stamps_required: rewardData.stampsRequired,
                     is_points_enabled: rewardData.is_points_enabled,
                     is_stamps_enabled: rewardData.is_stamps_enabled,
+                    isPointsEnabled: rewardData.is_points_enabled,
+                    isStampsEnabled: rewardData.is_stamps_enabled,
                     image: rewardData.image,
                     gallery: rewardData.gallery,
                     quantity: rewardData.quantity,
@@ -675,6 +696,7 @@ export default function BusinessStampRewardsPage() {
                                             reward={reward}
                                             onEdit={handleEditPointReward}
                                             onDelete={handleDeletePointReward}
+                                            variant="stamp-card"
                                         />
                                     ))}
                                 </div>
