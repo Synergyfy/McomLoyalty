@@ -99,6 +99,7 @@ export default function BusinessStampRewardsPage() {
     const [tierLimitMessage, setTierLimitMessage] = useState('');
     const [editingReward, setEditingReward] = useState<Reward | null>(null);
     const [editingBusinessRewardId, setEditingBusinessRewardId] = useState<string | null>(null);
+    const [creationModes, setCreationModes] = useState<('point' | 'stamp')[]>(['point']);
 
     // Delete confirmation for point rewards
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -134,8 +135,29 @@ export default function BusinessStampRewardsPage() {
         );
     }, [availableTemplates, searchTerm]);
 
-    // Filter active stamp rewards
-    const filteredStampRewards = useMemo(() => {
+    // Wizard-based rewards filtered by type
+    const wizardStampRewards = useMemo(() => {
+        return pointRewards.filter(r =>
+            r.isStampsEnabled === true ||
+            r.is_stamps_enabled === true ||
+            (Number(r.stampsRequired) > 0) ||
+            (Number(r.stamps_required) > 0)
+        );
+    }, [pointRewards]);
+
+    const wizardPointRewards = useMemo(() => {
+        return pointRewards.filter(r =>
+            r.isPointsEnabled === true ||
+            r.is_points_enabled === true ||
+            (r.isPointsEnabled === undefined && r.is_points_enabled === undefined && (Number(r.stampsRequired) === 0 && Number(r.stamps_required) === 0)) ||
+            (Number(r.pointsRequired) > 0) ||
+            (Number(r.points_required) > 0) ||
+            (Number(r.pointRequired) > 0)
+        );
+    }, [pointRewards]);
+
+    // Filtered lists for UI
+    const filteredTemplateStampRewards = useMemo(() => {
         if (!searchTerm) return businessRewards;
         return businessRewards.filter(r =>
             r.template.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -143,14 +165,21 @@ export default function BusinessStampRewardsPage() {
         );
     }, [businessRewards, searchTerm]);
 
-    // Filter point rewards
-    const filteredPointRewards = useMemo(() => {
-        if (!searchTerm) return pointRewards;
-        return pointRewards.filter(r =>
+    const filteredWizardStampRewards = useMemo(() => {
+        if (!searchTerm) return wizardStampRewards;
+        return wizardStampRewards.filter(r =>
             r.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             r.description.toLowerCase().includes(searchTerm.toLowerCase())
         );
-    }, [pointRewards, searchTerm]);
+    }, [wizardStampRewards, searchTerm]);
+
+    const filteredWizardPointRewards = useMemo(() => {
+        if (!searchTerm) return wizardPointRewards;
+        return wizardPointRewards.filter(r =>
+            r.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.description.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [wizardPointRewards, searchTerm]);
 
     // Handlers for stamp rewards
     const handlePreviewTemplate = (template: StampRewardResponse) => {
@@ -217,9 +246,31 @@ export default function BusinessStampRewardsPage() {
             value: businessReward.value,
             disabled: businessReward.disabled,
             pointsRequired: businessReward.pointRequired,
+            stampsRequired: businessReward.stampsRequired,
+            is_points_enabled: businessReward.is_points_enabled || businessReward.isPointsEnabled,
+            is_stamps_enabled: businessReward.is_stamps_enabled || businessReward.isStampsEnabled,
             quantity: businessReward.quantity || 0,
+            image_source_type: businessReward.image_source_type,
+            stamp_emoji: businessReward.stamp_emoji,
+            emoji: businessReward.emoji,
         };
         setEditingReward(mergedReward);
+
+        // Construct modes from current reward state
+        const modes: ('point' | 'stamp')[] = [];
+        if (businessReward.is_points_enabled || businessReward.isPointsEnabled) modes.push('point');
+        if (businessReward.is_stamps_enabled || businessReward.isStampsEnabled) modes.push('stamp');
+        if (modes.length === 0) {
+            // Fallback: If no flags but has stamps required, it's a stamp reward
+            if (Number(businessReward.stampsRequired) > 0 || Number(businessReward.stamps_required) > 0) modes.push('stamp');
+            // If no flags but has point required, it's a point reward
+            if (Number(businessReward.pointRequired) > 0 || Number(businessReward.pointsRequired) > 0 || Number(businessReward.points_required) > 0) modes.push('point');
+
+            // Final fallback if still empty
+            if (modes.length === 0) modes.push('point');
+        }
+
+        setCreationModes(modes);
         setIsCreatePointRewardModalOpen(true);
     }, []);
 
@@ -259,8 +310,9 @@ export default function BusinessStampRewardsPage() {
         }
     }, []);
 
-    const handleSelectPointReward = useCallback(() => {
+    const handleContinueRewardCreation = useCallback((modes: ('point' | 'stamp')[]) => {
         setIsRewardTypeSelectionOpen(false);
+        setCreationModes(modes);
         setEditingReward(null);
         setEditingBusinessRewardId(null);
         setIsCreatePointRewardModalOpen(true);
@@ -274,7 +326,8 @@ export default function BusinessStampRewardsPage() {
     const handleSelectTemplate = useCallback((reward: Reward) => {
         setIsClaimModalOpen(false);
         setEditingReward(reward);
-        setEditingBusinessRewardId(null); // Not editing an existing one, but creating from template
+        setCreationModes(['point']); // Templates are usually point rewards for now
+        setEditingBusinessRewardId(null);
         setIsCreatePointRewardModalOpen(true);
     }, []);
 
@@ -288,10 +341,22 @@ export default function BusinessStampRewardsPage() {
                         title: rewardData.title,
                         description: rewardData.description,
                         points_required: rewardData.pointsRequired,
+                        stamps_required: rewardData.stampsRequired,
+                        is_points_enabled: rewardData.is_points_enabled,
+                        is_stamps_enabled: rewardData.is_stamps_enabled,
+                        isPointsEnabled: rewardData.is_points_enabled,
+                        isStampsEnabled: rewardData.is_stamps_enabled,
                         image: rewardData.image,
                         gallery: rewardData.gallery,
                         quantity: rewardData.quantity,
                         disabled: rewardData.disabled,
+                        reward_type: rewardData.rewardType as any,
+                        is_mall_integrated: rewardData.is_mall_integrated,
+                        mall_reward_type: rewardData.mall_reward_type,
+                        mall_reward_value: rewardData.mall_reward_value,
+                        image_source_type: rewardData.image_source_type,
+                        stamp_emoji: rewardData.stamp_emoji,
+                        emoji: rewardData.emoji,
                     },
                 }, {
                     onSuccess: () => {
@@ -321,11 +386,22 @@ export default function BusinessStampRewardsPage() {
                     title: rewardData.title,
                     description: rewardData.description,
                     points_required: rewardData.pointsRequired,
+                    stamps_required: rewardData.stampsRequired,
+                    is_points_enabled: rewardData.is_points_enabled,
+                    is_stamps_enabled: rewardData.is_stamps_enabled,
+                    isPointsEnabled: rewardData.is_points_enabled,
+                    isStampsEnabled: rewardData.is_stamps_enabled,
                     image: rewardData.image,
                     gallery: rewardData.gallery,
                     quantity: rewardData.quantity,
                     disabled: rewardData.disabled,
-                    reward_type: 'Voucher',
+                    reward_type: rewardData.rewardType as any,
+                    is_mall_integrated: rewardData.is_mall_integrated,
+                    mall_reward_type: rewardData.mall_reward_type,
+                    mall_reward_value: rewardData.mall_reward_value,
+                    image_source_type: rewardData.image_source_type,
+                    stamp_emoji: rewardData.stamp_emoji,
+                    emoji: rewardData.emoji,
                     status: RewardStatus.ACTIVE,
                 };
 
@@ -522,7 +598,7 @@ export default function BusinessStampRewardsPage() {
                                     <Filter className="h-3.5 w-3.5" />
                                     All
                                     <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">
-                                        {filteredStampRewards.length + filteredPointRewards.length}
+                                        {filteredTemplateStampRewards.length + filteredWizardStampRewards.length + filteredWizardPointRewards.length}
                                     </Badge>
                                 </Button>
                                 <Button
@@ -534,7 +610,7 @@ export default function BusinessStampRewardsPage() {
                                     <Stamp className="h-3.5 w-3.5" />
                                     Stamp Cards
                                     <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">
-                                        {filteredStampRewards.length}
+                                        {filteredTemplateStampRewards.length + filteredWizardStampRewards.length}
                                     </Badge>
                                 </Button>
                                 <Button
@@ -546,14 +622,14 @@ export default function BusinessStampRewardsPage() {
                                     <Gift className="h-3.5 w-3.5" />
                                     Point Rewards
                                     <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">
-                                        {filteredPointRewards.length}
+                                        {filteredWizardPointRewards.length}
                                     </Badge>
                                 </Button>
                             </div>
                         </div>
 
                         {/* Empty state when no rewards at all */}
-                        {filteredStampRewards.length === 0 && filteredPointRewards.length === 0 && (
+                        {filteredTemplateStampRewards.length === 0 && filteredWizardStampRewards.length === 0 && filteredWizardPointRewards.length === 0 && (
                             <Card className="border-0 shadow-lg">
                                 <CardContent className="py-16 text-center">
                                     <div className="p-4 bg-orange-100 dark:bg-orange-900/30 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
@@ -587,7 +663,7 @@ export default function BusinessStampRewardsPage() {
                         )}
 
                         {/* Stamp Rewards Section */}
-                        {showStampRewards && filteredStampRewards.length > 0 && (
+                        {showStampRewards && (filteredTemplateStampRewards.length > 0 || filteredWizardStampRewards.length > 0) && (
                             <div className="space-y-4">
                                 {activeRewardFilter === 'all' && (
                                     <div className="flex items-center gap-2">
@@ -596,12 +672,13 @@ export default function BusinessStampRewardsPage() {
                                         </div>
                                         <h3 className="font-semibold text-gray-900 dark:text-white">Stamp Cards</h3>
                                         <Badge variant="outline" className="text-orange-600 border-orange-300">
-                                            {filteredStampRewards.length}
+                                            {filteredTemplateStampRewards.length + filteredWizardStampRewards.length}
                                         </Badge>
                                     </div>
                                 )}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {filteredStampRewards.map((reward) => (
+                                    {/* Template-based stamp rewards */}
+                                    {filteredTemplateStampRewards.map((reward) => (
                                         <ActiveStampRewardCard
                                             key={reward.id}
                                             reward={reward}
@@ -612,12 +689,22 @@ export default function BusinessStampRewardsPage() {
                                             onAwardStamp={handleAwardStamp}
                                         />
                                     ))}
+                                    {/* Wizard-based stamp rewards */}
+                                    {filteredWizardStampRewards.map((reward) => (
+                                        <PointRewardCard
+                                            key={reward.id}
+                                            reward={reward}
+                                            onEdit={handleEditPointReward}
+                                            onDelete={handleDeletePointReward}
+                                            variant="stamp-card"
+                                        />
+                                    ))}
                                 </div>
                             </div>
                         )}
 
                         {/* Point Rewards Section */}
-                        {showPointRewards && filteredPointRewards.length > 0 && (
+                        {showPointRewards && filteredWizardPointRewards.length > 0 && (
                             <div className="space-y-4">
                                 {activeRewardFilter === 'all' && (
                                     <div className="flex items-center gap-2">
@@ -626,12 +713,12 @@ export default function BusinessStampRewardsPage() {
                                         </div>
                                         <h3 className="font-semibold text-gray-900 dark:text-white">Point Rewards</h3>
                                         <Badge variant="outline" className="text-blue-600 border-blue-300">
-                                            {filteredPointRewards.length}
+                                            {filteredWizardPointRewards.length}
                                         </Badge>
                                     </div>
                                 )}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {filteredPointRewards.map((reward) => (
+                                    {filteredWizardPointRewards.map((reward) => (
                                         <PointRewardCard
                                             key={reward.id}
                                             reward={reward}
@@ -644,7 +731,7 @@ export default function BusinessStampRewardsPage() {
                         )}
 
                         {/* Show empty states for individual filters */}
-                        {activeRewardFilter === 'stamps' && filteredStampRewards.length === 0 && (
+                        {activeRewardFilter === 'stamps' && filteredTemplateStampRewards.length === 0 && filteredWizardStampRewards.length === 0 && (
                             <Card className="border-0 shadow-lg border-orange-100">
                                 <CardContent className="py-12 text-center">
                                     <Stamp className="h-10 w-10 text-orange-300 mx-auto mb-3" />
@@ -654,7 +741,7 @@ export default function BusinessStampRewardsPage() {
                             </Card>
                         )}
 
-                        {activeRewardFilter === 'points' && filteredPointRewards.length === 0 && (
+                        {activeRewardFilter === 'points' && filteredWizardPointRewards.length === 0 && (
                             <Card className="border-0 shadow-lg border-blue-100">
                                 <CardContent className="py-12 text-center">
                                     <Gift className="h-10 w-10 text-blue-300 mx-auto mb-3" />
@@ -798,8 +885,7 @@ export default function BusinessStampRewardsPage() {
             <RewardTypeSelectionDialog
                 isOpen={isRewardTypeSelectionOpen}
                 onClose={() => setIsRewardTypeSelectionOpen(false)}
-                onSelectPointReward={handleSelectPointReward}
-                onSelectStampReward={handleSelectStampReward}
+                onContinue={handleContinueRewardCreation}
             />
 
             {/* Create Point Reward Modal */}
@@ -812,6 +898,7 @@ export default function BusinessStampRewardsPage() {
                 }}
                 reward={editingReward}
                 onSave={handleSavePointReward}
+                enabledModes={creationModes}
             />
 
             {/* Create Stamp Reward Modal */}

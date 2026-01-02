@@ -11,26 +11,42 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Image from 'next/image';
-import { MoreVertical, Edit, Trash2, Gift, Star } from 'lucide-react';
+import { MoreVertical, Edit, Trash2, Gift, Star, Stamp } from 'lucide-react';
 import { BusinessReward } from '@/services/business-reward/types';
 
 interface PointRewardCardProps {
     reward: BusinessReward;
     onEdit: (reward: BusinessReward) => void;
     onDelete: (reward: BusinessReward) => void;
+    variant?: 'standard' | 'stamp-card';
 }
 
 export default function PointRewardCard({
     reward,
     onEdit,
     onDelete,
+    variant = 'standard',
 }: PointRewardCardProps) {
+    const isStampCard = variant === 'stamp-card';
+
     return (
-        <Card className="flex flex-col hover:shadow-lg transition-all duration-200 border-blue-100 dark:border-blue-900/30 hover:border-blue-300 bg-gradient-to-br from-white to-blue-50/30 dark:from-gray-800 dark:to-blue-900/10">
+        <Card className={`group relative flex flex-col hover:shadow-xl transition-all duration-300 ${isStampCard
+            ? 'border-orange-100 dark:border-orange-900/30 hover:border-orange-300 bg-white dark:bg-gray-900'
+            : 'border-blue-100 dark:border-blue-900/30 hover:border-blue-300 bg-gradient-to-br from-white to-blue-50/30 dark:from-gray-800 dark:to-blue-900/10'
+            }`}>
+            {isStampCard && (
+                <div className={`absolute top-0 left-0 right-0 h-1 rounded-t-xl ${!reward.disabled
+                    ? 'bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-400'
+                    : 'bg-gray-400'
+                    }`} />
+            )}
             <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
-                        <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/50 dark:to-blue-800/50 shadow-md">
+                        <div className={`relative w-14 h-14 rounded-xl overflow-hidden shadow-md ${isStampCard
+                            ? 'bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-900/50 dark:to-amber-900/50 ring-2 ring-white dark:ring-gray-800'
+                            : 'bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/50 dark:to-blue-800/50'
+                            }`}>
                             {reward.image ? (
                                 <Image
                                     src={reward.image}
@@ -40,7 +56,11 @@ export default function PointRewardCard({
                                 />
                             ) : (
                                 <div className="flex items-center justify-center h-full">
-                                    <Gift className="h-7 w-7 text-blue-500" />
+                                    {isStampCard ? (
+                                        <Stamp className="h-7 w-7 text-orange-500" />
+                                    ) : (
+                                        <Gift className="h-7 w-7 text-blue-500" />
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -52,16 +72,24 @@ export default function PointRewardCard({
                                 <Badge
                                     variant={!reward.disabled ? 'default' : 'secondary'}
                                     className={!reward.disabled
-                                        ? 'bg-blue-500 hover:bg-blue-600'
+                                        ? (isStampCard ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-blue-500 hover:bg-blue-600')
                                         : ''
                                     }
                                 >
                                     {!reward.disabled ? 'Active' : 'Disabled'}
                                 </Badge>
-                                <Badge variant="outline" className="text-blue-600 border-blue-300 text-xs">
-                                    <Gift className="h-3 w-3 mr-1" />
-                                    Points
-                                </Badge>
+                                {(reward.is_points_enabled || reward.isPointsEnabled) && (
+                                    <Badge variant="outline" className="text-blue-600 border-blue-300 text-xs">
+                                        <Gift className="h-3 w-3 mr-1" />
+                                        Points
+                                    </Badge>
+                                )}
+                                {(reward.is_stamps_enabled || reward.isStampsEnabled) && (
+                                    <Badge variant="outline" className="text-orange-600 border-orange-300 text-xs">
+                                        <Stamp className="h-3 w-3 mr-1" />
+                                        Stamps
+                                    </Badge>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -125,18 +153,68 @@ export default function PointRewardCard({
 
                 {/* Stats */}
                 <div className="grid grid-cols-2 gap-3">
-                    <div className="p-2.5 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-center">
-                        <div className="flex items-center justify-center gap-1 text-blue-600 dark:text-blue-400">
-                            <Star className="h-3.5 w-3.5" />
-                            <span className="text-lg font-bold">{reward.pointRequired}</span>
+                    {(reward.is_stamps_enabled || reward.isStampsEnabled || (Number(reward.stampsRequired) > 0) || (Number(reward.stamps_required) > 0)) ? (
+                        <div className={`p-2.5 rounded-lg text-center ${isStampCard ? 'bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800/50' : 'bg-orange-50 dark:bg-orange-900/30'}`}>
+                            <div className="flex items-center justify-center gap-1 text-orange-600 dark:text-orange-400">
+                                <Stamp className="h-3.5 w-3.5" />
+                                <span className="text-lg font-bold">
+                                    {reward.stampsRequired ?? reward.stamps_required ?? 0}
+                                </span>
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Stamps Required</p>
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Points Required</p>
-                    </div>
-                    <div className="p-2.5 bg-gray-50 dark:bg-gray-800 rounded-lg text-center">
+                    ) : (reward.is_points_enabled || reward.isPointsEnabled || (Number(reward.pointsRequired) > 0) || (Number(reward.points_required) > 0) || (Number(reward.pointRequired) > 0)) ? (
+                        <div className={`p-2.5 rounded-lg text-center ${isStampCard ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50' : 'bg-blue-50 dark:bg-blue-900/30'}`}>
+                            <div className="flex items-center justify-center gap-1 text-blue-600 dark:text-blue-400">
+                                <Star className="h-3.5 w-3.5" />
+                                <span className="text-lg font-bold">
+                                    {reward.pointsRequired ?? reward.points_required ?? reward.pointRequired ?? 0}
+                                </span>
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Points Required</p>
+                        </div>
+                    ) : (
+                        <div className="p-2.5 bg-gray-50 dark:bg-gray-800 rounded-lg text-center">
+                            <span className="text-lg font-bold text-gray-900 dark:text-white">
+                                {reward.points_required ?? 0}
+                            </span>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Points Required</p>
+                        </div>
+                    )}
+
+                    <div className={`p-2.5 rounded-lg text-center ${isStampCard ? 'bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800' : 'bg-gray-50 dark:bg-gray-800'}`}>
                         <span className="text-lg font-bold text-gray-900 dark:text-white">
                             {reward.quantity ?? '∞'}
                         </span>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Quantity</p>
+                    </div>
+                </div>
+
+                {isStampCard && (reward.is_points_enabled || reward.isPointsEnabled) && (reward.is_stamps_enabled || reward.isStampsEnabled) && (
+                    <div className="mt-3 p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center border border-blue-100 dark:border-blue-800/30">
+                        <div className="flex items-center justify-center gap-1 text-blue-600 dark:text-blue-400">
+                            <Star className="h-3.5 w-3.5" />
+                            <span className="text-lg font-bold">
+                                {reward.pointsRequired ?? reward.points_required ?? reward.pointRequired ?? 0}
+                            </span>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Points Required</p>
+                    </div>
+                )}
+
+                {/* Additional Metrics */}
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                    <div className={`p-2.5 rounded-lg text-center border ${isStampCard ? 'bg-purple-50 dark:bg-purple-900/10 border-purple-100 dark:border-purple-800/30' : 'bg-purple-50 dark:bg-purple-900/20 border-purple-100 dark:border-purple-800/30'}`}>
+                        <span className={`text-lg font-bold ${isStampCard ? 'text-purple-600 dark:text-purple-400' : 'text-purple-700 dark:text-purple-400'}`}>
+                            {reward.totalRedemptions ?? 0}
+                        </span>
+                        <p className="text-[10px] uppercase tracking-wider font-semibold text-purple-500 mt-0.5">Total Redemptions</p>
+                    </div>
+                    <div className={`p-2.5 rounded-lg text-center border ${isStampCard ? 'bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-800/30' : 'bg-orange-50 dark:bg-orange-900/20 border-orange-100 dark:border-orange-800/30'}`}>
+                        <span className={`text-lg font-bold ${isStampCard ? 'text-orange-600 dark:text-orange-400' : 'text-orange-700 dark:text-orange-400'}`}>
+                            {reward.totalPointsRedeemed ?? 0}
+                        </span>
+                        <p className="text-[10px] uppercase tracking-wider font-semibold text-orange-500 mt-0.5">Points Redeemed</p>
                     </div>
                 </div>
             </CardContent>

@@ -109,8 +109,9 @@ export const useJoinCampaign = () => {
 // Check Join Status
 const checkCampaignJoinStatus = async (campaignId: string): Promise<IsJoinedResponse> => {
   const { data } = await api.get<IsJoinedResponse>('/participant-campaign-balance/is-joined', {
-    params: { campaignId }
-  });
+    params: { campaignId },
+    _skipAuthRedirect: true
+  } as InternalAxiosRequestConfig);
   return data;
 };
 
