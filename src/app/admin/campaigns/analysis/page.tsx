@@ -20,27 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown } from "lucide-react";
 
 export default function CampaignAnalysisPage() {
   const router = useRouter();
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>("");
   const [dateRange, setDateRange] = useState('all');
-  const [openCampaignSelect, setOpenCampaignSelect] = useState(false);
 
   // Fetch all admin campaigns to populate the selector
   // Increasing limit to fetch more campaigns for the dropdown
@@ -90,49 +75,18 @@ export default function CampaignAnalysisPage() {
 
         <div className="flex items-center gap-4 w-full md:w-auto">
           {/* Campaign Selector */}
-          <Popover open={openCampaignSelect} onOpenChange={setOpenCampaignSelect}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={openCampaignSelect}
-                className="w-full md:w-[300px] justify-between"
-              >
-                {selectedCampaignId
-                  ? campaigns.find((campaign) => campaign.id === selectedCampaignId)?.name
-                  : "Select campaign..."}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[300px] p-0">
-              <Command>
-                <CommandInput placeholder="Search campaign..." />
-                <CommandList>
-                  <CommandEmpty>No campaign found.</CommandEmpty>
-                  <CommandGroup>
-                    {campaigns.map((campaign) => (
-                      <CommandItem
-                        key={campaign.id}
-                        value={campaign.name}
-                        onSelect={() => {
-                          setSelectedCampaignId(campaign.id);
-                          setOpenCampaignSelect(false);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            selectedCampaignId === campaign.id ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        {campaign.name}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
+          <Select value={selectedCampaignId} onValueChange={setSelectedCampaignId}>
+            <SelectTrigger className="w-full md:w-[300px]">
+              <SelectValue placeholder="Select campaign..." />
+            </SelectTrigger>
+            <SelectContent>
+              {campaigns.map((campaign) => (
+                <SelectItem key={campaign.id} value={campaign.id}>
+                  {campaign.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           {/* Date Range Selector */}
            <Select value={dateRange} onValueChange={setDateRange} disabled={!selectedCampaignId}>
