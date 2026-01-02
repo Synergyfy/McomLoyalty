@@ -38,6 +38,22 @@ export default function CampaignDetailsPage() {
     );
   }
 
+  const canAwardPoints = campaign.rewardMode === 'points' ||
+    campaign.rewardMode === 'both' ||
+    campaign.businessRewards?.some(r => r.isPointsEnabled || r.is_points_enabled);
+
+  const canAwardStamps = campaign.rewardMode === 'stamps' ||
+    campaign.rewardMode === 'both' ||
+    campaign.businessRewards?.some(r => r.isStampsEnabled || r.is_stamps_enabled);
+
+  const awardTitle = canAwardPoints && canAwardStamps
+    ? "Award Point or Stamp"
+    : canAwardPoints
+      ? "Award Point"
+      : canAwardStamps
+        ? "Award Stamp"
+        : "Award Reward";
+
   return (
     <div className="space-y-6 pb-10">
       {/* Header & Back Button */}
@@ -196,16 +212,26 @@ export default function CampaignDetailsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-green-800">
                   <Flame className="h-5 w-5 text-green-600" />
-                  Award Points
+                  {awardTitle}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-green-700">
-                  Award points to a customer for a purchase or action. Scan QR, generate code, or manual verify.
+                  {canAwardPoints && canAwardStamps
+                    ? "Award points or stamps to a customer for a purchase or action. Since this campaign has stamp-enabled rewards, you can also award stamps to participants."
+                    : canAwardPoints
+                      ? "Award points to a customer for a purchase or action."
+                      : canAwardStamps
+                        ? "Award stamps to a customer for a purchase or action. Since this campaign has stamp-enabled rewards, you can award stamps to participants."
+                        : "Award rewards to a customer for a purchase or action."
+                  } Scan QR, generate code, or manual verify.
                 </p>
                 <AwardPointsModal
                   campaignId={campaign.id}
                   campaignName={campaign.name}
+                  rewardMode={campaign.rewardMode}
+                  canAwardPoints={canAwardPoints}
+                  canAwardStamps={canAwardStamps}
                 />
               </CardContent>
             </Card>
@@ -225,6 +251,9 @@ export default function CampaignDetailsPage() {
                   campaignId={campaign.id}
                   campaignName={campaign.name}
                   businessRewards={campaign.businessRewards || []}
+                  rewardMode={campaign.rewardMode}
+                  canAwardPoints={canAwardPoints}
+                  canAwardStamps={canAwardStamps}
                 />
               </CardContent>
             </Card>

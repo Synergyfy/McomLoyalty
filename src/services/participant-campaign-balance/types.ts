@@ -1,16 +1,19 @@
-export type TransactionType = 'EARN' | 'REDEEM';
+export type TransactionType = 'EARN' | 'REDEEM' | 'STAMP_EARN';
 
 export interface ScanParticipantPayload {
   participantCode: string;
   campaignId: string;
   points?: number;
+  stamps?: number;
   type: TransactionType;
   rewardId?: string;
+  redemptionMethod?: 'points' | 'stamps';
 }
 
 export interface GenerateCodePayload {
   campaignId: string;
   points?: number;
+  stamps?: number;
   type: TransactionType;
   expiresAt: string;
   rewardId?: string;
@@ -21,6 +24,7 @@ export interface DualScanPayload {
   participantCode: string;
   campaignId: string;
   points?: number;
+  stamps?: number;
   type: TransactionType;
   rewardId?: string;
 }

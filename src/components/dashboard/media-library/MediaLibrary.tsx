@@ -96,7 +96,7 @@ export default function MediaLibrary({ onSelect, isModal = false, initialSelecti
         search: searchQuery,
         type: filterType === 'all' ? undefined : filterType,
         source: activeTab,
-        sectorId: activeTab === AssetSource.ADMIN ? profile?.sectorId : undefined
+        sectorId: activeTab === AssetSource.ADMIN ? profile?.sector?.id : undefined
     });
 
     const assets = libraryData?.data || [];
