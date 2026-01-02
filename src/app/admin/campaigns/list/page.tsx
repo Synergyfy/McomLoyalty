@@ -131,13 +131,16 @@ export default function AdminCampaignsPage() {
           </Link>
         </div>
 
-        <div className="mb-8">
+        <div className="mb-8 flex items-center gap-4">
           <Input
             placeholder="Search campaigns..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full max-w-sm"
           />
+          <Link href="/admin/campaigns/analysis">
+            <Button variant="outline">Campaign Analysis</Button>
+          </Link>
         </div>
 
         {filteredCampaigns.length === 0 ? (
@@ -214,12 +217,7 @@ export default function AdminCampaignsPage() {
                   <div className="flex gap-2 mt-4">
                     <Link href={`/admin/campaigns/${campaign.id}/overview`} className="flex-1">
                       <Button className="w-full py-2 text-md font-semibold bg-blue-600 hover:bg-blue-700 transition-colors duration-200">
-                        View
-                      </Button>
-                    </Link>
-                    <Link href={`/admin/campaigns/${campaign.id}/analysis`} className="flex-1">
-                      <Button variant="outline" className="w-full py-2 text-md font-semibold transition-colors duration-200">
-                        Analysis
+                        View Campaign
                       </Button>
                     </Link>
                     <Button
