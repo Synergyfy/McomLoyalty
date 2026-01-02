@@ -405,3 +405,16 @@ export interface CustomerActivityResponseDto {
 export interface PaginatedCustomerActivityResponseDto extends PaginationMeta {
   data: CustomerActivityResponseDto[];
 }
+
+export interface CampaignTierAnalytics {
+  tierId: string;
+  tierName: string;
+  claimsCount: number;
+  totalParticipants: number;
+  totalPointsEarned: number;
+  totalPointsRedeemed: number;
+}
+
+export interface CampaignTierAnalyticsResponse {
+  data: CampaignTierAnalytics[];
+}

@@ -350,3 +350,17 @@ export const useSearchParticipantCampaigns = () => {
     mutationFn: searchParticipantCampaigns,
   });
 };
+
+// Get Campaign Tier Analytics
+const getCampaignTierAnalytics = async (campaignId: string): Promise<CampaignTierAnalyticsResponse> => {
+  const { data } = await api.get<CampaignTierAnalyticsResponse>(`/campaigns/${campaignId}/analytics/tiers`);
+  return data;
+};
+
+export const useGetCampaignTierAnalytics = (campaignId: string) => {
+  return useQuery({
+    queryKey: [ANALYTICS_QUERY_KEY, 'tiers', campaignId],
+    queryFn: () => getCampaignTierAnalytics(campaignId),
+    enabled: !!campaignId,
+  });
+};
