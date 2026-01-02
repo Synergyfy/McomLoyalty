@@ -44,9 +44,9 @@ export default function CampaignAnalyticsPage() {
     );
   }
 
-  const totalParticipants = tierAnalytics.reduce((acc, tier) => acc + tier.totalParticipants, 0);
-  const totalClaims = tierAnalytics.reduce((acc, tier) => acc + tier.claimsCount, 0);
-  const totalPointsGiven = tierAnalytics.reduce((acc, tier) => acc + tier.totalPointsEarned, 0);
+  const totalParticipants = tierAnalytics.reduce((acc: number, tier) => acc + tier.totalParticipants, 0);
+  const totalClaims = tierAnalytics.reduce((acc: number, tier) => acc + tier.claimsCount, 0);
+  const totalPointsGiven = tierAnalytics.reduce((acc: number, tier) => acc + tier.totalPointsEarned, 0);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
