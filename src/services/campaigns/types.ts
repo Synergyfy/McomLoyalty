@@ -93,6 +93,7 @@ export interface CampaignResponse {
   totalPointsRedeemed: number;
   totalMatchingPointsEarned: number;
   matchingPointsDisabledByAdmin: boolean;
+  rewardMode?: 'points' | 'stamps' | 'both';
   business_reward_ids?: string[];
   targetTiers?: TierResponse[];
 }
@@ -270,6 +271,10 @@ export interface OngoingCampaignReward {
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
+  is_points_enabled?: boolean;
+  isPointsEnabled?: boolean;
+  is_stamps_enabled?: boolean;
+  isStampsEnabled?: boolean;
 }
 
 export interface OngoingCampaign {
@@ -300,6 +305,7 @@ export interface OngoingCampaign {
   matchingPointsThreshold: number | null;
   totalMatchingPointsEarned: number;
   matchingPointsDisabledByAdmin: boolean;
+  rewardMode?: 'points' | 'stamps' | 'both';
   uniqueCode: string | null;
   earnPointPageTitle: string | null;
   earnPointPageDescription: string | null;
@@ -398,4 +404,17 @@ export interface CustomerActivityResponseDto {
 
 export interface PaginatedCustomerActivityResponseDto extends PaginationMeta {
   data: CustomerActivityResponseDto[];
+}
+
+export interface CampaignTierAnalytics {
+  tierId: string;
+  tierName: string;
+  claimsCount: number;
+  totalParticipants: number;
+  totalPointsEarned: number;
+  totalPointsRedeemed: number;
+}
+
+export interface CampaignTierAnalyticsResponse {
+  data: CampaignTierAnalytics[];
 }

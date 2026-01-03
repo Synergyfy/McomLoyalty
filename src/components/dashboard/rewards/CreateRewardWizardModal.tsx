@@ -374,7 +374,7 @@ export default function CreateRewardWizardModal({
         quantity: Number(quantity),
         is_points_enabled: isPointsEnabled,
         is_stamps_enabled: isStampsEnabled,
-        reward_type: rewardType,
+        rewardType,
         disabled,
         is_mall_integrated: isMallIntegrated,
         mall_reward_type: mallRewardType as 'VOUCHER' | 'GIFT_CARD' | 'COUPON',

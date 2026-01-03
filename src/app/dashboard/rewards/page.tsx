@@ -256,6 +256,8 @@ export default function BusinessRewardsPage() {
             is_mall_integrated: rewardData.is_mall_integrated,
             mall_reward_type: rewardData.mall_reward_type,
             mall_reward_value: rewardData.mall_reward_value,
+            is_points_enabled: rewardData.is_points_enabled,
+            is_stamps_enabled: rewardData.is_stamps_enabled,
           },
         }, {
           onSuccess: () => {
@@ -301,6 +303,8 @@ export default function BusinessRewardsPage() {
           is_mall_integrated: rewardData.is_mall_integrated,
           mall_reward_type: rewardData.mall_reward_type,
           mall_reward_value: rewardData.mall_reward_value,
+          is_points_enabled: rewardData.is_points_enabled,
+          is_stamps_enabled: rewardData.is_stamps_enabled,
         };
 
         addBusinessReward({ rewardId: selectedTemplate.id, payload }).then(() => {
@@ -339,6 +343,8 @@ export default function BusinessRewardsPage() {
           is_mall_integrated: rewardData.is_mall_integrated,
           mall_reward_type: rewardData.mall_reward_type,
           mall_reward_value: rewardData.mall_reward_value,
+          is_points_enabled: rewardData.is_points_enabled,
+          is_stamps_enabled: rewardData.is_stamps_enabled,
         };
 
         createBusinessReward(payload).then(() => {

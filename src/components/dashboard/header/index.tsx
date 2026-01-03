@@ -1,9 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Loader2, Bell, Coins, Menu, Shield, User, TrendingDown, Layers } from 'lucide-react';
+import { Loader2, Bell, Menu, User, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,30 +14,26 @@ import {
 import { useGetMySubscription, useGetBusinessSubscription } from '@/services/tiers/hook';
 import { useGetBusinessProfile, useGetBusinessMonthlyBalance, useGetPointPackageBalance } from '@/services/business/hook';
 import { useRouter } from 'next/navigation';
-import { useLogout } from '@/services/auth/hook'; // Import useLogout hook
+import { useLogout } from '@/services/auth/hook';
 import { toast } from 'sonner';
 import { useGetNotifications, useMarkAllNotificationsRead, useMarkNotificationRead } from '@/services/notifications/hook';
 import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
 import { BusinessProfile } from '@/services/business/types';
-
-interface SubscriptionType {
-  tier?: { name: string };
-  // Add other relevant properties from your Subscription type
-}
+import { BalanceModal } from '@/components/dashboard/shared/BalanceModal';
+import { Subscription } from '@/services/tiers/types';
 
 interface MonthlyBalanceType {
   remaining?: number;
   monthlyLimit?: number;
   used?: number;
-  // Add other relevant properties from your MonthlyBalance type
 }
 
 interface BusinessHeaderProps {
   onMenuClick: () => void;
   // Optional props for impersonation mode
   profile?: Partial<BusinessProfile>;
-  subscription?: SubscriptionType;
+  subscription?: Partial<Subscription>; // Updated to Partial to allow incomplete objects in Admin views
   monthlyBalance?: MonthlyBalanceType;
   isLoading?: boolean; // Unified loading prop for impersonation
   isError?: boolean; // Unified error prop for impersonation
@@ -74,9 +69,12 @@ export default function BusinessHeader({
 
   // Unify loading and error states
   const isLoading = propIsLoading ?? (hookIsLoadingSubscription || hookIsLoadingProfile || hookIsLoadingMonthlyBalance);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isError = propIsError ?? (hookIsErrorSubscription || hookIsErrorProfile || hookIsErrorMonthlyBalance);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const tierName = subscription?.tier?.name;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const userBadge = pointPackageBalance?.totalBalance?.toLocaleString() ?? '0';
   const userInitials = profile?.name ? profile.name.charAt(0).toUpperCase() : '...';
 
@@ -131,48 +129,21 @@ export default function BusinessHeader({
       {/* Right-side elements */}
       <div className="flex items-center gap-4 md:gap-6">
         {!isFreeTier && (
-          <div className="hidden sm:flex items-center gap-4 text-sm font-medium text-gray-600">
-            {/* Points Balance */}
-            <div className="flex items-center gap-2">
-              <Coins className="h-5 w-5 text-yellow-500" />
-              {isLoading ? (
-                <span>...</span>
-              ) : isError ? (
-                <span className='text-red-500'>Error</span>
-              ) : (
-                <span className='whitespace-nowrap'>
-                  {monthlyBalance?.remaining?.toLocaleString() ?? 0} / {monthlyBalance?.monthlyLimit?.toLocaleString() ?? 0}
-                </span>
-              )}
-            </div>
-
-            {/* Used Points */}
-            <div className="flex items-center gap-2">
-              <TrendingDown className="h-5 w-5 text-orange-500" />
-              <span>Used: {isLoading ? '...' : isError ? 'N/A' : monthlyBalance?.used?.toLocaleString() ?? 0}</span>
-            </div>
-
-            {/* Add-on Status */}
-            <div className="flex items-center gap-2">
-              <Layers className="h-5 w-5 text-purple-500" />
-              <div className="flex flex-col leading-3">
-                <span className="text-[10px] text-gray-500 whitespace-nowrap">add-on:</span>
-                <span className="text-sm">{userBadge}</span>
-              </div>
-            </div>
-
-            {/* Badge Status */}
-            <div className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-blue-500" />
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-              ) : isError ? (
-                <Badge variant="destructive">Error</Badge>
-              ) : (
-                <Badge variant="secondary">{tierName || 'N/A'}</Badge>
-              )}
-            </div>
-          </div>
+           <BalanceModal
+              summary={{
+                earned: monthlyBalance?.monthlyLimit ?? 0, // Using Monthly Limit as 'Earned' (Allocated) proxy for header context
+                spent: monthlyBalance?.used ?? 0,
+                matchingAvailable: 5000 // Keeping logic from dashboard
+              }}
+              isTrial={subscription?.isTrial}
+              trialQuota={subscription?.tier?.configuration?.quotas?.monthlyPointsAllowance}
+              trigger={
+                <Button variant="outline" size="sm" className="hidden sm:flex items-center gap-2">
+                   <Wallet className="h-4 w-4" />
+                   <span>View Balance</span>
+                </Button>
+              }
+           />
         )}
 
         {/* Notifications */}
