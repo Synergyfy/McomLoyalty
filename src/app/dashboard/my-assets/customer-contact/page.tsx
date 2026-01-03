@@ -19,6 +19,7 @@ import {
     AlertCircle,
     Download,
     Eye,
+    Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,6 +49,12 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -585,60 +592,120 @@ export default function CustomerContactPage() {
                     <div className="space-y-4 py-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="col-span-2">
-                                <Label htmlFor="fullName">
-                                    Full Name <span className="text-red-500">*</span>
-                                </Label>
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <Label htmlFor="fullName">
+                                        Full Name <span className="text-red-500">*</span>
+                                    </Label>
+                                    <TooltipProvider>
+                                        <Tooltip delayDuration={200}>
+                                            <TooltipTrigger asChild>
+                                                <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" className="max-w-xs z-[10000]">
+                                                <p className="text-sm">Enter the full name of the customer or business owner.</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
                                 <Input
                                     id="fullName"
                                     value={formData.fullName}
                                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                                     placeholder="John Doe"
-                                    className="mt-1.5"
                                 />
                             </div>
                             <div className="col-span-2">
-                                <Label htmlFor="businessName">Business Name</Label>
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <Label htmlFor="businessName">Business Name</Label>
+                                    <TooltipProvider>
+                                        <Tooltip delayDuration={200}>
+                                            <TooltipTrigger asChild>
+                                                <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" className="max-w-xs z-[10000]">
+                                                <p className="text-sm">The official name of the business or company this customer represents.</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
                                 <Input
                                     id="businessName"
                                     value={formData.businessName}
                                     onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
                                     placeholder="ABC Company Ltd"
-                                    className="mt-1.5"
                                 />
                             </div>
                             <div>
-                                <Label htmlFor="email">Email</Label>
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <Label htmlFor="email">Email</Label>
+                                    <TooltipProvider>
+                                        <Tooltip delayDuration={200}>
+                                            <TooltipTrigger asChild>
+                                                <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" className="max-w-xs z-[10000]">
+                                                <p className="text-sm">Primary email address for business communications and campaign invitations.</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
                                 <Input
                                     id="email"
                                     type="email"
                                     value={formData.email}
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     placeholder="john@example.com"
-                                    className="mt-1.5"
                                 />
                             </div>
                             <div>
-                                <Label htmlFor="phone">
-                                    Phone <span className="text-red-500">*</span>
-                                </Label>
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <Label htmlFor="phone">
+                                        Phone <span className="text-red-500">*</span>
+                                    </Label>
+                                    <TooltipProvider>
+                                        <Tooltip delayDuration={200}>
+                                            <TooltipTrigger asChild>
+                                                <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" className="max-w-xs z-[10000]">
+                                                <p className="text-sm">Contact phone number for direct communication and follow-ups.</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
                                 <Input
                                     id="phone"
                                     type="tel"
                                     value={formData.phone}
                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                     placeholder="+44 20 1234 5678"
-                                    className="mt-1.5"
                                 />
                             </div>
                             <div>
-                                <Label htmlFor="locationTag">Location</Label>
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <Label htmlFor="locationTag">Location</Label>
+                                    <TooltipProvider>
+                                        <Tooltip delayDuration={200}>
+                                            <TooltipTrigger asChild>
+                                                <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" className="max-w-xs z-[10000]">
+                                                <div className="text-sm space-y-1">
+                                                    <p><strong>Nearby:</strong> {LOCATION_TAG_INFO.nearby}</p>
+                                                    <p><strong>Hyperlocal:</strong> {LOCATION_TAG_INFO.hyperlocal}</p>
+                                                    <p><strong>National:</strong> {LOCATION_TAG_INFO.national}</p>
+                                                </div>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
                                 <Select
                                     value={formData.locationTag}
                                     onValueChange={(value: LocationTag) =>
                                         setFormData({ ...formData, locationTag: value })
                                     }
                                 >
-                                    <SelectTrigger className="mt-1.5">
+                                    <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -649,14 +716,30 @@ export default function CustomerContactPage() {
                                 </Select>
                             </div>
                             <div>
-                                <Label htmlFor="relationshipTag">Relationship</Label>
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <Label htmlFor="relationshipTag">Relationship</Label>
+                                    <TooltipProvider>
+                                        <Tooltip delayDuration={200}>
+                                            <TooltipTrigger asChild>
+                                                <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" className="max-w-xs z-[10000]">
+                                                <div className="text-sm space-y-1">
+                                                    <p><strong>Partner:</strong> {RELATIONSHIP_TAG_INFO.partner}</p>
+                                                    <p><strong>Supplier:</strong> {RELATIONSHIP_TAG_INFO.supplier}</p>
+                                                    <p><strong>Affiliate:</strong> {RELATIONSHIP_TAG_INFO.affiliate}</p>
+                                                </div>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
                                 <Select
                                     value={formData.relationshipTag}
                                     onValueChange={(value: RelationshipTag) =>
                                         setFormData({ ...formData, relationshipTag: value })
                                     }
                                 >
-                                    <SelectTrigger className="mt-1.5">
+                                    <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -679,10 +762,22 @@ export default function CustomerContactPage() {
                                     }
                                     className="mt-1"
                                 />
-                                <div>
-                                    <Label htmlFor="permission" className="font-medium text-orange-900 cursor-pointer">
-                                        Permission Confirmation <span className="text-red-500">*</span>
-                                    </Label>
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                        <Label htmlFor="permission" className="font-medium text-orange-900 cursor-pointer">
+                                            Permission Confirmation <span className="text-red-500">*</span>
+                                        </Label>
+                                        <TooltipProvider>
+                                            <Tooltip delayDuration={200}>
+                                                <TooltipTrigger asChild>
+                                                    <Info className="h-4 w-4 text-orange-600 cursor-help" />
+                                                </TooltipTrigger>
+                                                <TooltipContent side="top" className="max-w-xs z-[10000]">
+                                                    <p className="text-sm">You must confirm that you have explicit permission from this customer to store their information and contact them for business purposes. This is required for GDPR compliance.</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                    </div>
                                     <p className="text-sm text-orange-800 mt-1">
                                         I confirm that this customer has given permission to add their details and be contacted for business purposes.
                                     </p>
