@@ -34,7 +34,25 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
   const { data: rewardsData, isLoading: isLoadingRewards } = useGetBusinessRewards(1, 100); // Fetching first 100 for now
   const rewards = rewardsData?.data || [];
 
-  const rewardOptions = rewards.map(r => ({
+  // Combine fetched rewards with selected rewards from formData (to ensure pre-filled values exist)
+  const combinedRewards = [...rewards];
+  if (formData.selectedRewards && formData.selectedRewards.length > 0) {
+    formData.selectedRewards.forEach(selectedReward => {
+      if (!combinedRewards.some(r => r.id === selectedReward.id)) {
+        combinedRewards.push({
+          id: selectedReward.id,
+          title: selectedReward.title,
+          // Add other required fields with defaults if necessary, though StepSetCampaignDetails only uses id and title for options
+          pointRequired: 0,
+          description: '',
+          image: '',
+          isActive: true
+        } as any);
+      }
+    });
+  }
+
+  const rewardOptions = combinedRewards.map(r => ({
     value: r.id,
     label: r.title
   })) || [];
