@@ -13,7 +13,6 @@ export interface CampaignFormData {
   rewardIds: string[];
   startDate: Date | undefined;
   endDate: Date | undefined;
-  rewardsAvailable: number | string;
   audienceType: string[];
   badgeLevels?: string[];
   wishlistItemIds?: string[];
@@ -23,7 +22,6 @@ export interface CampaignFormData {
   imageFile?: File | null; // Added to store the file object
   logoUrl: string;
   logoFile?: File | null; // Added to store the file object
-  ctaButtonText: 'Claim Reward' | 'Join Now' | 'Refer & Earn';
   distributionChannels: {
     qrCode: boolean;
     shareLink: boolean;
@@ -36,10 +34,6 @@ export interface CampaignFormData {
     pauseOnRewardEmpty: boolean;
     autoSwitchToPoints: boolean;
   };
-  bgColor: string;
-  ctaBgColor: string;
-  bgColorTextColor: string;
-  ctaTextColor: string;
   earnTitle?: string;
   earnText?: string;
   redeemTitle?: string;
@@ -51,6 +45,12 @@ export interface CampaignFormData {
   footerText?: string;
   howToEarn: string[];
   termsAndConditions: string[];
+  rewardsAvailable?: number | string;
+  ctaButtonText?: 'Claim Reward' | 'Join Now' | 'Refer & Earn';
+  ctaBgColor?: string;
+  ctaTextColor?: string;
+  bgColorTextColor?: string;
+  bgColor?: string;
 }
 
 interface CampaignFormContextType {
@@ -70,8 +70,7 @@ const defaultFormData: CampaignFormData = {
   rewardIds: [],
   startDate: undefined,
   endDate: undefined,
-  rewardsAvailable: 0,
-  audienceType: [],
+  audienceType: ['members'],
   badgeLevels: [],
   wishlistItemIds: [],
   wishlistAggregateId: undefined,
@@ -80,7 +79,6 @@ const defaultFormData: CampaignFormData = {
   imageFile: null,
   logoUrl: '',
   logoFile: null,
-  ctaButtonText: 'Claim Reward',
   distributionChannels: {
     qrCode: false,
     shareLink: false,
@@ -93,10 +91,6 @@ const defaultFormData: CampaignFormData = {
     pauseOnRewardEmpty: false,
     autoSwitchToPoints: true,
   },
-  bgColor: '#FFFFFF',
-  ctaBgColor: '#000000',
-  bgColorTextColor: '#000000',
-  ctaTextColor: '#FFFFFF',
   earnTitle: '',
   earnText: '',
   redeemTitle: '',
@@ -108,6 +102,12 @@ const defaultFormData: CampaignFormData = {
   footerText: '',
   howToEarn: [],
   termsAndConditions: [],
+  rewardsAvailable: 0,
+  ctaButtonText: 'Join Now',
+  ctaBgColor: '',
+  ctaTextColor: '',
+  bgColorTextColor: '',
+  bgColor: '',
 };
 
 const CampaignFormContext = createContext<CampaignFormContextType | undefined>(undefined);
