@@ -61,7 +61,9 @@ function EditCampaignContent() {
         ? audienceTypeStr.split(',').map((t: string) => reverseAudienceTypeMap[t.trim()] || t.trim())
         : [];
       
-      const rewards = isBusinessCampaign(currentCampaign) ? currentCampaign.businessRewards : currentCampaign.rewards || [];
+      // Robust reward extraction: Check all possible locations
+      const rawRewards = (currentCampaign as any).businessRewards || (currentCampaign as any).rewards || (currentCampaign as any).business_rewards || [];
+      const rewards = Array.isArray(rawRewards) ? rawRewards : [];
 
       updateFormData({
         campaignName: currentCampaign.name,
