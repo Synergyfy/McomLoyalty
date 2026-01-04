@@ -28,8 +28,12 @@ import QRCodeModal from '@/components/dashboard/campaigns/QRCodeModal';
 const getCampaignStatus = (campaign: PublicCampaignResponse) => {
   const now = new Date();
   // Ensure we have valid date objects. Sometimes APIs return different formats.
-  const startDate = campaign.start_date ? parseISO(campaign.start_date) : new Date();
-  const endDate = campaign.end_date ? parseISO(campaign.end_date) : new Date();
+  // Robust check for mixed casing from API
+  const startDateStr = campaign.start_date || (campaign as any).startDate;
+  const endDateStr = campaign.end_date || (campaign as any).endDate;
+
+  const startDate = startDateStr ? parseISO(startDateStr) : new Date();
+  const endDate = endDateStr ? parseISO(endDateStr) : new Date();
 
   // 1. Manual Disable takes precedence
   if (campaign.disabled) {
