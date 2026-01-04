@@ -224,6 +224,27 @@ export default function CampaignsListPage() {
   const currentActiveCampaigns = tierUsageData?.features?.campaigns?.used ?? 0;
   const hasReachedCampaignLimit = maxActiveCampaigns !== -1 && currentActiveCampaigns >= maxActiveCampaigns;
 
+  // New helper function for campaign status
+  const getCampaignStatus = (campaign: PublicCampaignResponse): { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' } => {
+    const now = new Date();
+    const startDate = new Date(campaign.start_date);
+    const endDate = new Date(campaign.end_date);
+
+    if (campaign.disabled) {
+      return { label: 'Disabled', variant: 'destructive' };
+    }
+    if (campaign.quantity <= 0) {
+      return { label: 'Sold Out', variant: 'destructive' };
+    }
+    if (startDate > now) {
+      return { label: 'Scheduled', variant: 'secondary' };
+    }
+    if (endDate < now) {
+      return { label: 'Expired', variant: 'secondary' };
+    }
+    return { label: 'Active', variant: 'default' };
+  };
+
   const renderCampaigns = (campaigns: PublicCampaignResponse[], isLoading: boolean) => {
     // ... loading / empty states ...
 
@@ -262,12 +283,17 @@ export default function CampaignsListPage() {
                   objectFit="cover"
                 />
               )}
-              <Badge
-                variant={!campaign.disabled ? 'default' : 'secondary'}
-                className="absolute top-3 right-3 text-sm px-3 py-1"
-              >
-                {!campaign.disabled ? 'Active' : 'Expired'}
-              </Badge>
+              {(() => {
+                const status = getCampaignStatus(campaign);
+                return (
+                  <Badge
+                    variant={status.variant}
+                    className="absolute top-3 right-3 text-sm px-3 py-1"
+                  >
+                    {status.label}
+                  </Badge>
+                );
+              })()}
             </div>
             <div className="relative px-5">
               <div className="absolute -top-12 left-1/2 -translate-x-1/2">
