@@ -144,6 +144,7 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
               <Label>End Date & Time</Label>
               <div className={`flex items-center rounded-md border px-3 ${errors.endDate ? 'border-red-500' : ''}`}><Calendar className="mr-2 h-4 w-4 opacity-50" /><DateTimePicker date={formData.endDate} setDate={(date) => updateFormData({ endDate: date || undefined })} /></div>
               <p className="text-sm text-gray-500 mt-1">When the campaign will automatically deactivate.</p>
+            </div>
           </div>
 
           {/* Campaign Message */}
