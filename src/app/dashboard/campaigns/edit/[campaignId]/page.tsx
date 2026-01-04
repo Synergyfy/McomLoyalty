@@ -86,6 +86,7 @@ function EditCampaignContent() {
         contactPhone: isBusinessCampaign(currentCampaign) ? currentCampaign.contact_phone_number : currentCampaign.contactPhoneNumber,
         footerText: isBusinessCampaign(currentCampaign) ? currentCampaign.footer_text : currentCampaign.footerText,
         rewardIds: rewards.map((r: { id: string }) => r.id),
+        selectedRewards: rewards.map((r: { id: string; title: string }) => ({ id: r.id, title: r.title })),
       });
       setDataLoaded(true);
     }
