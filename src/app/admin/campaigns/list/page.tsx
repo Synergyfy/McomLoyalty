@@ -217,6 +217,11 @@ export default function AdminCampaignsPage() {
                         View Campaign
                       </Button>
                     </Link>
+                    <Link href={`/admin/campaigns/${campaign.id}/analytics`} className="flex-1">
+                      <Button variant="outline" className="w-full py-2 text-md font-semibold border-blue-600 text-blue-600 hover:bg-blue-50 transition-colors duration-200">
+                        Analytics
+                      </Button>
+                    </Link>
                     <Button
                       variant="destructive"
                       size="icon"
