@@ -36,7 +36,7 @@ import ViewCustomersModal from '@/components/dashboard/stamp-rewards/ViewCustome
 import ClaimRewardModal from '@/components/dashboard/rewards/ClaimRewardModal';
 import RewardTypeSelectionDialog from '@/components/dashboard/rewards/RewardTypeSelectionDialog';
 import CreateRewardWizardModal from '@/components/dashboard/rewards/CreateRewardWizardModal';
-import CreateStampRewardWizardModal from '@/components/admin/rewards/CreateStampRewardWizardModal';
+import UnifiedRewardWizardModal from '@/components/admin/rewards/UnifiedRewardWizardModal';
 import UpgradePlanModal from '@/components/dashboard/rewards/UpgradePlanModal';
 import TierLimitModal from '@/components/dashboard/campaigns/TierLimitModal';
 import {
@@ -345,7 +345,16 @@ export default function BusinessStampRewardsPage() {
     const handleSelectTemplate = useCallback((reward: Reward) => {
         setIsClaimModalOpen(false);
         setEditingReward(reward);
-        setCreationModes(['point']); // Templates are usually point rewards for now
+
+        // Determine modes based on reward properties
+        const modes: ('point' | 'stamp')[] = [];
+        if (reward.is_points_enabled || reward.isPointsEnabled) modes.push('point');
+        if (reward.is_stamps_enabled || reward.isStampsEnabled || (Number(reward.stampsRequired) > 0) || (Number(reward.stamps_required) > 0)) modes.push('stamp');
+
+        // Default to point if no clear signal, or if it's a legacy point reward
+        if (modes.length === 0) modes.push('point');
+
+        setCreationModes(modes);
         setEditingBusinessRewardId(null);
         setIsCreatePointRewardModalOpen(true);
     }, []);
@@ -359,15 +368,15 @@ export default function BusinessStampRewardsPage() {
                     payload: {
                         title: rewardData.title,
                         description: rewardData.description,
-                        points_required: rewardData.points_required,
-                        stamps_required: rewardData.stamps_required,
+                        points_required: rewardData.points_required ?? rewardData.pointsRequired ?? 0,
+                        stamps_required: rewardData.stamps_required ?? rewardData.stampsRequired ?? 0,
                         is_points_enabled: rewardData.is_points_enabled,
                         is_stamps_enabled: rewardData.is_stamps_enabled,
                         image: rewardData.image,
                         gallery: rewardData.gallery,
                         quantity: rewardData.quantity,
                         disabled: rewardData.disabled,
-                        reward_type: rewardData.reward_type,
+                        reward_type: rewardData.reward_type || 'Voucher',
                         is_mall_integrated: rewardData.is_mall_integrated,
                         mall_reward_type: rewardData.mall_reward_type,
                         mall_reward_value: rewardData.mall_reward_value,
@@ -402,15 +411,15 @@ export default function BusinessStampRewardsPage() {
                 const payload: CreateBusinessRewardDto = {
                     title: rewardData.title,
                     description: rewardData.description,
-                    points_required: rewardData.pointsRequired || 0,
-                    stamps_required: rewardData.stampsRequired,
+                    points_required: rewardData.points_required ?? rewardData.pointsRequired ?? 0,
+                    stamps_required: rewardData.stamps_required ?? rewardData.stampsRequired ?? 0,
                     is_points_enabled: rewardData.is_points_enabled,
                     is_stamps_enabled: rewardData.is_stamps_enabled,
                     image: rewardData.image,
                     gallery: rewardData.gallery,
                     quantity: rewardData.quantity,
                     disabled: rewardData.disabled,
-                    reward_type: rewardData.reward_type,
+                    reward_type: rewardData.reward_type || 'Voucher',
                     is_mall_integrated: rewardData.is_mall_integrated,
                     mall_reward_type: rewardData.mall_reward_type,
                     mall_reward_value: rewardData.mall_reward_value,
@@ -700,7 +709,6 @@ export default function BusinessStampRewardsPage() {
                                             onPause={handlePause}
                                             onResume={handleResume}
                                             onDeactivate={handleDeactivate}
-                                            onAwardStamp={handleAwardStamp}
                                         />
                                     ))}
                                     {/* Wizard-based stamp rewards */}
@@ -711,7 +719,6 @@ export default function BusinessStampRewardsPage() {
                                             onEdit={handleEditPointReward}
                                             onDelete={handleDeletePointReward}
                                             onView={handleViewReward}
-                                            onAwardStamp={handleAwardStamp}
                                             variant="stamp-card"
                                         />
                                     ))}
@@ -740,6 +747,7 @@ export default function BusinessStampRewardsPage() {
                                             reward={reward}
                                             onEdit={handleEditPointReward}
                                             onDelete={handleDeletePointReward}
+                                            onView={handleViewReward}
                                         />
                                     ))}
                                 </div>
@@ -903,12 +911,7 @@ export default function BusinessStampRewardsPage() {
                 onClose={() => setIsClaimModalOpen(false)}
                 onCreateFromScratch={handleCreateFromScratch}
                 onSelectTemplate={(reward) => {
-                    // Check if it's a stamp reward based on properties
-                    if (reward.isStampsEnabled || (reward.stampsRequired && reward.stampsRequired > 0)) {
-                        handleActivateFromModal(reward as any); // Cast to StampRewardResponse if compatible, or adjust handleActivateFromModal type
-                    } else {
-                        handleSelectTemplate(reward);
-                    }
+                    handleSelectTemplate(reward);
                 }}
             />
 
@@ -932,12 +935,17 @@ export default function BusinessStampRewardsPage() {
                 enabledModes={creationModes}
             />
 
-            {/* Create Stamp Reward Modal */}
-            <CreateStampRewardWizardModal
+            {/* Create Stamp Reward Modal -> Unified Wizard */}
+            <UnifiedRewardWizardModal
                 isOpen={isCreateStampRewardModalOpen}
                 onClose={() => setIsCreateStampRewardModalOpen(false)}
                 mode="create"
-                onSuccess={handleStampRewardSuccess}
+                initialRewardTypes={['stamp']}
+                onSuccess={() => {
+                    handleStampRewardSuccess();
+                    // Also refresh point rewards just in case
+                    refetchPointRewards();
+                }}
             />
 
             {/* Upgrade Plan Modal */}

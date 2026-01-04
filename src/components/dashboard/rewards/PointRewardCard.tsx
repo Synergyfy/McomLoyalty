@@ -11,7 +11,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Image from 'next/image';
-import { MoreVertical, Edit, Trash2, Gift, Star, Stamp } from 'lucide-react';
+import { MoreVertical, Edit, Trash2, Gift, Star, Stamp, Users } from 'lucide-react';
 import { BusinessReward } from '@/services/business-reward/types';
 
 interface PointRewardCardProps {
@@ -199,7 +199,7 @@ export default function PointRewardCard({
                                 <div className="flex flex-col items-center">
                                     <div className="flex flex-wrap items-center justify-center gap-1.5 mb-1.5 max-w-[180px]">
                                         {Array.from({ length: Math.min(Number(reward.stampsRequired ?? reward.stamps_required ?? 0), 10) }).map((_, i) => {
-                                            const iconSrc = reward.stamp_emoji || reward.emoji;
+                                            const iconSrc = reward.stamp_emoji ?? reward.stampEmoji ?? reward.emoji;
                                             return (
                                                 <div key={i} className="relative w-5 h-5 flex-shrink-0">
                                                     {iconSrc && (iconSrc.startsWith('http') || iconSrc.startsWith('/')) ? (
@@ -291,24 +291,28 @@ export default function PointRewardCard({
                     </div>
                 </div>
 
-                {isStampCard && (onView || onAwardStamp) && (
+                {/* View Customers / Award Footer */}
+                {(onView || (isStampCard && onAwardStamp)) && (
                     <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
                         {onView && (
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => onView(reward)}
-                                className="flex-1 text-xs h-8"
+                                className="flex-1 gap-2 text-xs h-8"
                             >
-                                Customers
+                                <Users className="h-3.5 w-3.5" />
+                                View Customers
                             </Button>
                         )}
-                        {onAwardStamp && (
+                        {/* Only show Award button if explicitly for stamp card and handler exists */}
+                        {isStampCard && onAwardStamp && (
                             <Button
                                 size="sm"
                                 onClick={() => onAwardStamp(reward)}
                                 className="flex-1 text-xs h-8 bg-orange-600 hover:bg-orange-700"
                             >
+                                <Stamp className="h-3.5 w-3.5 mr-1" />
                                 Award
                             </Button>
                         )}
