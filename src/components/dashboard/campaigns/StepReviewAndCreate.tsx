@@ -361,7 +361,7 @@ export default function StepReviewAndCreate({ onBack, campaignId, isClaimed = fa
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Step 9: Review and {campaignId ? 'Update' : 'Create'} Campaign</CardTitle>
+          <CardTitle>Step 7: Review and {campaignId ? 'Update' : 'Create'} Campaign</CardTitle>
         </CardHeader>
         <CardContent>
           {/* Preview Launch Section */}
@@ -427,14 +427,14 @@ export default function StepReviewAndCreate({ onBack, campaignId, isClaimed = fa
           {/* Preview Content Area */}
           <div className="flex-1 overflow-auto bg-gray-100 p-4 md:p-8 flex justify-center">
             <div 
-              className={`bg-white shadow-2xl transition-all duration-300 overflow-hidden ${
+              className={`bg-white shadow-2xl transition-all duration-300 overflow-hidden relative ${
                 previewMode === 'mobile' 
                   ? 'w-[375px] h-[812px] rounded-[40px] border-8 border-gray-900 overflow-y-auto hide-scrollbar' 
                   : 'w-full h-full rounded-md overflow-y-auto'
               }`}
             >
               {/* If mobile, maybe wrap content in a scaling container or just let it flow naturally */}
-              <div className={previewMode === 'mobile' ? 'min-h-full' : ''}>
+              <div className={previewMode === 'mobile' ? 'min-h-full pb-20' : ''}>
                 <FullCampaignPreview formData={formData} isMobile={previewMode === 'mobile'} />
               </div>
             </div>
