@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { ClaimableCampaignsTicker } from '@/components/customer/ClaimableCampaignsTicker';
 import { PlusCircle, Pencil, ChevronLeft, ChevronRight, MoreHorizontal, Lock, QrCode, Copy, Eye } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { isBefore, isAfter, parseISO } from 'date-fns';
 
 // Imports moved up and consolidated
 import { useGetBusinessTierUsage } from '@/services/business/hook';
@@ -23,6 +24,36 @@ import UpgradePlanModal from '@/components/dashboard/rewards/UpgradePlanModal';
 import { PublicCampaignResponse } from '@/services/campaigns/types';
 
 import QRCodeModal from '@/components/dashboard/campaigns/QRCodeModal';
+
+const getCampaignStatus = (campaign: PublicCampaignResponse) => {
+  const now = new Date();
+  // Ensure we have valid date objects. Sometimes APIs return different formats.
+  const startDate = campaign.start_date ? parseISO(campaign.start_date) : new Date();
+  const endDate = campaign.end_date ? parseISO(campaign.end_date) : new Date();
+
+  // 1. Manual Disable takes precedence
+  if (campaign.disabled) {
+    return { label: 'Disabled', variant: 'secondary' as const };
+  }
+
+  // 2. Quantity / Sold Out
+  if (campaign.quantity <= 0) {
+    return { label: 'Sold Out', variant: 'destructive' as const };
+  }
+
+  // 3. Not Started Yet
+  if (isBefore(now, startDate)) {
+    return { label: 'Scheduled', variant: 'outline' as const };
+  }
+
+  // 4. Expired
+  if (isAfter(now, endDate)) {
+    return { label: 'Expired', variant: 'secondary' as const };
+  }
+
+  // 5. Active
+  return { label: 'Active', variant: 'success' as const };
+};
 
 interface PaginationProps {
   currentPage: number;
@@ -262,12 +293,17 @@ export default function CampaignsListPage() {
                   objectFit="cover"
                 />
               )}
-              <Badge
-                variant={!campaign.disabled ? 'default' : 'secondary'}
-                className="absolute top-3 right-3 text-sm px-3 py-1"
-              >
-                {!campaign.disabled ? 'Active' : 'Expired'}
-              </Badge>
+              {(() => {
+                const { label, variant } = getCampaignStatus(campaign);
+                return (
+                  <Badge
+                    variant={variant}
+                    className="absolute top-3 right-3 text-sm px-3 py-1"
+                  >
+                    {label}
+                  </Badge>
+                );
+              })()}
             </div>
             <div className="relative px-5">
               <div className="absolute -top-12 left-1/2 -translate-x-1/2">
