@@ -63,15 +63,9 @@ export default function StepReviewAndCreate({ onBack, campaignId, isClaimed = fa
       campaignMessage: formData.campaignMessage,
       startDate: toISOString(formData.startDate),
       endDate: toISOString(formData.endDate),
-      quantity: Number(formData.rewardsAvailable) || 0,
       audienceType: formData.audienceType.join(','), // Assuming AudienceType is a comma-separated string
       bannerUrl: formData.imageUrl || '',
       logoUrl: formData.logoUrl || '',
-      ctaText: formData.ctaButtonText,
-      ctaBackgroundColor: formData.ctaBgColor,
-      ctaTextColor: formData.ctaTextColor,
-      textColor: formData.bgColorTextColor,
-      backgroundColor: formData.bgColor,
       signUpPoint: 0, // Not available in CampaignFormData, default to 0
       rewardType: '', // Not available in CampaignFormData, default to empty string
       regularPointsThreshold: 0, // Not available in CampaignFormData, default to 0
@@ -195,15 +189,9 @@ export default function StepReviewAndCreate({ onBack, campaignId, isClaimed = fa
             updatePayload.end_date = formData.endDate.toISOString();
           }
 
-          if (Number(formData.rewardsAvailable) !== oldQuantity) updatePayload.quantity = Number(formData.rewardsAvailable);
           if (audience_type !== oldAudienceType) updatePayload.audience_type = audience_type;
           if (bannerUrl !== oldBannerUrl) updatePayload.banner_url = bannerUrl || '';
           if (logoUrl !== oldLogoUrl) updatePayload.logo_url = logoUrl || '';
-          if (formData.ctaButtonText !== oldCtaText) updatePayload.cta_text = formData.ctaButtonText as any;
-          if (formData.ctaBgColor !== oldCtaBgColor) updatePayload.cta_background_color = formData.ctaBgColor;
-          if (formData.ctaTextColor !== oldCtaTextColor) updatePayload.cta_text_color = formData.ctaTextColor;
-          if (formData.bgColorTextColor !== oldTextColor) updatePayload.text_color = formData.bgColorTextColor;
-          if (formData.bgColor !== oldBgColor) updatePayload.background_color = formData.bgColor;
           
           if (formData.earnTitle !== oldEarnTitle) updatePayload.earn_point_page_title = formData.earnTitle;
           if (formData.earnText !== oldEarnText) updatePayload.earn_point_page_description = formData.earnText;
@@ -231,15 +219,9 @@ export default function StepReviewAndCreate({ onBack, campaignId, isClaimed = fa
           updatePayload.campaign_message = formData.campaignMessage;
           updatePayload.start_date = formData.startDate?.toISOString() || new Date().toISOString();
           updatePayload.end_date = formData.endDate?.toISOString() || new Date().toISOString();
-          updatePayload.quantity = Number(formData.rewardsAvailable);
           updatePayload.audience_type = audience_type;
           updatePayload.banner_url = bannerUrl || '';
           updatePayload.logo_url = logoUrl || '';
-          updatePayload.cta_text = formData.ctaButtonText as any;
-          updatePayload.cta_background_color = formData.ctaBgColor;
-          updatePayload.cta_text_color = formData.ctaTextColor;
-          updatePayload.text_color = formData.bgColorTextColor;
-          updatePayload.background_color = formData.bgColor;
           updatePayload.earn_point_page_title = formData.earnTitle;
           updatePayload.earn_point_page_description = formData.earnText;
           updatePayload.redeem_reward_page_title = formData.redeemTitle;
@@ -276,16 +258,10 @@ export default function StepReviewAndCreate({ onBack, campaignId, isClaimed = fa
           campaign_message: formData.campaignMessage,
           start_date: formData.startDate?.toISOString() || new Date().toISOString(),
           end_date: formData.endDate?.toISOString() || new Date().toISOString(),
-          quantity: Number(formData.rewardsAvailable) || 0,
           audience_type,
           signUpPoint: 0,
           banner_url: bannerUrl || '',
           logo_url: logoUrl || '',
-          cta_text: formData.ctaButtonText,
-          cta_background_color: formData.ctaBgColor,
-          cta_text_color: formData.ctaTextColor,
-          text_color: formData.bgColorTextColor,
-          background_color: formData.bgColor,
           reward_type: 'regular',
           regular_points_threshold: 0,
           matching_points_threshold: 0,
