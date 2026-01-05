@@ -35,6 +35,8 @@ export default function CampaignPreview({ campaign, isClaimable = false }: Campa
   const handleClaimWithRewards = (selectedRewardIds: string[]) => {
     const payload = {
       business_reward_ids: selectedRewardIds,
+      start_date: campaign.startDate,
+      end_date: campaign.endDate,
     };
 
     claimCampaign({ campaignId: campaign.id, payload }, {
