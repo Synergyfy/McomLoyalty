@@ -15,7 +15,7 @@ import { useDebounce } from 'use-debounce';
 import { Reward } from '@/services/business-reward/types';
 import { cn } from '@/lib/utils';
 
-type RewardFilterType = 'all' | 'point' | 'stamp';
+type RewardFilterType = 'all' | 'point' | 'stamp' | 'hybrid';
 
 interface ClaimRewardModalProps {
   isOpen: boolean;
@@ -57,14 +57,22 @@ export default function ClaimRewardModal({
         return (reward.isPointsEnabled || (reward.pointsRequired > 0) || reward.rewardType === 'point offer') && !reward.isStampsEnabled;
       }
       if (activeFilter === 'stamp') {
-        return (reward.isStampsEnabled || (reward.stampsRequired && reward.stampsRequired > 0));
+        const stamps = reward.stampsRequired || reward.maxStampsRequired || 0;
+        return (reward.isStampsEnabled || stamps > 0) && !reward.isPointsEnabled;
+      }
+      if (activeFilter === 'hybrid') {
+        const stamps = reward.stampsRequired || reward.maxStampsRequired || 0;
+        const isStamp = reward.isStampsEnabled || stamps > 0;
+        const isPoint = reward.isPointsEnabled || (reward.pointsRequired > 0) || reward.rewardType === 'point offer';
+        return isStamp && isPoint;
       }
       return true;
     });
   }, [unaddedRewards, activeFilter]);
 
   const getRewardBadge = (reward: Reward) => {
-    const isStamp = reward.isStampsEnabled || (reward.stampsRequired && reward.stampsRequired > 0);
+    const stamps = reward.stampsRequired || reward.maxStampsRequired || 0;
+    const isStamp = reward.isStampsEnabled || stamps > 0;
     const isPoint = reward.isPointsEnabled || (reward.pointsRequired > 0) || reward.rewardType === 'point offer';
 
     if (isStamp && isPoint) {
@@ -124,6 +132,18 @@ export default function ClaimRewardModal({
               >
                 <Stamp className="h-3.5 w-3.5" />
                 Stamp Rewards
+              </button>
+              <button
+                onClick={() => setActiveFilter('hybrid')}
+                className={cn(
+                  "px-3 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2",
+                  activeFilter === 'hybrid'
+                    ? "bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-400 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                )}
+              >
+                <Filter className="h-3.5 w-3.5" />
+                Hybrid Rewards
               </button>
             </div>
 
@@ -191,10 +211,10 @@ export default function ClaimRewardModal({
                                 <span className='font-semibold text-blue-600'>{reward.pointsRequired || reward.maxPoints || 0}</span>
                               </div>
                             )}
-                            {(reward.isStampsEnabled || (reward.stampsRequired && reward.stampsRequired > 0)) && (
+                            {(reward.isStampsEnabled || ((reward.stampsRequired || reward.maxStampsRequired || 0) > 0)) && (
                               <div className="flex justify-between items-center text-xs">
                                 <span className="font-medium text-gray-600 dark:text-gray-400">Stamps Required:</span>
-                                <span className='font-semibold text-orange-600'>{reward.stampsRequired || 0}</span>
+                                <span className='font-semibold text-orange-600'>{reward.stampsRequired || reward.maxStampsRequired || 0}</span>
                               </div>
                             )}
                             <div className="flex justify-between items-center text-xs pt-1 border-t border-dashed border-gray-200">

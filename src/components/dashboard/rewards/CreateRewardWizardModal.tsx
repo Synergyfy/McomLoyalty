@@ -350,6 +350,8 @@ export default function CreateRewardWizardModal({
       } else if (imageSourceType === 'LIBRARY_ASSET') {
         const asset = mcomAssetType === 'sector' ? profile?.sector : profile?.category;
         finalStampEmoji = asset?.imageUrl || '';
+      } else if (imageSourceType === 'EMOJI') {
+        finalStampEmoji = customEmoji;
       }
 
       // Upload gallery images
@@ -385,7 +387,6 @@ export default function CreateRewardWizardModal({
         mall_reward_value: Number(mallRewardValue),
         image_source_type: imageSourceType,
         stamp_emoji: finalStampEmoji,
-        emoji: customEmoji,
         status: 'active',
         expiry_datetime: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString(), // Default to 1 year from now
       };
@@ -910,7 +911,7 @@ export default function CreateRewardWizardModal({
                 {imagePreviewUrl && (
                   <div className="mt-4 flex items-center gap-3">
                     <div className="relative h-20 w-20 rounded-lg overflow-hidden border-2 border-green-200">
-                      {(imagePreviewUrl.startsWith('http') || imagePreviewUrl.startsWith('/')) ? (
+                      {(imagePreviewUrl.startsWith('http') || imagePreviewUrl.startsWith('/') || imagePreviewUrl.startsWith('blob:') || imagePreviewUrl.startsWith('data:')) ? (
                         <Image src={imagePreviewUrl} alt="Preview" layout="fill" objectFit="cover" />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center text-4xl bg-gray-50">
@@ -1000,7 +1001,7 @@ export default function CreateRewardWizardModal({
                     <div className="flex items-center space-x-3">
                       <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-200">
                         {imagePreviewUrl && (
-                          (imagePreviewUrl.startsWith('http') || imagePreviewUrl.startsWith('/')) ? (
+                          (imagePreviewUrl.startsWith('http') || imagePreviewUrl.startsWith('/') || imagePreviewUrl.startsWith('blob:') || imagePreviewUrl.startsWith('data:')) ? (
                             <Image
                               src={imagePreviewUrl}
                               alt={name}
