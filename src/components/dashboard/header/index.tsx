@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Loader2, Bell, Menu, User, Wallet } from 'lucide-react';
+import { Loader2, Bell, Menu, User, Wallet, Coins, Star, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import TierBadge from '@/components/ui/tierBadge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -132,45 +133,57 @@ export default function BusinessHeader({
       {/* Right-side elements */}
       <div className="flex items-center gap-4 md:gap-6">
         {!isFreeTier && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="hidden sm:flex items-center gap-2">
-                <Wallet className="h-4 w-4" />
-                <span>View Balance</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64">
-              <DropdownMenuLabel>Monthly Points</DropdownMenuLabel>
-              <div className="px-2 py-1.5 text-sm">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-muted-foreground">Total / Remaining</span>
-                  <span className="font-medium text-green-600">
-                    {monthlyBalance?.monthlyLimit?.toLocaleString() ?? 0} / {monthlyBalance?.remaining?.toLocaleString() ?? 0}
-                  </span>
+          <div className="flex items-center gap-2">
+            {tierName && <TierBadge tier={tierName as any} />}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="hidden sm:flex items-center gap-2">
+                  <Wallet className="h-4 w-4" />
+                  <span>View Balance</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuLabel className="flex items-center gap-2">
+                  <Coins className="h-4 w-4 text-green-600" />
+                  Monthly Points
+                </DropdownMenuLabel>
+                <div className="px-2 py-1.5 text-sm">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-muted-foreground">Total / Remaining</span>
+                    <span className="font-medium text-green-600">
+                      {monthlyBalance?.monthlyLimit?.toLocaleString() ?? 0} / {monthlyBalance?.remaining?.toLocaleString() ?? 0}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Add-on Points</DropdownMenuLabel>
-              <div className="px-2 py-1.5 text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Add-ons</span>
-                  <span className="font-medium">
-                    {pointPackageBalance?.totalBalance?.toLocaleString() ?? 0}
-                  </span>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="flex items-center gap-2">
+                  <Gift className="h-4 w-4 text-purple-600" />
+                  Add-on Points
+                </DropdownMenuLabel>
+                <div className="px-2 py-1.5 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Add-ons</span>
+                    <span className="font-medium">
+                      {pointPackageBalance?.totalBalance?.toLocaleString() ?? 0}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Stamps</DropdownMenuLabel>
-              <div className="px-2 py-1.5 text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Used / Available</span>
-                  <span className="font-medium text-blue-600">
-                    {stampStats?.totalStampsAwarded?.toLocaleString() ?? 0} / {stampPackagesBalance?.totalBalance?.toLocaleString() ?? 0}
-                  </span>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="flex items-center gap-2">
+                  <Star className="h-4 w-4 text-blue-600" />
+                  Stamps
+                </DropdownMenuLabel>
+                <div className="px-2 py-1.5 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Used / Available</span>
+                    <span className="font-medium text-blue-600">
+                      {stampStats?.totalStampsAwarded?.toLocaleString() ?? 0} / {stampPackagesBalance?.totalBalance?.toLocaleString() ?? 0}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         )}
 
         {/* Notifications */}
