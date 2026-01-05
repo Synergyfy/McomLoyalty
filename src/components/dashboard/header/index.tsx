@@ -3,7 +3,7 @@
 import React from 'react';
 import { Loader2, Bell, Menu, User, Wallet, Coins, Star, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import TierBadge from '@/components/ui/tierBadge';
+import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -134,7 +134,6 @@ export default function BusinessHeader({
       <div className="flex items-center gap-4 md:gap-6">
         {!isFreeTier && (
           <div className="flex items-center gap-2">
-            {tierName && <TierBadge tier={tierName as any} />}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="hidden sm:flex items-center gap-2">
@@ -183,6 +182,7 @@ export default function BusinessHeader({
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>
+            {tierName && <Badge variant="secondary">{tierName}</Badge>}
           </div>
         )}
 
