@@ -385,7 +385,6 @@ export default function CreateRewardWizardModal({
         is_mall_integrated: isMallIntegrated,
         mall_reward_type: mallRewardType as 'VOUCHER' | 'GIFT_CARD' | 'COUPON',
         mall_reward_value: Number(mallRewardValue),
-        image_source_type: imageSourceType,
         stamp_emoji: finalStampEmoji,
         status: 'active',
         expiry_datetime: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString(), // Default to 1 year from now
