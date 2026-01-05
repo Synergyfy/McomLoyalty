@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Loader2, Bell, Menu, User, Wallet, Coins, Star, Gift } from 'lucide-react';
+import { Loader2, Bell, Menu, User, Wallet, Coins, Star, Gift, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -220,7 +220,12 @@ export default function BusinessHeader({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {tierName && <Badge variant="secondary">{tierName}</Badge>}
+            {tierName && (
+              <Badge variant="secondary" className="gap-1">
+                <Crown className="h-3 w-3 text-orange-500" />
+                {tierName}
+              </Badge>
+            )}
           </div>
         )}
 
