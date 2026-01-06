@@ -13,6 +13,7 @@ export interface Reward {
   disabled: boolean;
   stampsRequired?: number;
   stamps_required?: number;
+  maxStampsRequired?: number;
   is_points_enabled?: boolean;
   is_stamps_enabled?: boolean;
   rewardType?: string;
