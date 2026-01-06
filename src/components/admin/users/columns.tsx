@@ -75,11 +75,18 @@ const createActionColumn: <T extends BusinessUser | ConsumerUser>(
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           {itemType === 'consumer' ? (
-             <DropdownMenuItem asChild>
-                <Link href={`/admin/users/consumer/${item.id}`}>
-                  View Details
-                </Link>
-             </DropdownMenuItem>
+            <>
+              <DropdownMenuItem
+                onClick={() => router.push(`/admin/users/consumer/${item.id}`)}
+              >
+                View Dashboard
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handlers.onViewDetails(item.id)}
+              >
+                View Details
+              </DropdownMenuItem>
+            </>
           ) : ( // Business user actions
             <>
               <DropdownMenuItem

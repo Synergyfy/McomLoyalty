@@ -144,8 +144,7 @@ export default function AdminConsumerUsersPage() {
   };
 
   const handleViewDetails = (userId: string) => {
-    // Implement view details logic, e.g., navigate to a user detail page
-    console.log('View details for user', userId);
+    router.push(`/admin/users/consumer/${userId}`);
   };
 
   return (
