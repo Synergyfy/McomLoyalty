@@ -5,23 +5,26 @@ import { useParams, useRouter } from 'next/navigation';
 import { 
   useAdminBusinessById,
 } from '@/services/admin/hook';
-import { AdminBusinessDetails } from '@/services/admin/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, Users, Gift, Megaphone, Flame, Percent, Plus, Minus } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import BusinessSidebar from '@/components/dashboard/sidebar/index';
 import BusinessHeader from '@/components/dashboard/header';
 
-import { StatCard } from '@/components/ui/StatCard';
 import { Subscription } from '@/services/tiers/types';
+import { useGetGeneralAnalytics, useGetChartData } from "@/services/business-dashboard/hook";
+import { useGetMySubscription } from '@/services/tiers/hook';
+import { StatCard, TierProgress, PointsSummary } from "@/components/dashboard/shared/DashboardWidgets";
 
 interface BusinessProfileType {
   id: string;
   name: string;
   email: string;
   role?: string;
-  // tier is not directly in AdminBusinessDetails, so we'll handle it separately
+  profileImage?: string;
 }
 
 interface MonthlyBalanceType {
@@ -30,83 +33,37 @@ interface MonthlyBalanceType {
   used?: number;
 }
 
-interface Campaign {
-  name: string;
-  status: string;
-  totalParticipants: number;
-}
+type TimeRange = "7d" | "30d" | "3m" | "6m" | "1y";
 
-interface Reward {
-  name: string;
-  pointsRequired: number;
-  totalRedeemed: number;
-  // Assuming totalRedeemed is a number here for consistency
-}
-
-function ImpersonationDataTable<T>({ title, data, columns }: { title: string, data: T[], columns: { key: keyof T, label: string }[] }) {
-    if (!data || data.length === 0) {
-        return (
-            <div className="bg-white p-4 rounded-lg shadow">
-                <h3 className="font-semibold mb-2">{title}</h3>
-                <p className="text-sm text-gray-500">No data available.</p>
-            </div>
-        )
-    }
-
-    return (
-        <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="font-semibold mb-4">{title}</h3>
-            <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            {columns.map(col => <th key={col.key as string} className="px-4 py-2">{col.label}</th>)}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {data.map((item, index) => (
-                            <tr key={index} className="border-b">
-                                {columns.map(col => <td key={col.key as string} className="px-4 py-2">{String(item[col.key]) ?? 'N/A'}</td>)}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    )
-}
-
+const timeRangeOptions: { value: TimeRange; label: string }[] = [
+  { value: "7d", label: "Last 7 Days" },
+  { value: "30d", label: "Last 30 Days" },
+  { value: "3m", label: "Last 3 Months" },
+  { value: "6m", label: "Last 6 Months" },
+  { value: "1y", label: "Last Year" },
+];
 
 export default function AdminBusinessImpersonationPage() {
   const params = useParams();
   const router = useRouter();
   const id = params?.id as string;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [timeRange, setTimeRange] = useState<TimeRange>("30d");
 
-  // Admin-specific hook to fetch business details
+  // Admin-specific hook to fetch business details (for the header/sidebar context)
   const { data: businessDetails, isLoading: isDetailsLoading, error: detailsError } = useAdminBusinessById(id);
 
-  // Data for campaigns and rewards are currently null as dedicated hooks don't exist
-  const campaignsData = null; 
-  const rewardsData = null;
-  const monthlyBalanceData = null; // No direct hook for this yet
-  const subscriptionData = null; // No direct hook for this yet
+  // Business Dashboard hooks (with businessId param)
+  const { data: analyticsData, isLoading: isAnalyticsLoading } = useGetGeneralAnalytics(id);
+  const { data: chartData, isLoading: isChartLoading, isError: isChartError } = useGetChartData({ period: timeRange, businessId: id });
+  const { data: subscription, isLoading: isLoadingSubscription } = useGetMySubscription(id);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
-  const isLoading = isDetailsLoading;
+  const isLoading = isDetailsLoading || isAnalyticsLoading || isLoadingSubscription;
   const isError = detailsError;
 
-  if (isLoading) {
-    return (
-      <div className="fixed inset-0 z-[100] flex h-screen items-center justify-center bg-gray-50">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-        <p className="ml-2">Loading Business Dashboard...</p>
-      </div>
-    );
-  }
-
-  if (isError || !businessDetails) {
+  if (isError || (!isLoading && !businessDetails)) {
       return (
           <div className="p-8">
               <div className="text-red-500 mb-4">Error loading business data or business user not found.</div>
@@ -116,28 +73,34 @@ export default function AdminBusinessImpersonationPage() {
           </div>
       );
   }
-  
-  const impersonatedProfile: BusinessProfileType = {
+
+  // Fallback data while loading to prevent crashes if we render partial content
+  const impersonatedProfile: BusinessProfileType = businessDetails ? {
       id: businessDetails.id,
       name: businessDetails.name,
       email: businessDetails.email,
       role: businessDetails.role || 'business',
-  };
+      // The API response might have snake_case or camelCase depending on the endpoint,
+      // but AdminBusinessDetails doesn't explicitly list profileImage.
+      // We can try to map it if available, or leave it undefined.
+  } : { id: '', name: 'Loading...', email: '', role: 'business' };
 
-  const impersonatedSubscription: Partial<Subscription> = {
-      tier: { name: 'N/A' } as any // AdminBusinessDetails does not directly contain a 'tier' property
+  // Use the fetched subscription or fallback
+  const impersonatedSubscription: Partial<Subscription> = subscription || {
+      tier: { name: 'Loading...' } as any
   };
 
   const impersonatedMonthlyBalance: MonthlyBalanceType = {
-      remaining: businessDetails.remainingPointBalance,
-      monthlyLimit: undefined,
-      used: businessDetails.total_points_redeemed,
+      remaining: businessDetails?.remainingPointBalance,
+      monthlyLimit: undefined, // Admin details might not have this, but subscription might
+      used: businessDetails?.total_points_redeemed,
   };
 
+  const selectedTimeRangeLabel = timeRangeOptions.find(option => option.value === timeRange)?.label;
+  const tierName = subscription?.tier?.name || 'N/A';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tierProgress = (subscription?.tier as any)?.progress || 0;
 
-  const campaigns: Campaign[] = [];
-  const rewards: Reward[] = [];
-  
   return (
     <div className="fixed inset-0 z-[100] overflow-y-auto bg-gray-100">
         <div className="relative min-h-screen md:flex">
@@ -166,140 +129,140 @@ export default function AdminBusinessImpersonationPage() {
                     <div className="mb-6 flex items-center justify-between p-4 rounded-lg bg-yellow-100 border border-yellow-300">
                          <div>
                             <h3 className="font-bold text-yellow-800">Impersonation Mode</h3>
-                            <p className="text-sm text-yellow-700">You are viewing the dashboard as <span className="font-semibold">{businessDetails.name}</span>.</p>
+                            <p className="text-sm text-yellow-700">You are viewing the dashboard as <span className="font-semibold">{businessDetails?.name}</span>.</p>
                          </div>
                          <Button variant="outline" onClick={() => router.push('/admin/users/business')} className="bg-white hover:bg-gray-50 border-yellow-400 text-yellow-800">
                             <ArrowLeft className="mr-2 h-4 w-4" /> Exit User View
                          </Button>
                     </div>
 
-                    <div className="space-y-8">
-                        {/* Business Overview */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Business Overview</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <StatCard title="Business Name" value={businessDetails.name ?? 'N/A'} isLoading={isLoading} />
-                                    <StatCard title="Role" value={businessDetails.role ?? 'N/A'} isLoading={isLoading} />
-                                    <StatCard title="Is Disabled" value={businessDetails.isDisabled ? 'Yes' : 'No'} isLoading={isLoading} />
-                                    <StatCard title="Member Since" value={new Date(businessDetails.created_at).toLocaleDateString() ?? 'N/A'} isLoading={isLoading} />
-                                    <StatCard title="Unique Code" value={businessDetails.uniqueCode ?? 'N/A'} isLoading={isLoading} />
-                                </div>
-                            </CardContent>
-                        </Card>
+                    {isLoading ? (
+                        <div className="flex h-96 items-center justify-center">
+                            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                        </div>
+                    ) : (
+                        <div className="space-y-8">
+                            {/* === Overview Stats === */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                                <StatCard title="Total Customers" value={analyticsData?.totalCustomers ?? 0} icon={<Users className="text-orange-500" />} />
+                                <StatCard title="Rewards Redeemed" value={analyticsData?.totalRewardsRedeemed ?? 0} icon={<Gift className="text-orange-500" />} />
+                                <StatCard title="Total Campaigns" value={analyticsData?.totalCampaigns ?? 0} icon={<Megaphone className="text-orange-500" />} />
+                                <StatCard title="Total Active Campaigns" value={analyticsData?.totalActiveCampaigns ?? 0} icon={<Flame className="text-orange-500" />} />
+                                <StatCard title="Points Redeemed" value={analyticsData?.totalPointsRedeemed ?? 0} icon={<Percent className="text-orange-500" />} />
+                            </div>
 
-                        {/* Contact Information */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Contact Information</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <StatCard title="Email" value={businessDetails.email ?? 'N/A'} isLoading={isLoading} />
-                                    <StatCard title="Phone" value={businessDetails.phone ?? 'N/A'} isLoading={isLoading} />
-                                    <StatCard title="Website" value={businessDetails.website ?? 'N/A'} isLoading={isLoading} />
-                                    <StatCard title="Address" value={businessDetails.address ?? 'N/A'} isLoading={isLoading} />
-                                </div>
-                            </CardContent>
-                        </Card>
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                <TierProgress tier={{ name: tierName, progress: tierProgress }} />
+                                <PointsSummary
+                                summary={{ earned: analyticsData?.totalPointsEarned ?? 0, spent: analyticsData?.totalPointsRedeemed ?? 0, matchingAvailable: 5000 }}
+                                isTrial={subscription?.isTrial}
+                                trialQuota={subscription?.tier?.configuration?.quotas?.monthlyPointsAllowance}
+                                />
+                            </div>
 
-                        {/* Classification */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Classification</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <StatCard title="Sector" value={businessDetails.sector?.name ?? 'N/A'} isLoading={isLoading} />
-                                    <StatCard title="Category" value={businessDetails.category?.name ?? 'N/A'} isLoading={isLoading} />
-                                    <StatCard title="SubCategory" value={businessDetails.subCategory?.name ?? 'N/A'} isLoading={isLoading} />
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Points & Financials */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Points & Financials</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <StatCard title="Points Balance" value={businessDetails.remainingPointBalance?.toString() ?? '0'} isLoading={isLoading} />
-                                    <StatCard title="Total Points Earned" value={businessDetails.total_points_earned?.toString() ?? '0'} isLoading={isLoading} />
-                                    <StatCard title="Total Points Redeemed" value={businessDetails.total_points_redeemed?.toString() ?? '0'} isLoading={isLoading} />
-                                    <StatCard title="Extra Points" value={businessDetails.extraPoints?.toString() ?? '0'} isLoading={isLoading} />
-                                    <StatCard title="Reputation Points" value={businessDetails.reputation_points?.toString() ?? '0'} isLoading={isLoading} />
-                                    <StatCard title="Stripe Customer ID" value={businessDetails.stripe_customer_id ?? 'N/A'} isLoading={isLoading} />
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Campaigns & Rewards (still N/A for now without dedicated hooks) */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Campaigns & Rewards</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <StatCard title="Campaigns Created" value={'N/A'} isLoading={isLoading} />
-                                    <StatCard title="Rewards Attached" value={businessDetails.total_points_redeemed?.toString() ?? '0'} isLoading={isLoading} /> {/* Re-using as proxy */}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Referral Program */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Referral Program</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <StatCard title="Referral Capacity" value={businessDetails.referralCapacity?.toString() ?? '0'} isLoading={isLoading} />
-                                    <StatCard title="Referral Points" value={businessDetails.referralPoints?.toString() ?? '0'} isLoading={isLoading} />
-                                    <StatCard title="Affiliate Code" value={businessDetails.affiliateCode ?? 'N/A'} isLoading={isLoading} />
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Social Media (If needed, can be another Card) */}
-                        {businessDetails.socialMedia && Object.keys(businessDetails.socialMedia).length > 0 && (
+                            {/* === Chart Section === */}
                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Social Media</CardTitle>
+                                <CardHeader className="flex flex-row items-center justify-between">
+                                <CardTitle>Performance ({selectedTimeRangeLabel})</CardTitle>
+                                <Select value={timeRange} onValueChange={(value) => setTimeRange(value as TimeRange)}>
+                                    <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Select time range" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                    {timeRangeOptions.map(option => (
+                                        <SelectItem key={option.value} value={option.value}>
+                                        {option.label}
+                                        </SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {Object.entries(businessDetails.socialMedia).map(([platform, url]) => (
-                                            <StatCard key={platform} title={platform} value={url} isLoading={isLoading} />
-                                        ))}
+                                {isChartLoading ? (
+                                    <div className="flex h-[300px] items-center justify-center">
+                                        <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
                                     </div>
+                                ) : isChartError ? (
+                                    <p className="text-red-500">Error loading chart data.</p>
+                                ) : (
+                                    <ResponsiveContainer width="100%" height={300}>
+                                    <BarChart data={chartData?.data}>
+                                        <XAxis dataKey="date" stroke="#888" />
+                                        <YAxis stroke="#888" />
+                                        <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: "white",
+                                            borderRadius: "8px",
+                                            border: "1px solid #f97316",
+                                        }}
+                                        cursor={{ fill: "#fff7ed" }}
+                                        />
+                                        <Legend />
+                                        <Bar dataKey="pointsEarned" name="Points Earned" fill="#f97316" radius={[4, 4, 0, 0]} />
+                                        <Bar dataKey="pointsRedeemed" name="Points Redeemed" fill="#fbbf24" radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                    </ResponsiveContainer>
+                                )}
                                 </CardContent>
                             </Card>
-                        )}
-                        
-                        {/* Remaining data tables */}
-                        <ImpersonationDataTable
-                            title="Recent Campaigns"
-                            data={campaigns}
-                            columns={[
-                                { key: 'name', label: 'Name' },
-                                { key: 'status', label: 'Status' },
-                                { key: 'totalParticipants', label: 'Participants' }
-                            ]}
-                        />
 
-                        <ImpersonationDataTable
-                            title="Recent Rewards"
-                            data={rewards}
-                            columns={[
-                                { key: 'name', label: 'Name' },
-                                { key: 'pointsRequired', label: 'Points' },
-                                { key: 'totalRedeemed', label: 'Redeemed' }
-                            ]}
-                        />
-                    </div>
+                            {/* === Active Campaigns === */}
+                            <Card>
+                                <CardHeader>
+                                <CardTitle>Active Campaigns</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                {analyticsData?.activeCampaigns && analyticsData.activeCampaigns.length > 0 ? (
+                                    <ul className="space-y-3">
+                                    {analyticsData.activeCampaigns.map((c, i) => (
+                                        <li key={i} className="flex justify-between items-center border-b pb-2">
+                                        <span className="font-medium text-gray-800">{c.name}</span>
+                                        <span className="text-sm text-orange-600">{c.customerCount} customers</span>
+                                        </li>
+                                    ))}
+                                    </ul>
+                                ) : (
+                                    <p className="text-gray-500">No active campaigns.</p>
+                                )}
+                                </CardContent>
+                            </Card>
+
+                            {/* === Recent Activity === */}
+                            <Card>
+                                <CardHeader>
+                                <CardTitle>Recent Activity</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                {analyticsData?.lastTenActivities && analyticsData.lastTenActivities.length > 0 ? (
+                                    <ul className="space-y-4">
+                                    {analyticsData.lastTenActivities.map((a) => (
+                                        <li key={a.id} className="flex justify-between items-center border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+                                        <div className="flex flex-col">
+                                            <span className="font-medium text-gray-900">{a.participant?.name || "Unknown User"}</span>
+                                            <span className="text-xs text-gray-500">{a.participant?.email}</span>
+                                        </div>
+
+                                        <div className="flex flex-col items-end gap-1">
+                                            <div className={`flex items-center gap-1 font-bold ${a.type === 'EARN' ? 'text-green-600' : 'text-red-600'}`}>
+                                            {a.type === 'EARN' ? <Plus size={14} strokeWidth={3} /> : <Minus size={14} strokeWidth={3} />}
+                                            {a.points}
+                                            </div>
+                                            <div className="text-right">
+                                            <span className="text-xs font-semibold text-gray-700 uppercase mr-1">{a.type}</span>
+                                            <span className="text-xs text-gray-500">- {a.description}</span>
+                                            </div>
+                                            <span className="text-[10px] text-gray-400">{new Date(a.createdAt).toLocaleDateString()}</span>
+                                        </div>
+                                        </li>
+                                    ))}
+                                    </ul>
+                                ) : (
+                                    <p className="text-gray-500">No recent activity.</p>
+                                )}
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
                 </main>
             </div>
         </div>
