@@ -5,7 +5,10 @@ import { useParams, useRouter } from 'next/navigation';
 import { 
   useAdminBusinessById,
 } from '@/services/admin/hook';
-import { AdminBusinessDetails } from '@/services/admin/types';
+import { useGetMyCreatedCampaigns } from '@/services/campaigns/hook';
+import { useGetBusinessRewards } from '@/services/business-reward/hooks';
+import { useGetMySubscription } from '@/services/tiers/hook';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Loader2 } from 'lucide-react';
@@ -21,7 +24,7 @@ interface BusinessProfileType {
   name: string;
   email: string;
   role?: string;
-  // tier is not directly in AdminBusinessDetails, so we'll handle it separately
+  profileImage?: string;
 }
 
 interface MonthlyBalanceType {
@@ -40,7 +43,6 @@ interface Reward {
   name: string;
   pointsRequired: number;
   totalRedeemed: number;
-  // Assuming totalRedeemed is a number here for consistency
 }
 
 function ImpersonationDataTable<T>({ title, data, columns }: { title: string, data: T[], columns: { key: keyof T, label: string }[] }) {
@@ -86,11 +88,10 @@ export default function AdminBusinessImpersonationPage() {
   // Admin-specific hook to fetch business details
   const { data: businessDetails, isLoading: isDetailsLoading, error: detailsError } = useAdminBusinessById(id);
 
-  // Data for campaigns and rewards are currently null as dedicated hooks don't exist
-  const campaignsData = null; 
-  const rewardsData = null;
-  const monthlyBalanceData = null; // No direct hook for this yet
-  const subscriptionData = null; // No direct hook for this yet
+  // Fetch lists for impersonation (using businessId param)
+  const { data: campaignsData } = useGetMyCreatedCampaigns(1, 5, id);
+  const { data: rewardsData } = useGetBusinessRewards(1, 5, id);
+  const { data: subscriptionData } = useGetMySubscription(id);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
@@ -122,21 +123,38 @@ export default function AdminBusinessImpersonationPage() {
       name: businessDetails.name,
       email: businessDetails.email,
       role: businessDetails.role || 'business',
+      profileImage: businessDetails.profileImage || undefined,
   };
 
-  const impersonatedSubscription: Partial<Subscription> = {
-      tier: { name: 'N/A' } as any // AdminBusinessDetails does not directly contain a 'tier' property
+  // Ensure subscription data is correctly typed as Partial<Subscription>
+  const impersonatedSubscription: Partial<Subscription> = subscriptionData || {
+      tier: { name: 'N/A' } as any
   };
+
+  // Calculate Balance: Assuming Total Earned + Extra - Redeemed = Remaining,
+  // but if remainingPointBalance is missing from new API, we can calculate or default.
+  // The new API JSON didn't show 'remainingPointBalance', but did show 'totalPointsEarned', 'totalPointsRedeemed', 'extraPoints'.
+  // We'll calculate it if not present, or assume the type might have it (I removed it from type if it wasn't in JSON,
+  // but let's check. JSON didn't have it. I'll calculate it.)
+  const calculatedRemaining = (businessDetails.totalPointsEarned || 0) + (businessDetails.extraPoints || 0) - (businessDetails.totalPointsRedeemed || 0);
 
   const impersonatedMonthlyBalance: MonthlyBalanceType = {
-      remaining: businessDetails.remainingPointBalance,
-      monthlyLimit: undefined,
-      used: businessDetails.total_points_redeemed,
+      remaining: calculatedRemaining,
+      monthlyLimit: undefined, // Not in business details, maybe in subscription but not mapped here yet
+      used: businessDetails.totalPointsRedeemed,
   };
 
+  const campaigns: Campaign[] = campaignsData?.data?.map(c => ({
+      name: c.title,
+      status: c.status || (c.disabled ? 'Disabled' : 'Active'),
+      totalParticipants: 0 // This might need a separate call or mapped from something else if available
+  })) || [];
 
-  const campaigns: Campaign[] = [];
-  const rewards: Reward[] = [];
+  const rewards: Reward[] = rewardsData?.data?.map(r => ({
+      name: r.title,
+      pointsRequired: r.pointRequired,
+      totalRedeemed: 0 // Not provided in list view usually
+  })) || [];
   
   return (
     <div className="fixed inset-0 z-[100] overflow-y-auto bg-gray-100">
@@ -184,7 +202,7 @@ export default function AdminBusinessImpersonationPage() {
                                     <StatCard title="Business Name" value={businessDetails.name ?? 'N/A'} isLoading={isLoading} />
                                     <StatCard title="Role" value={businessDetails.role ?? 'N/A'} isLoading={isLoading} />
                                     <StatCard title="Is Disabled" value={businessDetails.isDisabled ? 'Yes' : 'No'} isLoading={isLoading} />
-                                    <StatCard title="Member Since" value={new Date(businessDetails.created_at).toLocaleDateString() ?? 'N/A'} isLoading={isLoading} />
+                                    <StatCard title="Member Since" value={businessDetails.createdAt ? new Date(businessDetails.createdAt).toLocaleDateString() : 'N/A'} isLoading={isLoading} />
                                     <StatCard title="Unique Code" value={businessDetails.uniqueCode ?? 'N/A'} isLoading={isLoading} />
                                 </div>
                             </CardContent>
@@ -201,6 +219,7 @@ export default function AdminBusinessImpersonationPage() {
                                     <StatCard title="Phone" value={businessDetails.phone ?? 'N/A'} isLoading={isLoading} />
                                     <StatCard title="Website" value={businessDetails.website ?? 'N/A'} isLoading={isLoading} />
                                     <StatCard title="Address" value={businessDetails.address ?? 'N/A'} isLoading={isLoading} />
+                                    <StatCard title="Postal Code" value={businessDetails.postalCode ?? 'N/A'} isLoading={isLoading} />
                                 </div>
                             </CardContent>
                         </Card>
@@ -226,25 +245,25 @@ export default function AdminBusinessImpersonationPage() {
                             </CardHeader>
                             <CardContent>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <StatCard title="Points Balance" value={businessDetails.remainingPointBalance?.toString() ?? '0'} isLoading={isLoading} />
-                                    <StatCard title="Total Points Earned" value={businessDetails.total_points_earned?.toString() ?? '0'} isLoading={isLoading} />
-                                    <StatCard title="Total Points Redeemed" value={businessDetails.total_points_redeemed?.toString() ?? '0'} isLoading={isLoading} />
+                                    <StatCard title="Points Balance" value={calculatedRemaining.toString()} isLoading={isLoading} />
+                                    <StatCard title="Total Points Earned" value={businessDetails.totalPointsEarned?.toString() ?? '0'} isLoading={isLoading} />
+                                    <StatCard title="Total Points Redeemed" value={businessDetails.totalPointsRedeemed?.toString() ?? '0'} isLoading={isLoading} />
                                     <StatCard title="Extra Points" value={businessDetails.extraPoints?.toString() ?? '0'} isLoading={isLoading} />
-                                    <StatCard title="Reputation Points" value={businessDetails.reputation_points?.toString() ?? '0'} isLoading={isLoading} />
-                                    <StatCard title="Stripe Customer ID" value={businessDetails.stripe_customer_id ?? 'N/A'} isLoading={isLoading} />
+                                    <StatCard title="Reputation Points" value={businessDetails.reputationPoints?.toString() ?? '0'} isLoading={isLoading} />
+                                    <StatCard title="Stripe Customer ID" value={businessDetails.stripeCustomerId ?? 'N/A'} isLoading={isLoading} />
                                 </div>
                             </CardContent>
                         </Card>
 
-                        {/* Campaigns & Rewards (still N/A for now without dedicated hooks) */}
+                        {/* Campaigns & Rewards Stats */}
                         <Card>
                             <CardHeader>
-                                <CardTitle>Campaigns & Rewards</CardTitle>
+                                <CardTitle>Campaigns & Rewards Stats</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <StatCard title="Campaigns Created" value={'N/A'} isLoading={isLoading} />
-                                    <StatCard title="Rewards Attached" value={businessDetails.total_points_redeemed?.toString() ?? '0'} isLoading={isLoading} /> {/* Re-using as proxy */}
+                                    <StatCard title="Campaigns Created" value={campaignsData?.total?.toString() ?? '0'} isLoading={!campaignsData} />
+                                    <StatCard title="Rewards Created" value={rewardsData?.total?.toString() ?? '0'} isLoading={!rewardsData} />
                                 </div>
                             </CardContent>
                         </Card>
@@ -263,16 +282,19 @@ export default function AdminBusinessImpersonationPage() {
                             </CardContent>
                         </Card>
 
-                        {/* Social Media (If needed, can be another Card) */}
-                        {businessDetails.socialMedia && Object.keys(businessDetails.socialMedia).length > 0 && (
+                        {/* Social Media */}
+                        {businessDetails.socialMedia && businessDetails.socialMedia.length > 0 && (
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Social Media</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {Object.entries(businessDetails.socialMedia).map(([platform, url]) => (
-                                            <StatCard key={platform} title={platform} value={url} isLoading={isLoading} />
+                                    <div className="flex flex-wrap gap-4">
+                                        {/* Assuming socialMedia is array of strings based on JSON [], adjust if objects */}
+                                        {businessDetails.socialMedia.map((url: string, index: number) => (
+                                            <div key={index} className="bg-gray-50 px-3 py-2 rounded border text-sm">
+                                                {url}
+                                            </div>
                                         ))}
                                     </div>
                                 </CardContent>

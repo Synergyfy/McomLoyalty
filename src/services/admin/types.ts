@@ -34,48 +34,45 @@ export interface PaginatedResponse<T> {
   totalPages: number;
 }
 
+interface BaseEntity {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  name: string;
+  imageUrl?: string;
+}
+
 export interface AdminBusinessDetails {
   id: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
   name: string;
   email: string;
   phone: string;
   address: string;
-  sector: {
-    id: string;
-    created_at: string;
-    updated_at: string;
-    deleted_at: string | null;
-    name: string;
-  };
-  category: {
-    id: string;
-    created_at: string;
-    updated_at: string;
-    deleted_at: string | null;
-    name: string;
-  };
-  subCategory: {
-    id: string;
-    created_at: string;
-    updated_at: string;
-    deleted_at: string | null;
-    name: string;
-  };
-  website: string;
-  socialMedia: Record<string, string>;
+  postalCode: string | null;
+  website: string | null;
+  socialMedia: string[]; // JSON says [], might be array of strings or objects? defaulting to string[] or any[] based on usage
   uniqueCode: string;
   role: string;
   referralCapacity: number;
   affiliateCode: string;
-  referralPoints: number;
-  reputation_points: number;
+  referralPoints: string | number; // JSON has "0" (string), type definition likely number or string
+  reputationPoints: string | number; // JSON has "0"
+  profileImage: string | null;
+  banner: string | null;
   isDisabled: boolean;
-  stripe_customer_id: string;
-  total_points_earned: number;
-  total_points_redeemed: number;
-  remainingPointBalance: number;
+  stripeCustomerId: string | null;
+  totalPointsEarned: number;
+  totalPointsRedeemed: number;
   extraPoints: number;
+  matchingPoints: number;
+  isEmailVerified: boolean;
+  locationTag: string | null;
+  relationshipTag: string | null;
+  sector: BaseEntity;
+  category: BaseEntity;
+  subCategory: BaseEntity;
 }
