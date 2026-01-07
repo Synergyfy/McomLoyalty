@@ -25,6 +25,7 @@ export function ImpersonationProvider({ children }: { children: React.ReactNode 
     businessId: null,
     adminId: null,
   });
+  const [isInitialized, setIsInitialized] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -36,7 +37,7 @@ export function ImpersonationProvider({ children }: { children: React.ReactNode 
         const parsed = JSON.parse(stored);
         if (parsed.isImpersonating && parsed.businessId) {
           setState(parsed);
-          // Ensure API header is set if we are reloading the page
+          // Ensure API header is set immediately before we verify initialization
           setBusinessRequest(parsed.businessId);
         }
       } catch (e) {
@@ -44,6 +45,8 @@ export function ImpersonationProvider({ children }: { children: React.ReactNode 
         localStorage.removeItem(STORAGE_KEY);
       }
     }
+    // Mark as initialized after attempting to load state
+    setIsInitialized(true);
   }, []);
 
   // Ref to track if we are in the process of transitioning to dashboard
@@ -114,6 +117,11 @@ export function ImpersonationProvider({ children }: { children: React.ReactNode 
       clearBusinessRequest();
     }
   }, [pathname, state.isImpersonating]);
+
+  // Prevent rendering until we have checked for impersonation state
+  if (!isInitialized) {
+    return null; // Or a simple loader if preferred
+  }
 
   return (
     <ImpersonationContext.Provider
