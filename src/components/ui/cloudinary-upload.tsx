@@ -7,13 +7,14 @@ import { cn } from '@/lib/utils';
 
 interface CloudinaryUploadProps {
   value?: string;
-  onChange: (file: File | null) => void;
+  onChange?: (file: File | null) => void;
+  onFileSelect?: (file: File | null, previewUrl: string | null) => void;
   folder?: string;
   className?: string;
   disabled?: boolean;
 }
 
-export function CloudinaryUpload({ value, onChange, className, disabled }: CloudinaryUploadProps) {
+export function CloudinaryUpload({ value, onChange, onFileSelect, className, disabled }: CloudinaryUploadProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -31,7 +32,8 @@ export function CloudinaryUpload({ value, onChange, className, disabled }: Cloud
       setSelectedFile(file);
       const url = URL.createObjectURL(file);
       setPreview(url);
-      onChange(file); // Pass the File object up
+      onChange?.(file); // Pass the File object up
+      onFileSelect?.(file, url);
     }
   };
 
@@ -39,7 +41,8 @@ export function CloudinaryUpload({ value, onChange, className, disabled }: Cloud
     e.stopPropagation();
     setSelectedFile(null);
     setPreview(null);
-    onChange(null);
+    onChange?.(null);
+    onFileSelect?.(null, null);
     if (inputRef.current) inputRef.current.value = '';
   };
 
