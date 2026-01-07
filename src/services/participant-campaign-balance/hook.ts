@@ -7,7 +7,7 @@ import {
   TransactionResponse,
   GeneratedCodeResponse,
 } from './types';
-import { uuidv4 } from 'zod';
+import { v4 as uuidv4 } from 'uuid';
 
 const BALANCE_QUERY_KEY = 'participant-campaign-balance';
 
