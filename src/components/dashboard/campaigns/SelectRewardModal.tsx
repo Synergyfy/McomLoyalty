@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useGetBusinessRewards } from '@/services/business-reward/hooks';
@@ -10,20 +10,45 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { DatePickerWithRange } from '@/components/ui/date-range-picker';
+import { DateRange } from 'react-day-picker';
+import { Label } from '@/components/ui/label';
 
 interface SelectRewardModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onProceed: (selectedRewardIds: string[]) => void;
+  onProceed: (selectedRewardIds: string[], selectedRewards: BusinessReward[], startDate?: string, endDate?: string) => void;
+  initialSelectedIds?: string[];
+  showDates?: boolean;
 }
+
+const DEFAULT_SELECTED_IDS: string[] = [];
 
 export default function SelectRewardModal({
   isOpen,
   onClose,
   onProceed,
+  initialSelectedIds = DEFAULT_SELECTED_IDS,
+  showDates = false,
 }: SelectRewardModalProps) {
+  const [step, setStep] = useState<'rewards' | 'dates'>('rewards');
   const [selectedRewards, setSelectedRewards] = useState<string[]>([]);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
+    const from = new Date();
+    const to = new Date();
+    to.setDate(to.getDate() + 30);
+    return { from, to };
+  });
+
   const { data: rewardsData, isLoading, error } = useGetBusinessRewards(1, 100);
+
+  // Initialize selected rewards when modal opens or initialSelectedIds changes
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedRewards(initialSelectedIds);
+      setStep('rewards');
+    }
+  }, [isOpen, initialSelectedIds]);
 
   const handleToggleReward = (rewardId: string) => {
     setSelectedRewards(prev =>
@@ -33,23 +58,68 @@ export default function SelectRewardModal({
     );
   };
 
+  const handleNext = () => {
+    if (selectedRewards.length === 0) {
+      toast.error('Please select at least one reward.');
+      return;
+    }
+    setStep('dates');
+  };
+
+  const handleBack = () => {
+    setStep('rewards');
+  };
+
   const handleProceed = () => {
     if (selectedRewards.length === 0) {
       toast.error('Please select at least one reward.');
       return;
     }
-    onProceed(selectedRewards);
+
+    if (showDates && (!dateRange?.from || !dateRange?.to)) {
+      toast.error('Please select a valid date range.');
+      return;
+    }
+
+    const allRewards = rewardsData?.data || [];
+    const selectedRewardObjects = allRewards.filter(r => selectedRewards.includes(r.id));
+
+    onProceed(
+      selectedRewards, 
+      selectedRewardObjects, 
+      dateRange?.from?.toISOString(), 
+      dateRange?.to?.toISOString()
+    );
     onClose();
   };
 
-  // Helper to determine cost display
-  const getCostDisplay = (reward: BusinessReward) => {
-    const costs = [];
-    // Prioritize business-level override, fallback to nested reward definition
-    const points = reward.pointRequired ?? reward.pointsRequired ?? reward.points_required ?? reward.reward?.pointRequired ?? reward.reward?.pointsRequired ?? 0;
-    const stamps = reward.stampsRequired ?? reward.stamps_required ?? reward.reward?.stampsRequired ?? 0;
+  /**
+   * Safe helper to extract points/stamps regardless of naming convention
+   * Handles top-level properties and nested 'reward' object properties
+   */
+  const getRewardMetrics = (reward: any) => {
+    const points = 
+      reward.pointRequired ?? 
+      reward.pointsRequired ?? 
+      reward.points_required ?? 
+      reward.reward?.pointRequired ?? 
+      reward.reward?.pointsRequired ?? 
+      0;
 
-    // We can also check explicit flags if available, but value > 0 is usually safe
+    const stamps = 
+      reward.stampsRequired ?? 
+      reward.stamps_required ?? 
+      reward.reward?.stampsRequired ?? 
+      reward.reward?.stamps_required ?? 
+      0;
+
+    return { points, stamps };
+  };
+
+  const getCostDisplay = (reward: BusinessReward) => {
+    const { points, stamps } = getRewardMetrics(reward);
+    const costs = [];
+
     if (points > 0) costs.push(`${points} Pts`);
     if (stamps > 0) costs.push(`${stamps} Stamps`);
 
@@ -86,58 +156,96 @@ export default function SelectRewardModal({
     );
   };
 
+  // Filter Logic
   const pointsRewards = rewardsData?.data.filter(r => {
-    // Check if points are enabled OR if points cost > 0
-    const points = r.pointRequired ?? r.pointsRequired ?? r.points_required ?? r.reward?.pointRequired ?? 0;
-    return (r.is_points_enabled || r.isPointsEnabled) || (points > 0);
+    const { points } = getRewardMetrics(r);
+    const isEnabled = r.is_points_enabled || (r as any).isPointsEnabled;
+    return isEnabled || points > 0;
   }) || [];
 
   const stampRewards = rewardsData?.data.filter(r => {
-    // Check if stamps are enabled OR if stamps cost > 0
-    const stamps = r.stampsRequired ?? r.stamps_required ?? r.reward?.stampsRequired ?? 0;
-    return (r.is_stamps_enabled || r.isStampsEnabled) || (stamps > 0);
+    const { stamps } = getRewardMetrics(r);
+    const isEnabled = r.is_stamps_enabled || (r as any).isStampsEnabled;
+    return isEnabled || stamps > 0;
   }) || [];
-
-  // If a reward has both, it appears in both lists. This is usually acceptable as it's a "Points Reward" AND a "Stamp Reward".
-  // If we want strict separation, we'd need to prioritize, but "Select any of them or both" implies flexibility.
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Select Rewards</DialogTitle>
+          <DialogTitle>
+            {step === 'rewards' ? 'Select Rewards' : 'Set Campaign Dates'}
+          </DialogTitle>
           <DialogDescription>
-            Choose the rewards you want to associate with this campaign.
+            {step === 'rewards' 
+              ? 'Choose the rewards you want to associate with this campaign.'
+              : 'Specify when this campaign should start and end.'}
           </DialogDescription>
         </DialogHeader>
 
-        {isLoading && <p>Loading rewards...</p>}
-        {error && <p className='text-red-500'>Error fetching rewards.</p>}
+        {step === 'rewards' ? (
+          <>
+            {isLoading && <p className="text-center py-4">Loading rewards...</p>}
+            {error && <p className='text-red-500 text-center py-4'>Error fetching rewards.</p>}
 
-        {!isLoading && rewardsData && (
-          <Tabs defaultValue="points" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="points">Points Rewards ({pointsRewards.length})</TabsTrigger>
-              <TabsTrigger value="stamps">Stamp Rewards ({stampRewards.length})</TabsTrigger>
-            </TabsList>
+            {!isLoading && rewardsData && (
+              <Tabs defaultValue="points" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="points">Points ({pointsRewards.length})</TabsTrigger>
+                  <TabsTrigger value="stamps">Stamps ({stampRewards.length})</TabsTrigger>
+                </TabsList>
 
-            <TabsContent value="points">
-              <ScrollArea className="max-h-60 v-scrollbar-thin mt-2">
-                {renderRewardList(pointsRewards, "No points rewards available.")}
-              </ScrollArea>
-            </TabsContent>
+                <TabsContent value="points">
+                  <ScrollArea className="h-[300px] mt-2">
+                    {renderRewardList(pointsRewards, "No points rewards available.")}
+                  </ScrollArea>
+                </TabsContent>
 
-            <TabsContent value="stamps">
-              <ScrollArea className="max-h-60 v-scrollbar-thin mt-2">
-                {renderRewardList(stampRewards, "No stamp rewards available.")}
-              </ScrollArea>
-            </TabsContent>
-          </Tabs>
+                <TabsContent value="stamps">
+                  <ScrollArea className="h-[300px] mt-2">
+                    {renderRewardList(stampRewards, "No stamp rewards available.")}
+                  </ScrollArea>
+                </TabsContent>
+              </Tabs>
+            )}
+          </>
+        ) : (
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Campaign Date Range</Label>
+              <DatePickerWithRange 
+                date={dateRange} 
+                setDate={setDateRange}
+                className="w-full"
+              />
+              <p className="text-xs text-gray-500">
+                Choose the start and end dates for your claimed campaign.
+              </p>
+            </div>
+          </div>
         )}
 
         <DialogFooter className="mt-4">
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleProceed}>Proceed ({selectedRewards.length})</Button>
+          
+          {step === 'rewards' ? (
+            showDates ? (
+              <Button onClick={handleNext} disabled={isLoading || selectedRewards.length === 0}>
+                Next
+              </Button>
+            ) : (
+              <Button onClick={handleProceed} disabled={isLoading}>
+                Proceed ({selectedRewards.length})
+              </Button>
+            )
+          ) : (
+            <>
+              <Button variant="outline" onClick={handleBack}>Back</Button>
+              <Button onClick={handleProceed}>
+                Claim Campaign
+              </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
