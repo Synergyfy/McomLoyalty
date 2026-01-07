@@ -7,12 +7,17 @@ import {
   TransactionResponse,
   GeneratedCodeResponse,
 } from './types';
+import { uuidv4 } from 'zod';
 
 const BALANCE_QUERY_KEY = 'participant-campaign-balance';
 
 // Method A: Direct Scan
 const scanParticipant = async (payload: ScanParticipantPayload): Promise<TransactionResponse> => {
-  const { data } = await api.post<TransactionResponse>('/participant-campaign-balance/scan-participant', payload);
+  const payloadWithKey = {
+    ...payload,
+    idempotencyKey: payload.idempotencyKey || uuidv4(),
+  };
+  const { data } = await api.post<TransactionResponse>('/participant-campaign-balance/scan-participant', payloadWithKey);
   return data;
 };
 
