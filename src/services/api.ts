@@ -30,14 +30,46 @@ export const removeBearerToken = () => {
   delete api.defaults.headers.common['Authorization'];
 };
 
+// Variable to store the impersonation ID
+let impersonationBusinessId: string | null = null;
+
 // Functions to handle business impersonation
 export const setBusinessRequest = (businessId: string) => {
+  impersonationBusinessId = businessId;
+  // Also set it in defaults as a backup, but the interceptor is primary
   api.defaults.headers.common['x-business-id'] = businessId;
 };
 
 export const clearBusinessRequest = () => {
+  impersonationBusinessId = null;
   delete api.defaults.headers.common['x-business-id'];
 };
+
+// Request interceptor to ensure x-business-id is attached to every request
+api.interceptors.request.use((config) => {
+  // If we have an active impersonation ID in memory, attach it.
+  if (impersonationBusinessId) {
+    config.headers['x-business-id'] = impersonationBusinessId;
+  }
+  // Fallback: Check localStorage if memory is empty (e.g. after hard refresh)
+  // This is crucial because memory variables are lost on refresh, but localStorage survives.
+  else if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('impersonation_state');
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed.isImpersonating && parsed.businessId) {
+                config.headers['x-business-id'] = parsed.businessId;
+                // Sync back to memory
+                impersonationBusinessId = parsed.businessId;
+            }
+        }
+      } catch (e) {
+        // ignore parsing errors
+      }
+  }
+  return config;
+});
 
 // Initialize the token from cookies when the application loads
 const initialToken = Cookies.get('access');
