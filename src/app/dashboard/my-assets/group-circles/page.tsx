@@ -3,10 +3,10 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-    Plus,
-    MessageSquare, Settings, Globe, MapPin, Zap,
-    Briefcase, AlertCircle,
-    UserPlus, Users
+    Plus, ArrowRight, Check, Search, Filter,
+    MessageSquare, Activity, Settings, Globe, MapPin, Zap,
+    Briefcase, Share2, X, AlertCircle, Banknote,
+    UserPlus, Wallet, ChevronDown, Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
