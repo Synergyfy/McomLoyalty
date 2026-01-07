@@ -1,8 +1,9 @@
+'use client';
 
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Wallet, Megaphone, Heart, Settings, HandCoins, Stamp, Ticket } from 'lucide-react';
+import { Wallet, Megaphone, Heart, Settings, HandCoins, Stamp, Ticket, Trophy } from 'lucide-react';
 
 interface CustomerSidebarProps {
   isOpen: boolean;
@@ -21,8 +22,6 @@ export default function CustomerSidebar({ isOpen, activePath, basePath = '' }: C
     const fullPath = `${basePath}${path}`;
 
     // Check if the current path matches the target path.
-    // For exact matching like /wallet vs /mall-rewards, exact match is usually better,
-    // but sometimes nested routes exist.
     const isActive = currentPath === fullPath || currentPath?.startsWith(fullPath + '/');
 
     return `flex items-center p-2 rounded-lg transition-colors duration-200 ${isActive ? 'bg-orange-600 text-white' : 'text-gray-600 hover:bg-orange-100 hover:text-orange-600'}`;
@@ -37,12 +36,18 @@ export default function CustomerSidebar({ isOpen, activePath, basePath = '' }: C
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}
     >
-      <h2 className="text-2xl font-bold mb-6 text-orange-600">Menu</h2>
+      <h2 className="text-2xl font-bold mb-6 text-orange-600 tracking-tighter">M-Com Rewards</h2>
       <ul className="space-y-2">
         <li className="mb-2">
           <Link href={`${basePath}/wallet`} className={linkClasses("/wallet")}>
             <Wallet className="mr-3" />
             Wallet
+          </Link>
+        </li>
+        <li className="mb-2">
+          <Link href={`${basePath}/progression`} className={linkClasses("/progression")}>
+            <Trophy className="mr-3 text-amber-500" />
+            My Progression
           </Link>
         </li>
         <li className="mb-2">
@@ -69,12 +74,6 @@ export default function CustomerSidebar({ isOpen, activePath, basePath = '' }: C
             Stamp Rewards
           </Link>
         </li>
-        {/* <li className="mb-2">
-          <Link href={`${basePath}/points`} className={linkClasses("/points")}>
-            <Wallet className="mr-3" />
-            Point
-          </Link>
-        </li> */}
         <li className="mb-2">
           <Link href={`${basePath}/redemption`} className={linkClasses("/redemption")}>
             <HandCoins className="mr-3" />
