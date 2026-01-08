@@ -47,29 +47,35 @@ export const clearBusinessRequest = () => {
 
 // Request interceptor to ensure x-business-id is attached to every request
 api.interceptors.request.use((config) => {
-  // If we have an active impersonation ID in memory, attach it.
+  // Step 1: Ensure headers object exists
+config.headers = config.headers || {} as Record<string, any>;
+
+  // Step 2: Use memory variable first
   if (impersonationBusinessId) {
-    config.headers['x-business-id'] = impersonationBusinessId;
+    (config.headers as any)['x-business-id'] = impersonationBusinessId;
+    return config;
   }
-  // Fallback: Check localStorage if memory is empty (e.g. after hard refresh)
-  // This is crucial because memory variables are lost on refresh, but localStorage survives.
-  else if (typeof window !== 'undefined') {
-      try {
-        const stored = localStorage.getItem('impersonation_state');
-        if (stored) {
-            const parsed = JSON.parse(stored);
-            if (parsed.isImpersonating && parsed.businessId) {
-                config.headers['x-business-id'] = parsed.businessId;
-                // Sync back to memory
-                impersonationBusinessId = parsed.businessId;
-            }
+
+  // Step 3: Fallback to localStorage after refresh
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('impersonation_state');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.isImpersonating && parsed.businessId) {
+          (config.headers as any)['x-business-id'] = parsed.businessId;
+          // Sync back to memory for future requests
+          impersonationBusinessId = parsed.businessId;
         }
-      } catch (e) {
-        // ignore parsing errors
       }
+    } catch {
+      // ignore errors
+    }
   }
+
   return config;
 });
+
 
 // Initialize the token from cookies when the application loads
 const initialToken = Cookies.get('access');
