@@ -8,20 +8,48 @@ const TRAINING_VIDEOS_QUERY_KEY = 'trainingVideos';
 const getTrainingVideos = async (params: GetTrainingVideosParams): Promise<TrainingVideoResponse> => {
   const { data } = await api.get('/training-videos', { params });
 
+  // Robust handling for various response structures
+  let rawItems: any[] = [];
+  let meta = {
+    itemCount: 0,
+    totalItems: 0,
+    itemsPerPage: params.limit || 100,
+    totalPages: 1,
+    currentPage: params.page || 1,
+  };
+
+  if (Array.isArray(data)) {
+    // Case 1: Direct array response
+    rawItems = data;
+    meta.totalItems = rawItems.length;
+    meta.itemCount = rawItems.length;
+  } else if (data && Array.isArray(data.items)) {
+    // Case 2: { items: [...], meta: ... } (My initial assumption)
+    rawItems = data.items;
+    if (data.meta) meta = { ...meta, ...data.meta };
+  } else if (data && Array.isArray(data.data)) {
+    // Case 3: { data: [...], total: ..., page: ... } (Standard project pattern)
+    rawItems = data.data;
+    meta.totalItems = data.total || rawItems.length;
+    meta.itemCount = rawItems.length;
+    meta.totalPages = data.totalPages || 1;
+    meta.currentPage = data.page || 1;
+  }
+
   // Manual mapping to ensure frontend camelCase matches backend snake_case
-  const mappedItems = (data.items || []).map((item: any) => ({
+  const mappedItems = rawItems.map((item: any) => ({
     id: item.id,
     title: item.title,
     description: item.description,
-    videoUrl: item.video_url,
-    targetAudience: item.target_audience,
-    targetTierIds: item.target_tier_ids,
-    createdAt: item.created_at,
+    videoUrl: item.video_url || item.videoUrl, // Handle both just in case
+    targetAudience: item.target_audience || item.targetAudience,
+    targetTierIds: item.target_tier_ids || item.targetTierIds,
+    createdAt: item.created_at || item.createdAt,
   }));
 
   return {
-    ...data,
     items: mappedItems,
+    meta,
   };
 };
 
@@ -40,10 +68,10 @@ const getTrainingVideo = async (id: string): Promise<TrainingVideo> => {
     id: data.id,
     title: data.title,
     description: data.description,
-    videoUrl: data.video_url,
-    targetAudience: data.target_audience,
-    targetTierIds: data.target_tier_ids,
-    createdAt: data.created_at,
+    videoUrl: data.video_url || data.videoUrl,
+    targetAudience: data.target_audience || data.targetAudience,
+    targetTierIds: data.target_tier_ids || data.targetTierIds,
+    createdAt: data.created_at || data.createdAt,
   };
 };
 
@@ -65,22 +93,6 @@ export const useCreateTrainingVideo = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createTrainingVideo,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [TRAINING_VIDEOS_QUERY_KEY] });
-    },
-  });
-};
-
-// Update Training Video (Assuming standard endpoint exists for completeness, though not explicitly requested yet)
-const updateTrainingVideo = async ({ id, payload }: { id: string; payload: Partial<CreateTrainingVideoDto> }): Promise<TrainingVideo> => {
-  const { data } = await api.patch(`/training-videos/${id}`, payload);
-  return data;
-};
-
-export const useUpdateTrainingVideo = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: updateTrainingVideo,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [TRAINING_VIDEOS_QUERY_KEY] });
     },
