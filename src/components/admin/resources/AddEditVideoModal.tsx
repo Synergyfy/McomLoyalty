@@ -14,8 +14,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TrainingVideo } from '@/lib/mock-data/resources';
 import { FeedbackDialog } from '@/components/ui/feedback-dialog';
+import { useGetTiers } from '@/services/tiers/hook';
+import { Checkbox } from '@/components/ui/checkbox';
+import { TrainingVideo, CreateTrainingVideoDto } from '@/services/training-videos/types';
+import { useCreateTrainingVideo } from '@/services/training-videos/hook';
 
 interface AddEditVideoModalProps {
   isOpen: boolean;
@@ -35,8 +38,11 @@ export function AddEditVideoModal({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
-  const [duration, setDuration] = useState('');
-  const [targetAudience, setTargetAudience] = useState('');
+  const [targetAudience, setTargetAudience] = useState<'business' | 'participant' | ''>('');
+  const [selectedTierIds, setSelectedTierIds] = useState<string[]>([]);
+
+  const { data: tiers = [] } = useGetTiers();
+  const createVideoMutation = useCreateTrainingVideo();
 
   // State for Feedback Dialog (local to modal for validation errors)
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
@@ -60,23 +66,30 @@ export function AddEditVideoModal({
       setTitle(initialData.title);
       setDescription(initialData.description);
       setVideoUrl(initialData.videoUrl);
-      setDuration(initialData.duration);
       setTargetAudience(initialData.targetAudience);
+      setSelectedTierIds(initialData.targetTierIds || []);
     } else {
       setTitle('');
       setDescription('');
       setVideoUrl('');
-      setDuration('');
       setTargetAudience('');
+      setSelectedTierIds([]);
     }
-  }, [initialData]);
+  }, [initialData, isOpen]);
 
   const handleSave = () => {
     const errors: string[] = [];
     if (!title.trim()) errors.push('Title is required.');
     if (!videoUrl.trim()) errors.push('Video URL is required.');
-    if (!duration.trim()) errors.push('Duration is required.');
-    if (!targetAudience.trim()) errors.push('Target Audience is required.');
+    if (!targetAudience) errors.push('Target Audience is required.');
+
+    // If business audience, allow selecting tiers, but don't force it?
+    // The requirement says "when you select target audience business owners, you should also be asked to selct the particular business there are diffrent levels"
+    // It says "user should be allowed to select multiple".
+    // I will assume selecting at least one tier is good practice if audience is business, but maybe they want "All Tiers"?
+    // If no tiers selected for business, maybe it defaults to all? Or empty?
+    // Let's assume user MUST select at least one tier if "business" is selected to be safe, or I can leave it empty if the backend handles empty as "all".
+    // I'll make it optional but available.
 
     if (errors.length > 0) {
       handleShowLocalFeedback(
@@ -90,17 +103,32 @@ export function AddEditVideoModal({
       return;
     }
 
-    const videoToSave: TrainingVideo = {
-      id: initialData?.id || `new-vid-${Date.now()}`,
-      title,
-      description,
-      videoUrl,
-      duration,
-      targetAudience,
+    const payload: CreateTrainingVideoDto = {
+        title,
+        description,
+        video_url: videoUrl,
+        target_audience: targetAudience as 'business' | 'participant',
+        target_tier_ids: targetAudience === 'business' ? selectedTierIds : [],
     };
 
-    onSave(videoToSave);
-    onClose();
+    createVideoMutation.mutate(payload, {
+        onSuccess: (data) => {
+            onSave(data); // Pass back to parent if needed, but parent will likely refetch
+            onClose();
+            onShowFeedback("Success", `Video "${title}" has been saved successfully.`);
+        },
+        onError: (error: any) => {
+            handleShowLocalFeedback("Error", error?.response?.data?.message || "Failed to save video.");
+        }
+    });
+  };
+
+  const handleTierToggle = (tierId: string) => {
+    setSelectedTierIds(prev =>
+      prev.includes(tierId)
+        ? prev.filter(id => id !== tierId)
+        : [...prev, tierId]
+    );
   };
 
   const dialogTitle = initialData ? `Edit Video: ${initialData.title}` : 'Add New Training Video';
@@ -124,29 +152,52 @@ export function AddEditVideoModal({
             <Label htmlFor="videoUrl" className="text-right">Video URL</Label>
             <Input id="videoUrl" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} className="col-span-3" />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="duration" className="text-right">Duration</Label>
-            <Input id="duration" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="e.g., 5:30" className="col-span-3" />
-          </div>
+
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="targetAudience" className="text-right">Target Audience</Label>
-            <Select value={targetAudience} onValueChange={setTargetAudience}>
+            <Select value={targetAudience} onValueChange={(val) => setTargetAudience(val as 'business' | 'participant')}>
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="Select target audience" />
               </SelectTrigger>
               <SelectContent className="z-[10000]">
-                <SelectItem value="All Users">All Users</SelectItem>
-                <SelectItem value="Business Owners">Business Owners</SelectItem>
-                <SelectItem value="Customers">Consumers</SelectItem>
-                
-                {/* Add more options as needed */}
+                <SelectItem value="business">Business Owners</SelectItem>
+                <SelectItem value="participant">Consumers</SelectItem>
               </SelectContent>
             </Select>
           </div>
+
+          {targetAudience === 'business' && (
+             <div className="grid grid-cols-4 items-start gap-4">
+                <Label className="text-right pt-2">Target Tiers</Label>
+                <div className="col-span-3 space-y-2 border rounded-md p-3 max-h-40 overflow-y-auto">
+                    {tiers.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">No tiers available.</p>
+                    ) : (
+                        tiers.map((tier) => (
+                            <div key={tier.id} className="flex items-center space-x-2">
+                                <Checkbox
+                                    id={`tier-${tier.id}`}
+                                    checked={selectedTierIds.includes(tier.id)}
+                                    onCheckedChange={() => handleTierToggle(tier.id)}
+                                />
+                                <Label htmlFor={`tier-${tier.id}`} className="cursor-pointer font-normal">
+                                    {tier.name}
+                                </Label>
+                            </div>
+                        ))
+                    )}
+                </div>
+                <div className="col-start-2 col-span-3">
+                    <p className="text-xs text-muted-foreground">Select specific business tiers (leave empty for all).</p>
+                </div>
+             </div>
+          )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSave}>Save Video</Button>
+          <Button variant="outline" onClick={onClose} disabled={createVideoMutation.isPending}>Cancel</Button>
+          <Button onClick={handleSave} disabled={createVideoMutation.isPending}>
+            {createVideoMutation.isPending ? 'Saving...' : 'Save Video'}
+          </Button>
         </DialogFooter>
       </DialogContent>
 
