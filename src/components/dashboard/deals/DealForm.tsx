@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Switch } from '@/components/ui/switch';
 import { CloudinaryUpload } from '@/components/ui/cloudinary-upload';
+import { CloudinaryMultiUpload } from '@/components/ui/CloudinaryMultiUpload';
 import { cn } from '@/lib/utils';
 import { useCreateDeal, useUpdateDeal } from '@/services/deals/hook';
 import { Deal } from '@/services/deals/types';
@@ -75,6 +76,7 @@ const dealSchema = z.object({
 
   imageUrl: z.any().refine((val) => val instanceof File || (typeof val === 'string' && val.length > 0), 'Main image is required'),
   images: z.array(z.string()).optional().default([]),
+  galleryImages: z.array(z.any()).optional().default([]),
   visibility: z.enum(['PUBLIC', 'PRIVATE']),
   isReward: z.boolean().default(false),
   pointsCost: z.string().optional(),
@@ -128,6 +130,7 @@ export default function DealForm({ deal, dealId }: DealFormProps) {
       startDate: deal?.startDate ? new Date(deal.startDate) : new Date(),
       endDate: deal?.endDate ? new Date(deal.endDate) : addMonths(new Date(), 1),
       location: deal?.location || '',
+      galleryImages: deal?.galleryImages || [],
     },
   });
 
@@ -145,9 +148,27 @@ export default function DealForm({ deal, dealId }: DealFormProps) {
         finalImageUrl = uploadResult.secure_url;
       }
 
+      // Handle gallery images
+      const finalGalleryImages: string[] = [];
+      if (data.galleryImages && data.galleryImages.length > 0) {
+        setIsUploading(true);
+        for (const img of data.galleryImages) {
+          if (img instanceof File) {
+            const uploadResult = await uploadToCloudinary({
+              file: img,
+              folder: 'deals'
+            });
+            finalGalleryImages.push(uploadResult.secure_url);
+          } else if (typeof img === 'string') {
+            finalGalleryImages.push(img);
+          }
+        }
+      }
+
       const payload = {
         ...data,
         imageUrl: finalImageUrl as string,
+        galleryImages: finalGalleryImages,
         value: parseFloat(data.value),
         dealPrice: parseFloat(data.dealPrice),
         originalPrice: data.originalPrice ? parseFloat(data.originalPrice) : undefined,
@@ -640,6 +661,25 @@ export default function DealForm({ deal, dealId }: DealFormProps) {
                         )}
                       />
                       {form.formState.errors.imageUrl && <p className="text-xs font-semibold text-rose-500 mt-1 pl-1 flex items-center gap-1"><Info size={12} />{form.formState.errors.imageUrl.message as string}</p>}
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-bold uppercase tracking-wide text-gray-700">Gallery Images</Label>
+                        <span className="text-[10px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full font-black uppercase">Optional</span>
+                      </div>
+                      <Controller
+                        control={form.control}
+                        name="galleryImages"
+                        render={({ field }) => (
+                          <CloudinaryMultiUpload
+                            value={field.value}
+                            onChange={field.onChange}
+                            folder="deals"
+                            className="bg-gray-50/50 p-4 rounded-3xl border-2 border-dashed border-gray-100"
+                          />
+                        )}
+                      />
                     </div>
 
                     <div className="grid grid-cols-2 gap-6 bg-gray-50 p-6 rounded-[32px] border border-gray-100 shadow-inner">

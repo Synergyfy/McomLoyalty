@@ -20,6 +20,7 @@ export interface CreateDealDto {
   isReward: boolean;
   pointsCost?: number;
   pointsEarned?: number;
+  galleryImages?: string[];
 }
 
 export interface UpdateDealDto {
@@ -44,6 +45,7 @@ export interface UpdateDealDto {
   isReward?: boolean;
   pointsCost?: number;
   pointsEarned?: number;
+  galleryImages?: string[];
 }
 
 export interface DeactivateDealDto {
@@ -89,6 +91,7 @@ export interface Deal {
   isReward: boolean;
   pointsCost: number | null;
   pointsEarned: number;
+  galleryImages: string[];
   category?: {
     id: string;
     name: string;
@@ -121,4 +124,14 @@ export interface PaginatedDealsResponse {
   totalPages: number;
   nextPage: number | null;
   prevPage: number | null;
+}
+
+export interface DealAnalytics {
+  totalViews: number;
+  uniqueViews: number;
+  averageTimeSpentSeconds: number;
+  osBreakdown: Record<string, number>;
+  deviceBreakdown: Record<string, number>;
+  browserBreakdown: Record<string, number>;
+  recentViews: any[];
 }
