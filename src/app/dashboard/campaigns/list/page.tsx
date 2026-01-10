@@ -277,7 +277,9 @@ export default function CampaignsListPage() {
     if (campaign.disabled) {
       return { label: 'Disabled', variant: 'destructive' };
     }
-    if (campaign.quantity <= 0) {
+    // Use remainingSlots if available, otherwise quantity
+    const available = campaign.remainingSlots ?? campaign.quantity;
+    if (available <= 0) {
       return { label: 'Sold Out', variant: 'destructive' };
     }
     if (startDate > now) {
@@ -395,7 +397,7 @@ export default function CampaignsListPage() {
                     Available:
                   </span>
                   <span className="font-semibold text-right">
-                    {campaign.quantity}
+                    {campaign.remainingSlots ?? campaign.quantity}
                   </span>
                 </div>
               </div>
