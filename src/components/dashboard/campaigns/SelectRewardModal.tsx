@@ -78,9 +78,15 @@ export default function SelectRewardModal({
       return;
     }
 
-    if (showDates && (!dateRange?.from || !dateRange?.to)) {
-      toast.error('Please select a valid date range.');
-      return;
+    if (showDates) {
+      if (!dateRange?.from || !dateRange?.to) {
+        toast.error('Please select a valid date range.');
+        return;
+      }
+      if (totalSlots === undefined || totalSlots === null) {
+        toast.error('Total slots is required.');
+        return;
+      }
     }
 
     const allRewards = rewardsData?.data || [];
@@ -226,15 +232,15 @@ export default function SelectRewardModal({
               </p>
             </div>
             <div className="space-y-2">
-              <Label>Total Slots (Optional)</Label>
+              <Label>Total Slots</Label>
               <Input
                 type="number"
                 placeholder="e.g. 100"
-                value={totalSlots || ''}
-                onChange={(e) => setTotalSlots(e.target.value ? Number(e.target.value) : undefined)}
+                value={totalSlots !== undefined ? totalSlots : ''}
+                onChange={(e) => setTotalSlots(e.target.value === '' ? undefined : Number(e.target.value))}
               />
               <p className="text-xs text-gray-500">
-                Limit the total number of participants who can join this campaign. Leave blank for unlimited.
+                Limit the total number of participants who can join this campaign.
               </p>
             </div>
           </div>
