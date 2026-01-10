@@ -4,6 +4,7 @@ import React from 'react';
 import { Loader2, Bell, Menu, User, Wallet, Coins, Star, Gift, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { tierIcons, tierStyles, TierName } from '@/components/ui/tierBadge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,6 +85,9 @@ export default function BusinessHeader({
 
   // Check if user is on Free tier
   const isFreeTier = businessSubscription?.tier === 'Free';
+
+  const TierIcon = tierName ? (tierIcons[tierName as TierName] || Crown) : Crown;
+  const tierStyle = tierName ? (tierStyles[tierName as TierName] || "bg-gray-100 text-gray-700") : "";
 
   const handleLogout = () => {
     logoutMutation(undefined, {
@@ -220,10 +224,10 @@ export default function BusinessHeader({
             </DropdownMenu>
 
             {tierName && (
-              <Badge variant="secondary" className="gap-1">
-                <Crown className="h-3 w-3 text-orange-500" />
-                {tierName} Badge
-              </Badge>
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full font-semibold text-sm ${tierStyle}`}>
+                <TierIcon className="h-5 w-5" />
+                <span>{tierName}</span>
+              </div>
             )}
           </div>
         )}
