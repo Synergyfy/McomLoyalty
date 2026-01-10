@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useGetDeals } from '@/services/deals/hook';
+import { useGetPublicDeals } from '@/services/deals/hook';
 import { useGetCategories } from '@/services/sectors/hook';
 import { Deal } from '@/services/deals/types';
 import {
@@ -40,7 +40,7 @@ import { format, differenceInHours, differenceInDays } from 'date-fns';
 const categoryIcons: Record<string, string> = {
   'Food & Dining': '🍔',
   'Fashion': '👗',
-  'Electronics': '📱',
+  'Software': '📱',
   'Beauty': '💄',
   'Health': '💪',
   'Travel': '✈️',
@@ -217,7 +217,7 @@ export default function DealsMarketplacePage() {
   const limit = 20;
 
   const { data: categoriesData } = useGetCategories();
-  const { data: dealsData, isLoading, isError } = useGetDeals({
+  const { data: dealsData, isLoading, isError } = useGetPublicDeals({
     page,
     limit,
     search: searchTerm || undefined,
@@ -259,7 +259,7 @@ export default function DealsMarketplacePage() {
       .slice(0, 6);
   }, [dealsData]);
 
-  const totalPages = dealsData ? Math.ceil(dealsData.total / limit) : 0;
+  const totalPages = dealsData?.total ? Math.ceil(dealsData.total / limit) : 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -449,7 +449,7 @@ export default function DealsMarketplacePage() {
                   <SlidersHorizontal size={16} className="mr-2" /> Filters
                 </Button>
                 <span className="text-sm text-gray-500">
-                  <strong className="text-gray-900">{dealsData?.total || 0}</strong> deals found
+                  <strong className="text-gray-900">{deals.length}</strong> deals found
                 </span>
               </div>
               <div className="flex items-center gap-3">
@@ -525,7 +525,7 @@ export default function DealsMarketplacePage() {
                   </Button>
 
                   <div className="flex items-center gap-1">
-                    {[...Array(Math.min(5, totalPages))].map((_, i) => {
+                    {[...Array(Math.max(0, Math.min(5, totalPages)))].map((_, i) => {
                       const pageNum = page <= 3 ? i + 1 : page - 2 + i;
                       if (pageNum > totalPages) return null;
                       return (

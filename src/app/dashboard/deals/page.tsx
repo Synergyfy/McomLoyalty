@@ -17,7 +17,7 @@ import {
   List as ListIcon,
   Tag
 } from 'lucide-react';
-import { useGetDeals, useDeleteDeal, useDeactivateDeal } from '@/services/deals/hook';
+import { useGetMyDeals, useDeleteDeal, useDeactivateDeal } from '@/services/deals/hook';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -43,7 +43,7 @@ export default function DealsPage() {
     data: dealsData,
     isLoading,
     isRefetching,
-  } = useGetDeals({
+  } = useGetMyDeals({
     search: searchTerm,
     status: statusFilter === 'all' ? undefined : statusFilter,
     type: typeFilter === 'all' ? undefined : typeFilter,

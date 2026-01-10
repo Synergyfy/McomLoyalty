@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { notFound, useParams, useRouter } from 'next/navigation';
-import { useGetDeal, useGetDeals } from '@/services/deals/hook';
+import { useGetPublicDeal, useGetPublicDeals } from '@/services/deals/hook';
 import {
   Loader2,
   ArrowLeft,
@@ -179,8 +179,8 @@ export default function DealDetailPage() {
   const dealId = params.dealId as string;
   const [isWishlisted, setIsWishlisted] = useState(false);
 
-  const { data: deal, isLoading, isError } = useGetDeal(dealId);
-  const { data: relatedDeals } = useGetDeals({
+  const { data: deal, isLoading, isError } = useGetPublicDeal(dealId);
+  const { data: relatedDeals } = useGetPublicDeals({
     limit: 4,
     status: 'approved',
     categoryId: deal?.category?.id
@@ -252,7 +252,7 @@ export default function DealDetailPage() {
           {/* Left Column - Images */}
           <div className="space-y-6">
             <ImageGallery
-              images={deal.images || []}
+              images={[...(deal.galleryImages || []), ...(deal.images || [])]}
               mainImage={deal.imageUrl}
               title={deal.title}
             />
