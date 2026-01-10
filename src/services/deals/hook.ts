@@ -8,6 +8,7 @@ import {
   PaginatedDealsResponse,
   UpdateDealDto,
   UpdateDealStatusDto,
+  DealAnalytics,
 } from './types';
 
 const DEALS_QUERY_KEY = 'deals';
@@ -27,8 +28,34 @@ const getDeals = async (
   return data;
 };
 
+const getMyDeals = async (
+  params: FilterDealDto,
+): Promise<PaginatedDealsResponse> => {
+  const { data } = await api.get<PaginatedDealsResponse>('/deals/my-deals', {
+    params,
+  });
+  return data;
+};
+
+const getPublicDeals = async (
+  params: FilterDealDto,
+): Promise<PaginatedDealsResponse> => {
+  const { data } = await api.get<PaginatedDealsResponse>('/deals/public/all', {
+    params,
+    _skipAuthRedirect: true,
+  } as any);
+  return data;
+};
+
 const getDeal = async (id: string): Promise<Deal> => {
   const { data } = await api.get<Deal>(`/deals/${id}`, {
+    _skipAuthRedirect: true,
+  } as any);
+  return data;
+};
+
+const getPublicDeal = async (id: string): Promise<Deal> => {
+  const { data } = await api.get<Deal>(`/deals/public/${id}`, {
     _skipAuthRedirect: true,
   } as any);
   return data;
@@ -71,6 +98,11 @@ const updateDealStatus = async ({
   return data;
 };
 
+const getDealAnalytics = async (id: string): Promise<DealAnalytics> => {
+  const { data } = await api.get<DealAnalytics>(`/deals/my-deals/${id}/analytics`);
+  return data;
+};
+
 export const useCreateDeal = () => {
   const queryClient = useQueryClient();
 
@@ -89,10 +121,32 @@ export const useGetDeals = (params: FilterDealDto) => {
   });
 };
 
+export const useGetMyDeals = (params: FilterDealDto) => {
+  return useQuery({
+    queryKey: [DEALS_QUERY_KEY, 'my-deals', params],
+    queryFn: () => getMyDeals(params),
+  });
+};
+
+export const useGetPublicDeals = (params: FilterDealDto) => {
+  return useQuery({
+    queryKey: [DEALS_QUERY_KEY, 'public', params],
+    queryFn: () => getPublicDeals(params),
+  });
+};
+
 export const useGetDeal = (id: string) => {
   return useQuery({
     queryKey: [DEALS_QUERY_KEY, id],
     queryFn: () => getDeal(id),
+    enabled: !!id,
+  });
+};
+
+export const useGetPublicDeal = (id: string) => {
+  return useQuery({
+    queryKey: [DEALS_QUERY_KEY, 'public', id],
+    queryFn: () => getPublicDeal(id),
     enabled: !!id,
   });
 };
@@ -154,5 +208,13 @@ export const useUpdateDealStatus = () => {
       });
       queryClient.invalidateQueries({ queryKey: [DEALS_QUERY_KEY] });
     },
+  });
+};
+
+export const useGetDealAnalytics = (id: string) => {
+  return useQuery({
+    queryKey: [DEALS_QUERY_KEY, 'analytics', id],
+    queryFn: () => getDealAnalytics(id),
+    enabled: !!id,
   });
 };
