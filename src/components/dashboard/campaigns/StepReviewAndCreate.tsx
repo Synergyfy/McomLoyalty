@@ -319,7 +319,9 @@ export default function StepReviewAndCreate({ onBack, campaignId, isClaimed = fa
           contact_email: formData.contactEmail || '',
           contact_phone_number: formData.contactPhone || '',
           footer_text: formData.footerText || '',
-          business_reward_ids: formData.rewardIds
+          business_reward_ids: formData.rewardIds,
+          // Explicitly pass isSuperBusiness flag in payload
+          isSuperBusiness: profile?.isSuperBusiness
         };
 
         if (formData.wishlistAggregateId && formData.audienceType.includes('wishlist_target')) {

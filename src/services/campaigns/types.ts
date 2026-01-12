@@ -51,6 +51,7 @@ export interface CreateCampaignPayload {
   reward_ids?: string[];
   business_reward_ids?: string[];
   target_tier_ids?: string[];
+  isSuperBusiness?: boolean;
 }
 
 export interface CampaignResponse {
