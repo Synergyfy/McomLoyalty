@@ -14,7 +14,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 // Imports moved up and consolidated
-import { useGetBusinessTierUsage } from '@/services/business/hook';
+import { useGetBusinessTierUsage, useGetBusinessProfile } from '@/services/business/hook';
 import { useGetMySubscription } from '@/services/tiers/hook';
 import UsageCard from '@/components/dashboard/shared/UsageCard';
 
@@ -182,6 +182,7 @@ export default function CampaignsListPage() {
   const { data: claimableCampaignsData } = useGetClaimableCampaigns(1, 20);
   const { data: tierUsageData, isLoading: isLoadingTierUsage } = useGetBusinessTierUsage();
   const { data: subscriptionData, isLoading: isLoadingSubscription } = useGetMySubscription();
+  const { data: profile } = useGetBusinessProfile();
   const { mutate: deleteCampaign } = useDeleteCampaign();
 
   const handleDeleteCampaign = async (campaign: PublicCampaignResponse) => {
@@ -266,7 +267,8 @@ export default function CampaignsListPage() {
   // Check if user has reached their campaign limit
   const maxActiveCampaigns = subscriptionData?.tier?.configuration?.quotas?.maxActiveCampaigns ?? 0;
   const currentActiveCampaigns = tierUsageData?.features?.campaigns?.used ?? 0;
-  const hasReachedCampaignLimit = maxActiveCampaigns !== -1 && currentActiveCampaigns >= maxActiveCampaigns;
+  // Bypass limit for Super Business
+  const hasReachedCampaignLimit = !profile?.isSuperBusiness && (maxActiveCampaigns !== -1 && currentActiveCampaigns >= maxActiveCampaigns);
 
   // New helper function for campaign status
   const getCampaignStatus = (campaign: PublicCampaignResponse): { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' } => {
