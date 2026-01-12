@@ -222,6 +222,24 @@ export const useGetDetailedCampaignAnalytics = (campaignId: string) => {
   });
 };
 
+// Join Campaign By Code
+const joinCampaignByCode = async (campaignIdOrCode: string): Promise<void> => {
+  await api.post(`/campaigns/${campaignIdOrCode}/join`);
+};
+
+export const useJoinCampaignByCode = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: joinCampaignByCode,
+    onSuccess: () => {
+      // Invalidate relevant queries like campaign list or balance
+      queryClient.invalidateQueries({ queryKey: [CAMPAIGNS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: ['matchingPoints', 'balance'] });
+      queryClient.invalidateQueries({ queryKey: ['matchingPoints', 'history'] });
+    },
+  });
+};
+
 // Delete Campaign
 const deleteCampaign = async (campaignId: string): Promise<void> => {
   await api.delete(`/campaigns/${campaignId}`);

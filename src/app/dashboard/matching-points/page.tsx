@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { useGetMyCreatedCampaigns } from '@/services/campaigns/hook';
 import { CampaignResponse, CampaignType, PublicCampaignResponse } from '@/services/campaigns/types';
 import AwardPointsModal from '@/components/dashboard/matching-points/AwardPointsModal';
+import JoinCampaignModal from '@/components/dashboard/matching-points/JoinCampaignModal';
 import { format } from 'date-fns';
 
 export default function MatchingPointsPage() {
@@ -24,6 +25,7 @@ export default function MatchingPointsPage() {
   const { data: campaignsData, isLoading: isCampaignsLoading } = useGetMyCreatedCampaigns();
 
   const [isAwardModalOpen, setIsAwardModalOpen] = useState(false);
+  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
 
   if (isProfileLoading || isBalanceLoading || isHistoryLoading) {
     return (
@@ -157,7 +159,13 @@ export default function MatchingPointsPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-gray-800">Matching Points</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-gray-800">Matching Points</h1>
+        <Button onClick={() => setIsJoinModalOpen(true)} className="gap-2 bg-indigo-600 hover:bg-indigo-700">
+           <Plus className="h-4 w-4" />
+           Join Campaign
+        </Button>
+      </div>
 
       {/* Overview, Earning, and Redemption Rules */}
       <MatchingPointsOverview overview={overview} />
@@ -178,6 +186,12 @@ export default function MatchingPointsPage() {
 
       {/* Matching Points Activity Log */}
       <MatchingPointsHistoryTable history={historyData?.data || []} />
+
+      {/* Join Campaign Modal */}
+      <JoinCampaignModal
+        isOpen={isJoinModalOpen}
+        onClose={() => setIsJoinModalOpen(false)}
+      />
     </div>
   );
 }
