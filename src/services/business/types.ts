@@ -10,6 +10,7 @@ export interface User {
   name: string;
   isOnboarded: boolean;
   isEmailVerified: boolean;
+  isSuperBusiness?: boolean;
 }
 
 export interface BusinessLoginResponse {
@@ -92,6 +93,7 @@ export interface BusinessProfile {
   stripeCustomerId: string | null;
   totalPointsEarned: number;
   totalPointsRedeemed: number;
+  isSuperBusiness?: boolean;
 }
 
 export interface UpdateBusinessProfileDto {
