@@ -154,6 +154,13 @@ export default function StepReviewAndCreate({ onBack, campaignId, isClaimed = fa
       }
 
       const campaignTypeMap: Record<string, string> = {
+        'qr_code': 'qr_code',
+        'referral': 'referral',
+        'social_email': 'social_or_email', // Map from StepChoose value to API enum
+        'special_occasion': 'special_occasion',
+        'matching_point': 'matching_point',
+
+        // Legacy keys fallback
         'QR Code': 'qr_code',
         'Referral': 'referral',
         'Social / Email': 'social_or_email',

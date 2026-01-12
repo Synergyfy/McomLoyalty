@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,11 +17,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 import { allCustomers } from "../customerData";
-
-// ✅ Dynamic QR Scanner
-const QrReader = dynamic(() => import("react-qr-reader-es6"), { ssr: false });
-
-
+import { Scanner } from "@yudiel/react-qr-scanner";
 
 const mockRewards = [
     { id: "RWD001", title: "Free Coffee", pointsRequired: 100 },
@@ -65,8 +60,9 @@ export default function StaffRedeemPage() {
         }
     };
 
-    const handleScan = (data: string | undefined) => {
-        if (data) {
+    const handleScan = (result: any) => {
+        if (result && result[0]?.rawValue) {
+            const data = result[0].rawValue;
             const found = allCustomers.find((c) => c.id === data);
             if (found) {
                 setCustomer(found);
@@ -258,14 +254,12 @@ export default function StaffRedeemPage() {
                     </DialogHeader>
 
                     <div className="mt-4 rounded-lg overflow-hidden border border-orange-200">
-                        <QrReader
-                            facingMode="environment"
-                            onScan={(data: string | null) => {
-                                if (data) handleScan(data);
-                            }}
-                            onError={(err) => console.error(err)}
-                            style={{ width: "100%" }}
-                        />
+                         <div className="aspect-square">
+                            <Scanner
+                                onScan={handleScan}
+                                onError={(err) => console.error(err)}
+                            />
+                        </div>
                     </div>
 
                     <div className="flex justify-end mt-4">
