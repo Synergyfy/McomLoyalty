@@ -8,6 +8,7 @@ import { GuideProvider } from '@/context/GuideContext';
 import FloatingGuide from '@/components/Guide/FloatingGuide';
 import { usePathname, useRouter } from 'next/navigation';
 import { useGetBusinessSubscription, useGetMySubscription } from '@/services/tiers/hook';
+import { useGetBusinessProfile } from '@/services/business/hook';
 import TrialBanner from '@/components/dashboard/trial-banner';
 import { useImpersonation } from '@/context/ImpersonationContext';
 import { Button } from '@/components/ui/button';
@@ -29,9 +30,12 @@ export default function DashboardLayout({
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const toggleCollapse = () => setIsSidebarCollapsed(!isSidebarCollapsed);
 
+  const { data: profile, isLoading: isProfileLoading } = useGetBusinessProfile();
+
   useEffect(() => {
-    // Check if subscription data is loaded and tier is Free
-    if (!isBusinessSubLoading && businessSubscription?.tier === 'Free') {
+    // Check if subscription data is loaded and tier is Free, but SKIP for Super Business
+    // Also wait for profile to load to avoid premature redirect
+    if (!isBusinessSubLoading && !isProfileLoading && businessSubscription?.tier === 'Free' && !profile?.isSuperBusiness) {
       // Prevent redirect loop if already on subscription page
       if (!pathname.includes('/dashboard/subscription')) {
         // Ensure we don't redirect if we are in a potentially transient state or just paid
@@ -39,7 +43,7 @@ export default function DashboardLayout({
         router.push('/dashboard/subscription');
       }
     }
-  }, [businessSubscription, isBusinessSubLoading, pathname, router]);
+  }, [businessSubscription, isBusinessSubLoading, pathname, router, profile, isProfileLoading]);
 
 
   return (

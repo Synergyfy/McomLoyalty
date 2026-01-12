@@ -105,6 +105,7 @@ export enum CampaignType {
   LINK = 'link',
   BOTH = 'both',
   REFERRAL = 'referral',
+  MATCHING_POINT = 'matching_point',
 }
 
 export enum AudienceType {
