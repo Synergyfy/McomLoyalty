@@ -224,7 +224,7 @@ export const useGetDetailedCampaignAnalytics = (campaignId: string) => {
 
 // Delete Campaign
 const deleteCampaign = async (campaignId: string): Promise<void> => {
-  await api.delete(`/business/campaigns/${campaignId}`);
+  await api.delete(`/campaigns/${campaignId}`);
 };
 
 export const useDeleteCampaign = () => {
