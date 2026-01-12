@@ -4,6 +4,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCampaignForm } from '@/context/CampaignFormContext';
+import { useGetBusinessProfile } from '@/services/business/hook';
 
 interface StepProps {
   onNext: () => void;
@@ -19,10 +20,20 @@ const campaignTypes = [
 
 export default function StepChooseCampaignType({ onNext }: StepProps) {
   const { formData, updateFormData } = useCampaignForm();
+  const { data: profile } = useGetBusinessProfile();
 
   const handleSelectType = (type: string) => {
     updateFormData({ campaignType: type });
   };
+
+  const visibleCampaignTypes = [
+    ...campaignTypes,
+    ...(profile?.isSuperBusiness ? [{
+      value: 'matching_point',
+      label: 'Matching Point System',
+      description: 'Create a campaign where other businesses can join and earn matching points.'
+    }] : [])
+  ];
 
   return (
     <Card>
@@ -32,7 +43,7 @@ export default function StepChooseCampaignType({ onNext }: StepProps) {
       <CardContent>
         <p className="mb-4 text-gray-600">Select the type of campaign you want to create:</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {campaignTypes.map((type) => (
+          {visibleCampaignTypes.map((type) => (
             <div
               key={type.value}
               className={`p-4 border rounded-lg cursor-pointer transition-all duration-200

@@ -7,8 +7,11 @@ import MatchingPointsHistoryTable from '@/components/dashboard/matching-points/M
 import { matchingPointsOverview as mockOverview } from '@/lib/mock-data/matchingPoints';
 import { useGetMatchingPointBalance, useGetMatchingPointsHistory } from '@/services/matching-points/hook';
 import { Loader2 } from 'lucide-react';
+import { useGetBusinessProfile } from '@/services/business/hook';
+import SuperBusinessMatchingView from '@/components/dashboard/matching-points/SuperBusinessMatchingView';
 
 export default function MatchingPointsPage() {
+  const { data: profile, isLoading: isProfileLoading } = useGetBusinessProfile();
   const { data: balanceData, isLoading: isBalanceLoading } = useGetMatchingPointBalance();
   const { data: historyData, isLoading: isHistoryLoading } = useGetMatchingPointsHistory({ page: 1, limit: 10 });
 
@@ -17,6 +20,19 @@ export default function MatchingPointsPage() {
     ...mockOverview,
     totalMatchingPoints: balanceData?.matching_points ?? 0,
   };
+
+  if (isProfileLoading) {
+    return (
+      <div className="flex justify-center items-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+      </div>
+    );
+  }
+
+  // Super Business View
+  if (profile?.isSuperBusiness) {
+    return <SuperBusinessMatchingView />;
+  }
 
   if (isBalanceLoading || isHistoryLoading) {
     return (

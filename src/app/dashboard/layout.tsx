@@ -25,13 +25,15 @@ export default function DashboardLayout({
   const { isImpersonating, businessId, participantId, stopImpersonation } = useImpersonation();
   const { data: businessSubscription, isLoading: isBusinessSubLoading } = useGetBusinessSubscription();
   const { data: mySubscription, isLoading: isMySubLoading } = useGetMySubscription();
+  const { data: profile, isLoading: isProfileLoading } = useGetBusinessProfile();
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const toggleCollapse = () => setIsSidebarCollapsed(!isSidebarCollapsed);
 
   useEffect(() => {
     // Check if subscription data is loaded and tier is Free
-    if (!isBusinessSubLoading && businessSubscription?.tier === 'Free') {
+    // Bypass redirect for Super Businesses
+    if (!isBusinessSubLoading && businessSubscription?.tier === 'Free' && !isProfileLoading && !profile?.isSuperBusiness) {
       // Prevent redirect loop if already on subscription page
       if (!pathname.includes('/dashboard/subscription')) {
         // Ensure we don't redirect if we are in a potentially transient state or just paid
@@ -39,7 +41,7 @@ export default function DashboardLayout({
         router.push('/dashboard/subscription');
       }
     }
-  }, [businessSubscription, isBusinessSubLoading, pathname, router]);
+  }, [businessSubscription, isBusinessSubLoading, pathname, router, profile, isProfileLoading]);
 
 
   return (

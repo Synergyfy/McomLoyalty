@@ -17,12 +17,14 @@ import StepReviewAndCreate from '@/components/dashboard/campaigns/StepReviewAndC
 import { useGetMySubscription } from '@/services/tiers/hook';
 import { useGetGeneralAnalytics } from '@/services/business-dashboard/hook';
 import Loader from '@/components/ui/loader';
+import { useGetBusinessProfile } from '@/services/business/hook';
 
 export default function CreateCampaignPage() {
   const [currentStep, setCurrentStep] = useState(1);
 
   const { data: subscription, isLoading: isSubLoading } = useGetMySubscription();
   const { data: analytics, isLoading: isAnalyticsLoading } = useGetGeneralAnalytics();
+  const { data: profile } = useGetBusinessProfile();
 
   const totalSteps = 7; // Updated total steps
 
@@ -64,7 +66,7 @@ export default function CreateCampaignPage() {
   const currentActive = analytics?.totalActiveCampaigns || 0;
 
   // Check if trial limit is reached
-  if (isTrial && typeof maxCampaigns === 'number' && currentActive >= maxCampaigns) {
+  if (isTrial && typeof maxCampaigns === 'number' && currentActive >= maxCampaigns && !profile?.isSuperBusiness) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">

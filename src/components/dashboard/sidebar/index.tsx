@@ -78,7 +78,7 @@ export default function BusinessSidebar({
 
   const enhancedLinkClasses = (path: string, exact: boolean = false) => {
     let classes = linkClasses(path, exact);
-    if (isFreeTier && !path.includes('/dashboard/subscription')) {
+    if (isFreeTier && !path.includes('/dashboard/subscription') && !profile?.isSuperBusiness) {
       classes += ' opacity-50 pointer-events-none cursor-not-allowed';
     }
     return classes;
