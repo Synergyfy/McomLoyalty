@@ -143,7 +143,8 @@ export default function StepReviewAndCreate({ onBack }: StepProps) {
         ...({ target_tier_ids: targetTierIds } as any)
       };
 
-      await createCampaign(payload);
+      // Fix: Wrap payload in object to match new mutation signature
+      await createCampaign({ data: payload });
 
       console.log('Campaign created successfully');
       setShowSuccessDialog(true);

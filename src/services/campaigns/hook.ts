@@ -23,14 +23,16 @@ const ANALYTICS_QUERY_KEY = 'campaign-analytics';
 const CUSTOMER_ACTIVITIES_QUERY_KEY = 'customer-activities';
 
 // Create Campaign
-const createCampaign = async (campaignData: CreateCampaignPayload): Promise<BusinessCampaign> => {
-  const { data } = await api.post<BusinessCampaign>('/campaigns', campaignData);
+const createCampaign = async (campaignData: CreateCampaignPayload, businessId?: string): Promise<BusinessCampaign> => {
+  const config = businessId ? { headers: { 'x-business-id': businessId } } : undefined;
+  const { data } = await api.post<BusinessCampaign>('/campaigns', campaignData, config);
   return data;
 };
 
 // Update Business Campaign
-const updateBusinessCampaign = async ({ id, data }: { id: string; data: UpdateCampaignPayload }): Promise<BusinessCampaign> => {
-  const { data: response } = await api.patch<BusinessCampaign>(`/business/campaigns/${id}`, data);
+const updateBusinessCampaign = async ({ id, data, businessId }: { id: string; data: UpdateCampaignPayload; businessId?: string }): Promise<BusinessCampaign> => {
+  const config = businessId ? { headers: { 'x-business-id': businessId } } : undefined;
+  const { data: response } = await api.patch<BusinessCampaign>(`/business/campaigns/${id}`, data, config);
   return response;
 };
 
@@ -39,7 +41,7 @@ export const useCreateCampaign = () => {
   const pathname = usePathname();
 
   return useMutation({
-    mutationFn: (data: CreateCampaignPayload) => {
+    mutationFn: ({ data, businessId }: { data: CreateCampaignPayload; businessId?: string }) => {
       const payload = { ...data };
       if (pathname?.includes('/dashboard/campaigns/create')) {
         if (payload.reward_ids) {
@@ -47,7 +49,7 @@ export const useCreateCampaign = () => {
           delete payload.reward_ids;
         }
       }
-      return createCampaign(payload);
+      return createCampaign(payload, businessId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [CAMPAIGNS_QUERY_KEY] });

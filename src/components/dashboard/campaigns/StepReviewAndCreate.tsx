@@ -16,6 +16,7 @@ import {
 import { useCampaignForm, CampaignFormData } from '@/context/CampaignFormContext';
 import { Loader2, Monitor, Smartphone, X } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useGetBusinessProfile } from '@/services/business/hook';
 
 import FullCampaignPreview from './previews/FullCampaignPreview';
 import EarnPointsPagePreview from './previews/EarnPointsPagePreview';
@@ -47,6 +48,7 @@ export default function StepReviewAndCreate({ onBack, campaignId, isClaimed = fa
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
 
+  const { data: profile } = useGetBusinessProfile();
   const createCampaignMutation = useCreateCampaign();
   const updateCampaignMutation = useUpdateCampaign();
   const createCampaignFromWishlistMutation = useCreateCampaignFromWishlist();
@@ -277,9 +279,13 @@ export default function StepReviewAndCreate({ onBack, campaignId, isClaimed = fa
           return;
         }
 
+        // If Super Business, pass ID to ensure backend validation passes
+        const businessId = profile?.isSuperBusiness ? profile.id : undefined;
+
         await updateCampaignMutation.mutateAsync({
           id: campaignId,
-          data: updatePayload
+          data: updatePayload,
+          businessId
         });
         toast.success("Campaign updated successfully");
       } else {
@@ -344,14 +350,16 @@ export default function StepReviewAndCreate({ onBack, campaignId, isClaimed = fa
           await createCampaignFromWishlistMutation.mutateAsync(wishlistPayload);
         } else {
           // Create regular campaign
-          await createCampaignMutation.mutateAsync(createPayload);
+          // If Super Business, pass ID to ensure backend validation passes
+          const businessId = profile?.isSuperBusiness ? profile.id : undefined;
+          await createCampaignMutation.mutateAsync({ data: createPayload, businessId });
         }
       }
 
       setShowSuccessDialog(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error(campaignId ? "Failed to update campaign:" : "Failed to create campaign:", error);
-      toast.error(campaignId ? "Failed to update campaign. Please try again." : "Failed to create campaign. Please try again.");
+      toast.error(error.response?.data?.message || (campaignId ? "Failed to update campaign. Please try again." : "Failed to create campaign. Please try again."));
     } finally {
       setIsSubmitting(false);
     }
