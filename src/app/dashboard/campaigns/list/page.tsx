@@ -12,9 +12,11 @@ import { ClaimableCampaignsTicker } from '@/components/customer/ClaimableCampaig
 import { PlusCircle, Pencil, ChevronLeft, ChevronRight, MoreHorizontal, Lock, QrCode, Copy, Eye, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { differenceInDays, parseISO } from 'date-fns';
 
 // Imports moved up and consolidated
 import { useGetBusinessTierUsage, useGetBusinessProfile } from '@/services/business/hook';
+import { useGetGeneralAnalytics } from '@/services/business-dashboard/hook';
 import { useGetMySubscription } from '@/services/tiers/hook';
 import UsageCard from '@/components/dashboard/shared/UsageCard';
 
@@ -182,6 +184,7 @@ export default function CampaignsListPage() {
   const { data: claimableCampaignsData } = useGetClaimableCampaigns(1, 20);
   const { data: tierUsageData, isLoading: isLoadingTierUsage } = useGetBusinessTierUsage();
   const { data: subscriptionData, isLoading: isLoadingSubscription } = useGetMySubscription();
+  const { data: analyticsData } = useGetGeneralAnalytics();
   const { data: profile } = useGetBusinessProfile();
   const { mutate: deleteCampaign } = useDeleteCampaign();
 
@@ -290,6 +293,13 @@ export default function CampaignsListPage() {
     if (endDate < now) {
       return { label: 'Expired', variant: 'secondary' };
     }
+
+    // Days remaining check
+    const daysLeft = differenceInDays(endDate, now);
+    if (daysLeft <= 7) {
+       return { label: `${daysLeft} Day${daysLeft === 1 ? '' : 's'} Left`, variant: 'destructive' };
+    }
+
     return { label: 'Active', variant: 'default' };
   };
 
@@ -530,7 +540,7 @@ export default function CampaignsListPage() {
                 title="Campaign Usage"
                 usage={profile?.isSuperBusiness ? {
                   limit: -1,
-                  used: tierUsageData?.features?.campaigns?.used || 0,
+                  used: analyticsData?.totalActiveCampaigns || 0,
                   remaining: -1,
                   extraPoints: 0
                 } : (tierUsageData?.features?.campaigns || {
