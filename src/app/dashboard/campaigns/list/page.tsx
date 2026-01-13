@@ -273,45 +273,59 @@ export default function CampaignsListPage() {
   // Bypass limit for Super Business
   const hasReachedCampaignLimit = !profile?.isSuperBusiness && (maxActiveCampaigns !== -1 && currentActiveCampaigns >= maxActiveCampaigns);
 
-  // New helper function for campaign status
-  const getCampaignStatus = (campaign: PublicCampaignResponse): { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' } => {
+  // New helper function to get all applicable status badges
+  const getCampaignBadges = (campaign: PublicCampaignResponse): { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }[] => {
+    const badges: { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }[] = [];
     const now = new Date();
 
+    // Check for missing dates
     if (!campaign.start_date || !campaign.end_date) {
-      return { label: 'No Date', variant: 'outline' };
+      badges.push({ label: 'No Date', variant: 'outline' });
+      return badges;
     }
 
     const startDate = parseISO(campaign.start_date);
     const endDate = parseISO(campaign.end_date);
 
     if (!isValid(startDate) || !isValid(endDate)) {
-       return { label: 'Invalid Date', variant: 'outline' };
+       badges.push({ label: 'Invalid Date', variant: 'outline' });
+       return badges;
     }
 
     if (campaign.disabled) {
-      return { label: 'Disabled', variant: 'destructive' };
+      badges.push({ label: 'Disabled', variant: 'destructive' });
+      return badges; // Disabled overrides everything else? Or should we show other status? Usually disabled hides status.
     }
+
     // Use remainingSlots if available, otherwise quantity
     const available = campaign.remainingSlots ?? campaign.quantity;
     if (available <= 0) {
-      return { label: 'Sold Out', variant: 'destructive' };
-    }
-    if (startDate > now) {
-      return { label: 'Scheduled', variant: 'secondary' };
-    }
-    if (endDate < now) {
-      return { label: 'Expired', variant: 'secondary' };
+      badges.push({ label: 'Sold Out', variant: 'destructive' });
+      return badges;
     }
 
-    // Days remaining check
+    if (startDate > now) {
+      badges.push({ label: 'Scheduled', variant: 'secondary' });
+      return badges;
+    }
+
+    if (endDate < now) {
+      badges.push({ label: 'Expired', variant: 'secondary' });
+      return badges;
+    }
+
+    // If we are here, it is Active
+    badges.push({ label: 'Active', variant: 'default' });
+
+    // Days remaining check (Only for Active campaigns)
     // We use differenceInDays which returns integer days.
     // If it's today (0) or future up to 7 days.
     const daysLeft = differenceInDays(endDate, now);
     if (daysLeft >= 0 && daysLeft <= 7) {
-       return { label: `${daysLeft} Day${daysLeft === 1 ? '' : 's'} Left`, variant: 'destructive' };
+       badges.push({ label: `${daysLeft} Day${daysLeft === 1 ? '' : 's'} Left`, variant: 'destructive' });
     }
 
-    return { label: 'Active', variant: 'default' };
+    return badges;
   };
 
   const renderCampaigns = (campaigns: PublicCampaignResponse[], isLoading: boolean) => {
@@ -352,17 +366,18 @@ export default function CampaignsListPage() {
                   objectFit="cover"
                 />
               )}
-              {(() => {
-                const status = getCampaignStatus(campaign);
-                return (
+              {/* Badges Container */}
+              <div className="absolute top-3 right-3 flex flex-col gap-2 items-end">
+                {getCampaignBadges(campaign).map((badge, idx) => (
                   <Badge
-                    variant={status.variant}
-                    className="absolute top-3 right-3 text-sm px-3 py-1"
+                    key={idx}
+                    variant={badge.variant}
+                    className="text-sm px-3 py-1 shadow-sm"
                   >
-                    {status.label}
+                    {badge.label}
                   </Badge>
-                );
-              })()}
+                ))}
+              </div>
             </div>
             <div className="relative px-5">
               <div className="absolute -top-12 left-1/2 -translate-x-1/2">
