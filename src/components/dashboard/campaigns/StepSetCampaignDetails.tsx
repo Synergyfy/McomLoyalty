@@ -159,7 +159,7 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
 
           {/* Total Slots */}
           <div>
-            <Label htmlFor="totalSlots">Total Slots</Label>
+            <Label htmlFor="totalSlots">Available Slots</Label>
             <Input
               id="totalSlots"
               type="number"
@@ -169,10 +169,10 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
               className={errors.totalSlots ? 'border-red-500' : ''}
             />
             {errors.totalSlots && (
-              <p className="text-sm text-red-500 mt-1">Total slots is required (and a campaign total)</p>
+              <p className="text-sm text-red-500 mt-1">Available slots is required</p>
             )}
             {!errors.totalSlots && (
-              <p className="text-sm text-gray-500 mt-1">The total number of slots available for this campaign.</p>
+              <p className="text-sm text-gray-500 mt-1">The number of slots currently available for customers to claim.</p>
             )}
           </div>
 
