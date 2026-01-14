@@ -10,12 +10,14 @@ interface MatchingRewardCardProps {
     reward: MatchingReward;
     onClick?: () => void;
     className?: string;
+    style?: React.CSSProperties;
 }
 
-export default function MatchingRewardCard({ reward, onClick, className }: MatchingRewardCardProps) {
+export default function MatchingRewardCard({ reward, onClick, className, style }: MatchingRewardCardProps) {
     return (
         <div
             onClick={onClick}
+            style={style}
             className={cn(
                 "group relative bg-white rounded-2xl overflow-hidden cursor-pointer",
                 "border border-gray-100 shadow-sm hover:shadow-2xl hover:shadow-orange-500/10",
