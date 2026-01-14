@@ -94,6 +94,7 @@ export interface BusinessProfile {
   totalPointsEarned: number;
   totalPointsRedeemed: number;
   isSuperBusiness?: boolean;
+  is_super_business?: boolean;
 }
 
 export interface UpdateBusinessProfileDto {

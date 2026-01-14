@@ -75,11 +75,11 @@ export default function BusinessSidebar({
   const { mutate: logoutMutation, isPending: isLoggingOut } = useLogout();
 
   const isFreeTier = useMemo(() => {
-    if (profile?.isSuperBusiness) return false;
+    if (profile?.isSuperBusiness || profile?.is_super_business) return false;
     return subscription?.tier === 'Free';
   }, [subscription, profile]);
 
-  const isSuperBusiness = profile?.isSuperBusiness;
+  const isSuperBusiness = profile?.isSuperBusiness || profile?.is_super_business;
 
   const enhancedLinkClasses = (path: string, exact: boolean = false) => {
     let classes = linkClasses(path, exact);
