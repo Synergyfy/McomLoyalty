@@ -35,7 +35,7 @@ export default function DashboardLayout({
   useEffect(() => {
     // Check if subscription data is loaded and tier is Free, but SKIP for Super Business
     // Also wait for profile to load to avoid premature redirect
-    if (!isBusinessSubLoading && !isProfileLoading && businessSubscription?.tier === 'Free' && !profile?.isSuperBusiness) {
+    if (!isBusinessSubLoading && !isProfileLoading && businessSubscription?.tier === 'Free' && profile && !profile.isSuperBusiness) {
       // Prevent redirect loop if already on subscription page
       if (!pathname.includes('/dashboard/subscription')) {
         // Ensure we don't redirect if we are in a potentially transient state or just paid

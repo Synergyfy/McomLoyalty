@@ -27,7 +27,6 @@ const superBusinessSchema = z.object({
     email: z.string().email('Invalid email address'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
     confirmPassword: z.string().min(8, 'Confirm password must be at least 8 characters'),
-    referralCode: z.string().min(1, 'Referral code is required'),
 }).refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ["confirmPassword"],
@@ -52,7 +51,6 @@ export default function CreateSuperBusinessPage() {
             email: '',
             password: '',
             confirmPassword: '',
-            referralCode: '',
         }
     });
 
@@ -184,25 +182,6 @@ export default function CreateSuperBusinessPage() {
                                         <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
                                             <AlertCircle className="h-3 w-3" />
                                             {errors.email.message}
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* Referral Code */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                        <Ticket className="h-4 w-4 text-blue-500" />
-                                        Referral Code
-                                    </label>
-                                    <Input
-                                        {...register('referralCode')}
-                                        placeholder="a1b2c3d4e"
-                                        className={`pl-4 h-12 bg-gray-50/50 border-gray-200 focus:bg-white focus:ring-blue-500 transition-all ${errors.referralCode ? 'border-red-500' : ''}`}
-                                    />
-                                    {errors.referralCode && (
-                                        <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
-                                            <AlertCircle className="h-3 w-3" />
-                                            {errors.referralCode.message}
                                         </p>
                                     )}
                                 </div>
