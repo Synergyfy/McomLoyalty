@@ -211,3 +211,31 @@ export interface PaginatedRewardsResponse {
         totalPages: number;
     };
 }
+
+export interface PublicRewardResponse {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    title: string;
+    shortDescription: string;
+    longDescription: string;
+    mainImage: string;
+    galleryImages: string[];
+    requiredPoints: number;
+    targetAudience: string;
+    quantity: number;
+    isSuspended: boolean;
+    startDatetime: string;
+    endDatetime: string;
+}
+
+export interface PublicGetRewardsResponse {
+    data: PublicRewardResponse[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    next: number | null;
+    previous: number | null;
+}

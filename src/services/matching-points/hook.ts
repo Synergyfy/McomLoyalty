@@ -6,7 +6,7 @@ import {
   EarningAction, CreateEarningActionDto, UpdateEarningActionDto, ParticipantBadge, CreateParticipantBadgeDto, UpdateParticipantBadgeDto,
   CreateMatchingRewardDto, MatchingPointReward, GetRewardsParams, PaginatedRewardsResponse, UpdateMatchingRewardDto
 } from './types';
-// import { LoginResponse } from '@/services/auth/types'; // Not used in this file
+import toast from 'react-hot-toast';
 
 // const STAFF_QUERY_KEY = 'staff'; // Incorrect, removing or commenting out
 const MATCHING_POINTS_QUERY_KEY = 'matchingPoints'; // Corrected
