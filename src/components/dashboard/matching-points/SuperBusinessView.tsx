@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Loader2, QrCode, Plus, Edit, Trash2, EyeOff, Eye, Calendar, Users } from 'lucide-react';
+import { Loader2, QrCode, Plus, Edit, Trash2, EyeOff, Eye, Calendar, Users, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -130,13 +130,14 @@ export default function SuperBusinessView() {
                     const points = reward.requiredPoints ?? reward.required_points ?? reward.pointsRequired ?? 0;
                     const isActive = reward.is_active ?? !reward.isSuspended ?? true;
                     const audience = reward.targetAudience ?? reward.target_audience ?? 'Unknown';
+                    const gallery = reward.galleryImages ?? reward.gallery_images ?? [];
 
                     const startDate = reward.startDatetime || reward.start_datetime;
                     const endDate = reward.endDatetime || reward.end_datetime;
 
                     return (
                         <Card key={reward.id} className="overflow-hidden group flex flex-col h-full border hover:border-indigo-300 transition-colors">
-                        <div className="h-56 bg-gray-100 relative">
+                        <div className="h-56 bg-gray-100 relative shrink-0">
                             {displayImage ? (
                                 <img
                                     src={displayImage}
@@ -149,7 +150,7 @@ export default function SuperBusinessView() {
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
                             )}
-                            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white/50 p-1 rounded-md backdrop-blur-sm">
+                            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white/50 p-1 rounded-md backdrop-blur-sm z-10">
                                 <Button variant="secondary" size="icon" className="h-8 w-8 hover:bg-white" onClick={() => handleToggleStatus(reward.id)}>
                                     {isActive ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                                 </Button>
@@ -157,13 +158,20 @@ export default function SuperBusinessView() {
                                     <Trash2 className="h-4 w-4" />
                                 </Button>
                             </div>
-                            <div className="absolute bottom-2 left-2">
+                            <div className="absolute bottom-2 left-2 z-10">
                                 <Badge variant={isActive ? 'default' : 'destructive'} className="shadow-sm">
                                     {isActive ? 'Active' : 'Suspended'}
                                 </Badge>
                             </div>
+                            {gallery.length > 0 && (
+                                <div className="absolute bottom-2 right-2 z-10">
+                                    <Badge variant="secondary" className="bg-black/50 text-white border-none gap-1 px-1.5 h-5 text-[10px]">
+                                        <ImageIcon className="h-3 w-3" /> +{gallery.length}
+                                    </Badge>
+                                </div>
+                            )}
                         </div>
-                        <CardContent className="p-5 space-y-4 flex-grow">
+                        <CardContent className="p-5 space-y-4 flex-grow flex flex-col">
                             <div className="flex justify-between items-start gap-2">
                                 <h3 className="font-bold text-xl leading-tight">{reward.title}</h3>
                                 <span className="bg-indigo-100 text-indigo-700 text-sm px-2.5 py-1 rounded-full font-bold whitespace-nowrap">
@@ -171,11 +179,22 @@ export default function SuperBusinessView() {
                                 </span>
                             </div>
 
-                            <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
+                            <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed mb-auto">
                                 {reward.shortDescription || reward.short_description || reward.longDescription || reward.long_description}
                             </p>
 
-                            <div className="grid grid-cols-2 gap-y-2 text-xs text-gray-500 pt-2 border-t mt-auto">
+                            {/* Gallery Thumbnails */}
+                            {gallery.length > 0 && (
+                                <div className="flex gap-2 overflow-hidden py-2 h-16 border-t border-gray-100 mt-2">
+                                    {gallery.slice(0, 4).map((img, idx) => (
+                                        <div key={idx} className="h-full aspect-square rounded overflow-hidden border border-gray-200">
+                                            <img src={img} alt="gallery" className="h-full w-full object-cover" />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-2 gap-y-2 text-xs text-gray-500 pt-2 border-t mt-2">
                                 <div className="flex items-center gap-1.5">
                                     <Calendar className="h-3.5 w-3.5" />
                                     <div className="flex flex-col">

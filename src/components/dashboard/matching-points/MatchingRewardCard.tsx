@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { MatchingPointReward } from '@/services/matching-points/types';
-import { Lock, Unlock } from 'lucide-react';
+import { Lock, Unlock, Image as ImageIcon } from 'lucide-react';
 
 interface MatchingRewardCardProps {
   reward: MatchingPointReward;
@@ -18,16 +18,17 @@ export default function MatchingRewardCard({ reward, currentBalance, onClick }: 
   const pointsRequired = reward.requiredPoints ?? reward.required_points ?? reward.pointsRequired ?? 0;
   const image = reward.mainImage ?? reward.main_image ?? reward.image ?? '';
   const description = reward.shortDescription ?? reward.short_description ?? reward.longDescription ?? reward.long_description ?? '';
+  const gallery = reward.galleryImages ?? reward.gallery_images ?? [];
 
   const progress = pointsRequired > 0 ? Math.min((currentBalance / pointsRequired) * 100, 100) : 100;
   const isRedeemable = currentBalance >= pointsRequired;
 
   return (
     <Card
-      className={`overflow-hidden cursor-pointer transition-all hover:shadow-lg ${isRedeemable ? 'border-green-200' : 'opacity-90'}`}
+      className={`overflow-hidden cursor-pointer transition-all hover:shadow-lg flex flex-col h-full ${isRedeemable ? 'border-green-200' : 'opacity-90'}`}
       onClick={onClick}
     >
-      <div className="h-40 bg-gray-100 relative">
+      <div className="h-40 bg-gray-100 relative shrink-0">
         {image ? (
           <img
             src={image}
@@ -51,14 +52,32 @@ export default function MatchingRewardCard({ reward, currentBalance, onClick }: 
                 </Badge>
             )}
         </div>
+        {gallery.length > 0 && (
+           <div className="absolute bottom-2 right-2">
+               <Badge variant="secondary" className="bg-black/50 text-white border-none gap-1 px-1.5 h-5 text-[10px]">
+                   <ImageIcon className="h-3 w-3" /> +{gallery.length}
+               </Badge>
+           </div>
+        )}
       </div>
-      <CardContent className="p-4 space-y-3">
-        <div className="space-y-1">
+      <CardContent className="p-4 space-y-3 flex flex-col flex-grow">
+        <div className="space-y-1 flex-grow">
             <h3 className="font-bold text-lg leading-tight">{reward.title}</h3>
             <p className="text-sm text-gray-500 line-clamp-2">{description}</p>
         </div>
 
-        <div className="space-y-1">
+        {/* Gallery Thumbnails */}
+        {gallery.length > 0 && (
+           <div className="flex gap-2 overflow-hidden py-1 h-12">
+               {gallery.slice(0, 4).map((img, idx) => (
+                   <div key={idx} className="h-full aspect-square rounded overflow-hidden border border-gray-100">
+                       <img src={img} alt="gallery" className="h-full w-full object-cover" />
+                   </div>
+               ))}
+           </div>
+        )}
+
+        <div className="space-y-1 pt-2 mt-auto">
             <div className="flex justify-between text-xs font-medium">
                 <span className={isRedeemable ? 'text-green-600' : 'text-gray-500'}>
                     {isRedeemable ? 'Goal Reached!' : 'Progress'}
