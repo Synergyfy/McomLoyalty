@@ -10,7 +10,7 @@ import { CampaignResponse, CampaignType, PublicCampaignResponse } from '@/servic
 import AwardPointsModal from '@/components/dashboard/matching-points/AwardPointsModal';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useGetCreatedMatchingRewards, useDeleteMatchingReward, useSuspendMatchingReward } from '@/services/matching-points/hook';
+import { useGetCreatedMatchingRewards, useDeleteMatchingReward, useSuspendMatchingReward, useUnsuspendMatchingReward } from '@/services/matching-points/hook';
 import { mockGlobalRedemptions } from '@/lib/mock-data/matchingPointsRewards';
 import CreateMatchingRewardModal from './CreateMatchingRewardModal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -35,6 +35,7 @@ export default function SuperBusinessView() {
   const { data: rewardsData, isLoading: isRewardsLoading } = useGetCreatedMatchingRewards({ page: 1, limit: 100 });
   const { mutate: deleteReward } = useDeleteMatchingReward();
   const { mutate: suspendReward } = useSuspendMatchingReward();
+  const { mutate: unsuspendReward } = useUnsuspendMatchingReward();
 
   const [isAwardModalOpen, setIsAwardModalOpen] = useState(false);
   const [isCreateRewardModalOpen, setIsCreateRewardModalOpen] = useState(false);
@@ -109,15 +110,24 @@ export default function SuperBusinessView() {
     }
   };
 
-  const handleToggleStatus = (id: string) => {
-     suspendReward(id, {
-         onSuccess: () => {
-             toast.success("Reward status updated");
-             // Force refetch to ensure UI reflects change immediately if invalidation is slow
-             queryClient.invalidateQueries({ queryKey: ['matchingPointRewards'] });
-         },
-         onError: () => toast.error("Failed to update status")
-     });
+  const handleToggleStatus = (id: string, currentStatus: boolean) => {
+    if (currentStatus) {
+      suspendReward(id, {
+        onSuccess: () => {
+            toast.success("Reward suspended successfully");
+            queryClient.invalidateQueries({ queryKey: ['matchingPointRewards'] });
+        },
+        onError: () => toast.error("Failed to suspend reward")
+      });
+    } else {
+      unsuspendReward(id, {
+        onSuccess: () => {
+            toast.success("Reward activated successfully");
+            queryClient.invalidateQueries({ queryKey: ['matchingPointRewards'] });
+        },
+        onError: () => toast.error("Failed to activate reward")
+      });
+    }
   };
 
   // Helper to validate image URL
@@ -233,7 +243,7 @@ export default function SuperBusinessView() {
                             <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
                         )}
                         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                             <Button variant="secondary" size="icon" className="h-8 w-8" onClick={() => handleToggleStatus(reward.id)}>
+                             <Button variant="secondary" size="icon" className="h-8 w-8" onClick={() => handleToggleStatus(reward.id, reward.is_active)}>
                                 {reward.is_active ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                              </Button>
                              <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => handleDeleteClick(reward.id)}>

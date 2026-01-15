@@ -52,7 +52,7 @@ export default function RegularBusinessView() {
   };
 
   // Filter rewards: Keep "BUSINESS_ONLY" and "BOTH"
-  const businessRewards = rewardsData?.data.filter(r => r.target_audience !== 'PARTICIPANT_ONLY') || [];
+  const businessRewards = rewardsData?.data?.filter(r => r.target_audience !== 'PARTICIPANT_ONLY') || [];
 
   return (
     <div className="space-y-8">

@@ -252,6 +252,20 @@ export const useSuspendMatchingReward = () => {
   });
 };
 
+const unsuspendMatchingReward = async (id: string): Promise<void> => {
+  await api.patch(`/matching-points/rewards/${id}/unsuspend`);
+};
+
+export const useUnsuspendMatchingReward = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: unsuspendMatchingReward,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [MATCHING_REWARDS_QUERY_KEY] });
+    },
+  });
+};
+
 // Redeem Reward
 const redeemMatchingReward = async (id: string): Promise<void> => {
   await api.post(`/matching-points/rewards/${id}/redeem`);

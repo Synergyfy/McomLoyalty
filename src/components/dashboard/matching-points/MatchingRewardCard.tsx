@@ -28,7 +28,14 @@ export default function MatchingRewardCard({ reward, currentBalance, onClick }: 
     >
       <div className="h-40 bg-gray-100 relative">
         {image ? (
-          <img src={image} alt={reward.title} className="w-full h-full object-cover" />
+          <img
+            src={image}
+            alt={reward.title}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x200?text=No+Image';
+            }}
+          />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
         )}
