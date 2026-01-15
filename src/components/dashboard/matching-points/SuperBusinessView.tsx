@@ -68,7 +68,7 @@ export default function SuperBusinessView() {
              ...oldData,
              data: oldData.data.map(r => {
                  if (r.id === id) {
-                     const currentStatus = r.is_active ?? !r.isSuspended ?? true;
+                     const currentStatus = r.is_active ?? (r.isSuspended === undefined ? true : !r.isSuspended);
                      return { ...r, is_active: !currentStatus, isSuspended: !currentStatus };
                  }
                  return r;
