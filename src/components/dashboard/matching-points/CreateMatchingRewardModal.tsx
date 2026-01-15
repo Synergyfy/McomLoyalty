@@ -12,8 +12,8 @@ import { toast } from 'sonner';
 import { useCreateMatchingReward } from '@/services/matching-points/hook';
 import { CreateMatchingRewardDto, TargetAudience } from '@/services/matching-points/types';
 import { CloudinaryUpload } from '@/components/ui/cloudinary-upload';
+import { useUploadToCloudinary } from '@/services/upload/hook';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { resizeImage } from '@/lib/image-utils';
 
 interface CreateMatchingRewardModalProps {
   isOpen: boolean;
@@ -21,15 +21,15 @@ interface CreateMatchingRewardModalProps {
   onSuccess?: () => void;
 }
 
-const MAX_FILE_SIZE_MB = 4.5;
+const MAX_FILE_SIZE_MB = 10; // Direct upload can handle larger files
 
 export default function CreateMatchingRewardModal({ isOpen, onClose, onSuccess }: CreateMatchingRewardModalProps) {
   const { mutate: createReward, isPending: isCreating } = useCreateMatchingReward();
+  const { mutateAsync: uploadImage, isPending: isUploading } = useUploadToCloudinary();
 
   // State for files
   const [mainImageFile, setMainImageFile] = useState<File | null>(null);
   const [galleryFiles, setGalleryFiles] = useState<{ file: File; preview: string }[]>([]);
-  const [isProcessingImages, setIsProcessingImages] = useState(false);
 
   const [formData, setFormData] = useState<CreateMatchingRewardDto>({
     title: '',
@@ -44,7 +44,7 @@ export default function CreateMatchingRewardModal({ isOpen, onClose, onSuccess }
     end_datetime: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
   });
 
-  const loading = isCreating || isProcessingImages;
+  const loading = isCreating || isUploading;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -85,34 +85,32 @@ export default function CreateMatchingRewardModal({ isOpen, onClose, onSuccess }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsProcessingImages(true);
 
     let mainImageUrl = formData.main_image;
     const galleryImageUrls: string[] = [...formData.gallery_images];
 
     try {
-        // Convert Main Image to Base64 if file selected
+        // Upload Main Image
         if (mainImageFile) {
-            mainImageUrl = await resizeImage(mainImageFile);
+            const result = await uploadImage({ file: mainImageFile, folder: 'matching-rewards' });
+            mainImageUrl = result.secure_url;
         }
 
-        // Convert Gallery Images
+        // Upload Gallery Images
         if (galleryFiles.length > 0) {
-            const processPromises = galleryFiles.map(gf => resizeImage(gf.file));
-            const results = await Promise.all(processPromises);
-            results.forEach(res => galleryImageUrls.push(res));
+            const uploadPromises = galleryFiles.map(gf => uploadImage({ file: gf.file, folder: 'matching-rewards-gallery' }));
+            const results = await Promise.all(uploadPromises);
+            results.forEach(res => galleryImageUrls.push(res.secure_url));
         }
 
     } catch (error) {
-        console.error("Image processing failed", error);
-        toast.error("Failed to process images. Please try different files.");
-        setIsProcessingImages(false);
+        console.error("Upload failed", error);
+        toast.error("Failed to upload images. Check your connection.");
         return;
     }
 
     if (!mainImageUrl) {
         toast.error("Please provide a main image (URL or Upload)");
-        setIsProcessingImages(false);
         return;
     }
 
@@ -142,12 +140,10 @@ export default function CreateMatchingRewardModal({ isOpen, onClose, onSuccess }
             });
             setMainImageFile(null);
             setGalleryFiles([]);
-            setIsProcessingImages(false);
             onSuccess?.();
             onClose();
         },
         onError: (error: any) => {
-            setIsProcessingImages(false);
             const msg = error?.response?.data?.message || 'Failed to create reward';
             toast.error(msg);
         }
@@ -192,7 +188,7 @@ export default function CreateMatchingRewardModal({ isOpen, onClose, onSuccess }
                   name="short_description"
                   value={formData.short_description}
                   onChange={handleChange}
-                  placeholder="Brief summary appearing on the card..."
+                  placeholder="Brief summary..."
                   required
                 />
               </div>
@@ -341,7 +337,7 @@ export default function CreateMatchingRewardModal({ isOpen, onClose, onSuccess }
             </Button>
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isProcessingImages ? 'Processing Images...' : 'Create Reward'}
+              {isUploading ? 'Uploading Images...' : 'Create Reward'}
             </Button>
           </DialogFooter>
         </form>
