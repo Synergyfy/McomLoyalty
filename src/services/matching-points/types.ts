@@ -211,3 +211,21 @@ export interface PaginatedRewardsResponse {
         totalPages: number;
     };
 }
+
+export interface RedemptionRecord {
+    id: string;
+    redeemedAt: string;
+    businessName: string;
+    rewardTitle: string;
+    pointsRedeemed: number;
+    status: string;
+}
+
+export interface PaginatedRedemptionsResponse {
+    data: RedemptionRecord[];
+    meta: {
+        total: number;
+        page: number;
+        limit: number;
+    };
+}

@@ -1,29 +1,43 @@
 'use client';
 
-import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useState } from 'react';
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { MatchingPointReward } from '@/services/matching-points/types';
-import { Lock, Unlock, Image as ImageIcon } from 'lucide-react';
+import { Lock, Unlock, Image as ImageIcon, Calendar } from 'lucide-react';
+import ImagePreviewModal from './ImagePreviewModal';
+import { format } from 'date-fns';
 
 interface MatchingRewardCardProps {
   reward: MatchingPointReward;
   currentBalance: number;
   onClick: () => void;
+  // If true, shows dates and hides audience (Regular Business View)
+  showDates?: boolean;
 }
 
-export default function MatchingRewardCard({ reward, currentBalance, onClick }: MatchingRewardCardProps) {
+export default function MatchingRewardCard({ reward, currentBalance, onClick, showDates = false }: MatchingRewardCardProps) {
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
   // Map fields (Handle camelCase from API response and legacy snake_case)
   const pointsRequired = reward.requiredPoints ?? reward.required_points ?? reward.pointsRequired ?? 0;
   const image = reward.mainImage ?? reward.main_image ?? reward.image ?? '';
   const description = reward.shortDescription ?? reward.short_description ?? reward.longDescription ?? reward.long_description ?? '';
   const gallery = reward.galleryImages ?? reward.gallery_images ?? [];
+  const startDate = reward.startDatetime || reward.start_datetime;
+  const endDate = reward.endDatetime || reward.end_datetime;
 
   const progress = pointsRequired > 0 ? Math.min((currentBalance / pointsRequired) * 100, 100) : 100;
   const isRedeemable = currentBalance >= pointsRequired;
 
+  const handleImageClick = (e: React.MouseEvent, imgUrl: string) => {
+      e.stopPropagation(); // Prevent card click
+      setPreviewImage(imgUrl);
+  };
+
   return (
+    <>
     <Card
       className={`overflow-hidden cursor-pointer transition-all hover:shadow-lg flex flex-col h-full ${isRedeemable ? 'border-green-200' : 'opacity-90'}`}
       onClick={onClick}
@@ -37,6 +51,7 @@ export default function MatchingRewardCard({ reward, currentBalance, onClick }: 
             onError={(e) => {
                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x200?text=No+Image';
             }}
+            onClick={(e) => handleImageClick(e, image)}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
@@ -66,18 +81,33 @@ export default function MatchingRewardCard({ reward, currentBalance, onClick }: 
             <p className="text-sm text-gray-500 line-clamp-2">{description}</p>
         </div>
 
-        {/* Gallery Thumbnails */}
+        {/* Gallery Thumbnails - Clickable */}
         {gallery.length > 0 && (
            <div className="flex gap-2 overflow-hidden py-1 h-12">
                {gallery.slice(0, 4).map((img, idx) => (
-                   <div key={idx} className="h-full aspect-square rounded overflow-hidden border border-gray-100">
+                   <div
+                      key={idx}
+                      className="h-full aspect-square rounded overflow-hidden border border-gray-100 cursor-zoom-in hover:opacity-80 transition-opacity"
+                      onClick={(e) => handleImageClick(e, img)}
+                    >
                        <img src={img} alt="gallery" className="h-full w-full object-cover" />
                    </div>
                ))}
            </div>
         )}
 
-        <div className="space-y-1 pt-2 mt-auto">
+        <div className="space-y-2 pt-2 mt-auto">
+            {/* Conditional Dates Display for Regular Business */}
+            {showDates && (
+                <div className="flex items-center gap-1.5 text-xs text-gray-500 border-b pb-2 mb-2">
+                    <Calendar className="h-3.5 w-3.5" />
+                    <div className="flex flex-col">
+                        <span>Start: {startDate ? format(new Date(startDate), 'MMM d, yyyy') : 'N/A'}</span>
+                        <span>End: {endDate ? format(new Date(endDate), 'MMM d, yyyy') : 'N/A'}</span>
+                    </div>
+                </div>
+            )}
+
             <div className="flex justify-between text-xs font-medium">
                 <span className={isRedeemable ? 'text-green-600' : 'text-gray-500'}>
                     {isRedeemable ? 'Goal Reached!' : 'Progress'}
@@ -91,6 +121,19 @@ export default function MatchingRewardCard({ reward, currentBalance, onClick }: 
             </div>
         </div>
       </CardContent>
+      {/* Footer for Quantity - only if dates are shown (mimic super business style) */}
+      {showDates && (
+        <CardFooter className="bg-gray-50 px-4 py-2 text-xs text-gray-500">
+             <span>Qty: {reward.quantity}</span>
+        </CardFooter>
+      )}
     </Card>
+
+    <ImagePreviewModal
+        isOpen={!!previewImage}
+        onClose={() => setPreviewImage(null)}
+        imageUrl={previewImage || ''}
+    />
+    </>
   );
 }

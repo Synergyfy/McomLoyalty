@@ -1,0 +1,83 @@
+# Page snapshot
+
+```yaml
+- generic:
+  - generic [active]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - navigation [ref=e6]:
+            - button "previous" [disabled] [ref=e7]:
+              - img "previous" [ref=e8]
+            - generic [ref=e10]:
+              - generic [ref=e11]: 1/
+              - text: "1"
+            - button "next" [disabled] [ref=e12]:
+              - img "next" [ref=e13]
+          - img
+        - generic [ref=e15]:
+          - link "Next.js 16.1.1 (stale) Turbopack" [ref=e16] [cursor=pointer]:
+            - /url: https://nextjs.org/docs/messages/version-staleness
+            - img [ref=e17]
+            - generic "There is a newer version (16.1.2) available, upgrade recommended!" [ref=e19]: Next.js 16.1.1 (stale)
+            - generic [ref=e20]: Turbopack
+          - img
+      - dialog "Build Error" [ref=e22]:
+        - generic [ref=e25]:
+          - generic [ref=e26]:
+            - generic [ref=e27]:
+              - generic [ref=e29]: Build Error
+              - generic [ref=e30]:
+                - button "Copy Error Info" [ref=e31] [cursor=pointer]:
+                  - img [ref=e32]
+                - button "No related documentation found" [disabled] [ref=e34]:
+                  - img [ref=e35]
+                - button "Attach Node.js inspector" [ref=e37] [cursor=pointer]:
+                  - img [ref=e38]
+            - generic [ref=e47]: Export useGetMatchingPointBalance doesn't exist in target module
+          - generic [ref=e49]:
+            - generic [ref=e51]:
+              - img [ref=e53]
+              - generic [ref=e56]: ./src/components/dashboard/matching-points/RegularBusinessView.tsx (4:1)
+              - button "Open in editor" [ref=e57] [cursor=pointer]:
+                - img [ref=e59]
+            - generic [ref=e62]:
+              - generic [ref=e63]: Export useGetMatchingPointBalance doesn't exist in target module
+              - generic [ref=e64]: 2 |
+              - generic [ref=e65]: 3 |
+              - text: import React,
+              - generic [ref=e66]: "{ useState }"
+              - text: from 'react'; >
+              - generic [ref=e67]: 4 |
+              - text: import
+              - generic [ref=e68]: "{ useGetMatchingPointBalance"
+              - text: ","
+              - generic [ref=e69]: useGetMatchingPointsHistory
+              - text: ","
+              - generic [ref=e70]: "useGetPublicMatchingRewards }"
+              - text: from '@/services/matching-points/hook';
+              - generic [ref=e71]: "|"
+              - text: ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              - generic [ref=e72]: 5 |
+              - text: import MatchingPointsOverview from '@/components/dashboard/matching-points/MatchingPointsOverview';
+              - generic [ref=e73]: 6 |
+              - text: import MatchingPointsHistoryTable from '@/components/dashboard/matching-points/MatchingPointsHistoryTable';
+              - generic [ref=e74]: 7 |
+              - text: import
+              - generic [ref=e75]: "{ matchingPointsOverview"
+              - text: as
+              - generic [ref=e76]: "mockOverview }"
+              - text: from '@/lib/mock-data/matchingPoints';
+              - generic [ref=e77]: "The export useGetMatchingPointBalance was not found in module [project]/src/services/matching-points/hook.ts [app-client] (ecmascript). Did you mean to import useGetPublicMatchingRewards? All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist. Import traces: Client Component Browser: ./src/components/dashboard/matching-points/RegularBusinessView.tsx [Client Component Browser] ./src/app/dashboard/matching-points/page.tsx [Client Component Browser] ./src/app/dashboard/matching-points/page.tsx [Server Component] Client Component SSR: ./src/components/dashboard/matching-points/RegularBusinessView.tsx [Client Component SSR] ./src/app/dashboard/matching-points/page.tsx [Client Component SSR] ./src/app/dashboard/matching-points/page.tsx [Server Component]"
+        - generic [ref=e78]: "1"
+        - generic [ref=e79]: "2"
+    - generic [ref=e84] [cursor=pointer]:
+      - button "Open Next.js Dev Tools" [ref=e85]:
+        - img [ref=e86]
+      - button "Open issues overlay" [ref=e90]:
+        - generic [ref=e91]:
+          - generic [ref=e92]: "0"
+          - generic [ref=e93]: "1"
+        - generic [ref=e94]: Issue
+  - alert [ref=e95]
+```

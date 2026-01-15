@@ -90,6 +90,7 @@ export default function RegularBusinessView() {
                     reward={reward}
                     currentBalance={currentBalance}
                     onClick={() => handleRewardClick(reward)}
+                    showDates={true}
                 />
             ))}
              {businessRewards.length === 0 && (

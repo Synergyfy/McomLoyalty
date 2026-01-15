@@ -7,8 +7,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useGetCreatedMatchingRewards, useDeleteMatchingReward, useSuspendMatchingReward } from '@/services/matching-points/hook';
-import { mockGlobalRedemptions } from '@/lib/mock-data/matchingPointsRewards';
+import { useGetCreatedMatchingRewards, useDeleteMatchingReward, useSuspendMatchingReward, useGetRedeemedMatchingRewards } from '@/services/matching-points/hook';
 import CreateMatchingRewardModal from './CreateMatchingRewardModal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -25,19 +24,24 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useQueryClient } from '@tanstack/react-query';
 import { PaginatedRewardsResponse } from '@/services/matching-points/types';
+import ImagePreviewModal from './ImagePreviewModal';
 
 export default function SuperBusinessView() {
   const queryClient = useQueryClient();
-  // Campaigns data fetch removed as tab is removed
+
   // Fetch Real Created Rewards
   const { data: rewardsData, isLoading: isRewardsLoading } = useGetCreatedMatchingRewards({ page: 1, limit: 100 });
+
+  // Fetch Real Redemptions
+  const { data: redemptionsData, isLoading: isRedemptionsLoading } = useGetRedeemedMatchingRewards({ page: 1, limit: 100 });
+
   const { mutate: deleteReward } = useDeleteMatchingReward();
   const { mutate: suspendReward } = useSuspendMatchingReward();
 
   const [isCreateRewardModalOpen, setIsCreateRewardModalOpen] = useState(false);
-
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [rewardToDelete, setRewardToDelete] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const handleDeleteClick = (id: string) => {
     setRewardToDelete(id);
@@ -58,17 +62,14 @@ export default function SuperBusinessView() {
   };
 
   const handleToggleStatus = (id: string) => {
-     // Optimistic update for immediate feedback
-     // We toggle the state in the cache immediately.
      queryClient.setQueryData(['matchingPointRewards', 'created', { page: 1, limit: 100 }], (oldData: PaginatedRewardsResponse | undefined) => {
          if (!oldData) return oldData;
          return {
              ...oldData,
              data: oldData.data.map(r => {
                  if (r.id === id) {
-                     // Check both field names
                      const currentStatus = r.is_active ?? !r.isSuspended ?? true;
-                     return { ...r, is_active: !currentStatus, isSuspended: !currentStatus }; // Toggle for next render
+                     return { ...r, is_active: !currentStatus, isSuspended: !currentStatus };
                  }
                  return r;
              })
@@ -76,26 +77,20 @@ export default function SuperBusinessView() {
      });
 
      suspendReward(id, {
-         onSuccess: (data) => {
+         onSuccess: () => {
              toast.success("Reward status updated");
-             // NOTE: We do NOT use the returned 'data' here to update the cache.
-             // Some APIs return the *previous* state or partial data which can revert the optimistic update incorrectly.
-             // We rely on the optimistic update we already did, and then invalidate to fetch the source of truth.
              queryClient.invalidateQueries({ queryKey: ['matchingPointRewards'] });
          },
          onError: () => {
              toast.error("Failed to update status");
-             // Revert on error by invalidating (fetching mostly correct data)
-             // or manually untoggling if we wanted strict rollback.
              queryClient.invalidateQueries({ queryKey: ['matchingPointRewards'] });
          }
      });
   };
 
-  // Helper to validate image URL
-  const isValidImageUrl = (url: string) => {
-    if (!url) return false;
-    return url.match(/\.(jpeg|jpg|gif|png|webp)$/) != null || url.includes('images.unsplash.com') || url.includes('cloudinary.com');
+  const handleImageClick = (e: React.MouseEvent, imgUrl: string) => {
+    e.stopPropagation();
+    setPreviewImage(imgUrl);
   };
 
   return (
@@ -125,7 +120,6 @@ export default function SuperBusinessView() {
            ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {rewardsData?.data.map((reward) => {
-                    // Robust mapping for display
                     const displayImage = reward.mainImage || reward.main_image || reward.image;
                     const points = reward.requiredPoints ?? reward.required_points ?? reward.pointsRequired ?? 0;
                     const isActive = reward.is_active ?? !reward.isSuspended ?? true;
@@ -142,7 +136,8 @@ export default function SuperBusinessView() {
                                 <img
                                     src={displayImage}
                                     alt={reward.title}
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                    onClick={(e) => handleImageClick(e, displayImage)}
                                     onError={(e) => {
                                         (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x200?text=No+Image';
                                     }}
@@ -187,7 +182,11 @@ export default function SuperBusinessView() {
                             {gallery.length > 0 && (
                                 <div className="flex gap-2 overflow-hidden py-2 h-16 border-t border-gray-100 mt-2">
                                     {gallery.slice(0, 4).map((img, idx) => (
-                                        <div key={idx} className="h-full aspect-square rounded overflow-hidden border border-gray-200">
+                                        <div
+                                          key={idx}
+                                          className="h-full aspect-square rounded overflow-hidden border border-gray-200 cursor-zoom-in hover:opacity-80 transition-opacity"
+                                          onClick={(e) => handleImageClick(e, img)}
+                                        >
                                             <img src={img} alt="gallery" className="h-full w-full object-cover" />
                                         </div>
                                     ))}
@@ -244,19 +243,33 @@ export default function SuperBusinessView() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockGlobalRedemptions.map((redemption) => (
-                    <TableRow key={redemption.id}>
-                      <TableCell>{format(new Date(redemption.redeemedAt), 'MMM d, yyyy HH:mm')}</TableCell>
-                      <TableCell className="font-medium">{redemption.businessName}</TableCell>
-                      <TableCell>{redemption.rewardTitle}</TableCell>
-                      <TableCell>{redemption.pointsRedeemed}</TableCell>
-                      <TableCell>
-                        <Badge variant={redemption.status === 'completed' ? 'default' : 'secondary'}>
-                          {redemption.status}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {isRedemptionsLoading ? (
+                      <TableRow>
+                          <TableCell colSpan={5} className="text-center py-8">
+                              <Loader2 className="animate-spin h-6 w-6 mx-auto text-gray-400" />
+                          </TableCell>
+                      </TableRow>
+                  ) : redemptionsData?.data.length === 0 ? (
+                      <TableRow>
+                          <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                              No redemptions found.
+                          </TableCell>
+                      </TableRow>
+                  ) : (
+                    redemptionsData?.data.map((redemption) => (
+                        <TableRow key={redemption.id}>
+                        <TableCell>{format(new Date(redemption.redeemedAt), 'MMM d, yyyy HH:mm')}</TableCell>
+                        <TableCell className="font-medium">{redemption.businessName}</TableCell>
+                        <TableCell>{redemption.rewardTitle}</TableCell>
+                        <TableCell>{redemption.pointsRedeemed}</TableCell>
+                        <TableCell>
+                            <Badge variant={redemption.status === 'completed' ? 'default' : 'secondary'}>
+                            {redemption.status}
+                            </Badge>
+                        </TableCell>
+                        </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
            </Card>
@@ -287,6 +300,13 @@ export default function SuperBusinessView() {
             </AlertDialogFooter>
         </AlertDialogContent>
         </AlertDialog>
+
+        {/* Image Preview */}
+        <ImagePreviewModal
+            isOpen={!!previewImage}
+            onClose={() => setPreviewImage(null)}
+            imageUrl={previewImage || ''}
+        />
     </div>
   );
 }
