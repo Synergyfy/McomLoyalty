@@ -26,6 +26,7 @@ export interface CreateCampaignPayload {
   start_date: string;
   end_date: string;
   quantity: number;
+  total_slots: number;
   audience_type: string;
   signUpPoint: number;
   banner_url: string;
@@ -60,6 +61,8 @@ export interface CampaignResponse {
   startDate: string;
   endDate: string;
   quantity: number;
+  total_slots?: number;
+  remainingSlots?: number;
   audienceType: string;
   bannerUrl: string;
   logoUrl: string;
@@ -103,6 +106,7 @@ export enum CampaignType {
   LINK = 'link',
   BOTH = 'both',
   REFERRAL = 'referral',
+  MATCHING_POINT = 'matching_point',
 }
 
 export enum AudienceType {
@@ -140,6 +144,7 @@ export interface PublicCampaignResponse {
   start_date: string;
   end_date: string;
   quantity: number;
+  remainingSlots?: number;
   audience_type: string;
   banner_url: string;
   // Adding camelCase alternatives as potential fix for display issues if API returns camelCase
@@ -179,6 +184,8 @@ export interface BusinessCampaign {
   start_date: string;
   end_date: string;
   quantity: number;
+  total_slots?: number;
+  remainingSlots?: number;
   audience_type: AudienceType; // Map to AudienceType enum
   banner_url: string;
   logo_url: string;

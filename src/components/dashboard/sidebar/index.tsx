@@ -74,7 +74,12 @@ export default function BusinessSidebar({
   const router = useRouter();
   const { mutate: logoutMutation, isPending: isLoggingOut } = useLogout();
 
-  const isFreeTier = useMemo(() => subscription?.tier === 'Free', [subscription]);
+  const isFreeTier = useMemo(() => {
+    if (profile?.isSuperBusiness) return false;
+    return subscription?.tier === 'Free';
+  }, [subscription, profile]);
+
+  const isSuperBusiness = profile?.isSuperBusiness;
 
   const enhancedLinkClasses = (path: string, exact: boolean = false) => {
     let classes = linkClasses(path, exact);
@@ -283,7 +288,9 @@ export default function BusinessSidebar({
 
           <SidebarItem icon={Wallet} label="Wallet & Credits" href="/dashboard/wallet" />
 
-          <SidebarItem icon={CreditCard} label="Subscription" href="/dashboard/subscription" />
+          {!isSuperBusiness && (
+            <SidebarItem icon={CreditCard} label="Subscription" href="/dashboard/subscription" />
+          )}
 
           <SidebarItem icon={Settings} label="Settings" href="/dashboard/account" />
 

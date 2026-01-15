@@ -13,11 +13,15 @@ import { Badge } from "@/components/ui/badge";
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { useGetMySubscription } from '@/services/tiers/hook';
+import { useGetBusinessProfile } from '@/services/business/hook';
+import TierLimitModal from './TierLimitModal';
 
 interface SelectRewardModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onProceed: (selectedRewardIds: string[], selectedRewards: BusinessReward[], startDate?: string, endDate?: string) => void;
+  onProceed: (selectedRewardIds: string[], selectedRewards: BusinessReward[], startDate?: string, endDate?: string, totalSlots?: number) => void;
   initialSelectedIds?: string[];
   showDates?: boolean;
 }
@@ -39,8 +43,13 @@ export default function SelectRewardModal({
     to.setDate(to.getDate() + 30);
     return { from, to };
   });
+  const [totalSlots, setTotalSlots] = useState<number | undefined>(undefined);
+  const [isTierLimitModalOpen, setIsTierLimitModalOpen] = useState(false);
+  const [tierLimitMessage, setTierLimitMessage] = useState('');
 
   const { data: rewardsData, isLoading, error } = useGetBusinessRewards(1, 100);
+  const { data: subscriptionData } = useGetMySubscription();
+  const { data: profile } = useGetBusinessProfile();
 
   // Initialize selected rewards when modal opens or initialSelectedIds changes
   useEffect(() => {
@@ -51,6 +60,21 @@ export default function SelectRewardModal({
   }, [isOpen, initialSelectedIds]);
 
   const handleToggleReward = (rewardId: string) => {
+    const isSelecting = !selectedRewards.includes(rewardId);
+
+    if (isSelecting) {
+      // Super Business has no limits
+      if (!profile?.isSuperBusiness) {
+        const maxRewards = subscriptionData?.tier?.configuration?.quotas?.maxRewardsPerCampaign || 0;
+        // If maxRewards is -1, it means unlimited
+        if (maxRewards !== -1 && selectedRewards.length >= maxRewards) {
+          setTierLimitMessage('Upgrade to a higher tier to get more limits');
+          setIsTierLimitModalOpen(true);
+          return;
+        }
+      }
+    }
+
     setSelectedRewards(prev =>
       prev.includes(rewardId)
         ? prev.filter(id => id !== rewardId)
@@ -76,9 +100,15 @@ export default function SelectRewardModal({
       return;
     }
 
-    if (showDates && (!dateRange?.from || !dateRange?.to)) {
-      toast.error('Please select a valid date range.');
-      return;
+    if (showDates) {
+      if (!dateRange?.from || !dateRange?.to) {
+        toast.error('Please select a valid date range.');
+        return;
+      }
+      if (totalSlots === undefined || totalSlots === null) {
+        toast.error('Total slots is required.');
+        return;
+      }
     }
 
     const allRewards = rewardsData?.data || [];
@@ -88,7 +118,8 @@ export default function SelectRewardModal({
       selectedRewards, 
       selectedRewardObjects, 
       dateRange?.from?.toISOString(), 
-      dateRange?.to?.toISOString()
+      dateRange?.to?.toISOString(),
+      totalSlots
     );
     onClose();
   };
@@ -222,6 +253,18 @@ export default function SelectRewardModal({
                 Choose the start and end dates for your claimed campaign.
               </p>
             </div>
+            <div className="space-y-2">
+              <Label>Total Slots</Label>
+              <Input
+                type="number"
+                placeholder="e.g. 100"
+                value={totalSlots !== undefined ? totalSlots : ''}
+                onChange={(e) => setTotalSlots(e.target.value === '' ? undefined : Number(e.target.value))}
+              />
+              <p className="text-xs text-gray-500">
+                Limit the total number of participants who can join this campaign.
+              </p>
+            </div>
           </div>
         )}
 
@@ -248,6 +291,11 @@ export default function SelectRewardModal({
           )}
         </DialogFooter>
       </DialogContent>
+      <TierLimitModal
+        isOpen={isTierLimitModalOpen}
+        onClose={() => setIsTierLimitModalOpen(false)}
+        message={tierLimitMessage}
+      />
     </Dialog>
   );
 }

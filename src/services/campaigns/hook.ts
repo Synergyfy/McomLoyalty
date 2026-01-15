@@ -112,6 +112,7 @@ interface ClaimCampaignPayload {
   business_reward_ids?: string[];
   start_date?: string;
   end_date?: string;
+  total_slots?: number;
 }
 
 const claimCampaign = async ({ campaignId, payload }: { campaignId: string; payload: ClaimCampaignPayload }): Promise<BusinessCampaign> => {
@@ -223,7 +224,7 @@ export const useGetDetailedCampaignAnalytics = (campaignId: string) => {
 
 // Delete Campaign
 const deleteCampaign = async (campaignId: string): Promise<void> => {
-  await api.delete(`/campaigns/${campaignId}`);
+  await api.delete(`/business/campaigns/${campaignId}`);
 };
 
 export const useDeleteCampaign = () => {

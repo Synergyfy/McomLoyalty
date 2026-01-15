@@ -13,6 +13,8 @@ import Image from 'next/image';
 import { Calendar, Plus, X } from 'lucide-react';
 import { useCampaignForm } from '@/context/CampaignFormContext';
 import { useGetBusinessRewards } from '@/services/business-reward/hooks';
+import { useGetMySubscription } from '@/services/tiers/hook';
+import { toast } from 'sonner';
 import SelectRewardModal from './SelectRewardModal';
 import { Badge } from '@/components/ui/badge';
 
@@ -34,6 +36,14 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
   // Fetch rewards to have access to full reward details if needed for initial load
   // (though formData.selectedRewards should ideally be populated)
   const { data: rewardsData, isLoading: isLoadingRewards } = useGetBusinessRewards(1, 100);
+  const { data: subscriptionData } = useGetMySubscription();
+
+  const isActive = formData.startDate && formData.endDate &&
+    new Date(formData.startDate) < new Date() &&
+    new Date(formData.endDate) > new Date();
+
+  const isExpired = formData.endDate && new Date(formData.endDate) < new Date();
+  const isStartDateDisabled = !!(isActive && !isExpired);
 
   useEffect(() => {
     const from = searchParams.get('from');
@@ -73,10 +83,12 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
 
   const handleNextClick = () => {
     const newErrors: Record<string, boolean> = {};
-    const { campaignName, rewardIds, startDate, endDate, campaignMessage, audienceType, badgeLevels, wishlistItemIds } = formData;
+    const { campaignName, totalSlots, rewardIds, startDate, endDate, campaignMessage, audienceType, badgeLevels, wishlistItemIds, campaignType } = formData;
 
     if (!campaignName.trim()) newErrors.campaignName = true;
-    if (rewardIds.length === 0) newErrors.rewardIds = true;
+    if (totalSlots === '' || totalSlots === undefined || totalSlots === null) newErrors.totalSlots = true;
+    // Skip reward validation for Matching Point campaigns
+    if (campaignType !== 'matching_point' && rewardIds.length === 0) newErrors.rewardIds = true;
     if (!startDate) {
       newErrors.startDate = true;
     } else if (startDate < new Date()) {
@@ -145,6 +157,25 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
             <p className="text-sm text-gray-500 mt-1">The name of your campaign, as it will be displayed to customers.</p>
           </div>
 
+          {/* Total Slots */}
+          <div>
+            <Label htmlFor="totalSlots">Available Slots</Label>
+            <Input
+              id="totalSlots"
+              type="number"
+              placeholder="e.g., 100"
+              value={formData.totalSlots}
+              onChange={(e) => updateFormData({ totalSlots: e.target.value === '' ? '' : Number(e.target.value) })}
+              className={errors.totalSlots ? 'border-red-500' : ''}
+            />
+            {errors.totalSlots && (
+              <p className="text-sm text-red-500 mt-1">Available slots is required</p>
+            )}
+            {!errors.totalSlots && (
+              <p className="text-sm text-gray-500 mt-1">The number of slots currently available for customers to claim.</p>
+            )}
+          </div>
+
           {/* Rewards to Attach */}
           <div>
             <Label>Rewards to Attach</Label>
@@ -176,12 +207,33 @@ export default function StepSetCampaignDetails({ onNext, onBack }: StepProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Start Date & Time</Label>
-              <div className={`flex items-center rounded-md border px-3 ${errors.startDate ? 'border-red-500' : ''}`}><Calendar className="mr-2 h-4 w-4 opacity-50" /><DateTimePicker date={formData.startDate} setDate={(date) => updateFormData({ startDate: date || undefined })} /></div>
+              <div className={`flex items-center rounded-md border px-3 ${errors.startDate ? 'border-red-500' : ''}`}>
+                <Calendar className="mr-2 h-4 w-4 opacity-50" />
+                <DateTimePicker
+                  date={formData.startDate}
+                  setDate={(date) => updateFormData({ startDate: date || undefined })}
+                  disabled={isStartDateDisabled}
+                />
+              </div>
               <p className="text-sm text-gray-500 mt-1">When the campaign will become active.</p>
             </div>
             <div>
               <Label>End Date & Time</Label>
-              <div className={`flex items-center rounded-md border px-3 ${errors.endDate ? 'border-red-500' : ''}`}><Calendar className="mr-2 h-4 w-4 opacity-50" /><DateTimePicker date={formData.endDate} setDate={(date) => updateFormData({ endDate: date || undefined })} /></div>
+              <div className={`flex items-center rounded-md border px-3 ${errors.endDate ? 'border-red-500' : ''}`}>
+                <Calendar className="mr-2 h-4 w-4 opacity-50" />
+                <DateTimePicker
+                  date={formData.endDate}
+                  setDate={(date) => {
+                    if (date && subscriptionData?.expiresAt) {
+                      if (date > new Date(subscriptionData.expiresAt)) {
+                        toast.error('End date is above subscription plan');
+                        return;
+                      }
+                    }
+                    updateFormData({ endDate: date || undefined });
+                  }}
+                />
+              </div>
               <p className="text-sm text-gray-500 mt-1">When the campaign will automatically deactivate.</p>
             </div>
           </div>
