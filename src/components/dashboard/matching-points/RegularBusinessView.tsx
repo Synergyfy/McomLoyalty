@@ -12,7 +12,7 @@ import MatchingRewardCard from './MatchingRewardCard';
 import RewardDetailsModal from './RewardDetailsModal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function RegularBusinessView() {
@@ -65,6 +65,24 @@ export default function RegularBusinessView() {
   const uniqueRewardsMap = new Map();
   allRewards.forEach(r => uniqueRewardsMap.set(r.id, r));
   const businessRewards = Array.from(uniqueRewardsMap.values());
+
+  const formatRedemptionDate = (dateString: string | undefined | null) => {
+      if (!dateString) return 'N/A';
+      try {
+          const date = new Date(dateString);
+          if (isValid(date)) {
+              return format(date, 'MMM d, yyyy');
+          }
+          // Try ISO parsing if constructor fails
+          const isoDate = parseISO(dateString);
+          if (isValid(isoDate)) {
+              return format(isoDate, 'MMM d, yyyy');
+          }
+          return 'Invalid Date';
+      } catch (e) {
+          return 'N/A';
+      }
+  };
 
   return (
     <div className="space-y-8">
@@ -136,7 +154,7 @@ export default function RegularBusinessView() {
                             <TableBody>
                                 {redemptionsData?.data.map((redemption) => (
                                     <TableRow key={redemption.id}>
-                                        <TableCell>{format(new Date(redemption.redeemedAt), 'MMM d, yyyy')}</TableCell>
+                                        <TableCell>{formatRedemptionDate(redemption.redeemedAt)}</TableCell>
                                         <TableCell className="font-medium">{redemption.rewardTitle}</TableCell>
                                         <TableCell>{redemption.pointsRedeemed}</TableCell>
                                         <TableCell>
