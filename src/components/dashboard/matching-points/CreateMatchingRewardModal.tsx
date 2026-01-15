@@ -22,6 +22,8 @@ interface CreateMatchingRewardModalProps {
   onSuccess?: () => void;
 }
 
+const MAX_FILE_SIZE_MB = 4.5; // Slightly under 5MB to be safe
+
 export default function CreateMatchingRewardModal({ isOpen, onClose, onSuccess }: CreateMatchingRewardModalProps) {
   const { mutate: createReward, isPending: isCreating } = useCreateMatchingReward();
   const { mutateAsync: uploadImage, isPending: isUploading } = useUploadToCloudinary();
@@ -57,8 +59,22 @@ export default function CreateMatchingRewardModal({ isOpen, onClose, onSuccess }
     setFormData(prev => ({ ...prev, target_audience: value }));
   };
 
+  const validateFile = (file: File) => {
+      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+          toast.error(`File ${file.name} is too large. Max ${MAX_FILE_SIZE_MB}MB.`);
+          return false;
+      }
+      return true;
+  };
+
+  const handleMainImageSelect = (file: File | null) => {
+      if (file && !validateFile(file)) return;
+      setMainImageFile(file);
+  };
+
   const handleGalleryUpload = (file: File | null) => {
     if (file) {
+      if (!validateFile(file)) return;
       const preview = URL.createObjectURL(file);
       setGalleryFiles(prev => [...prev, { file, preview }]);
     }
@@ -90,7 +106,7 @@ export default function CreateMatchingRewardModal({ isOpen, onClose, onSuccess }
 
     } catch (error) {
         console.error("Upload failed", error);
-        toast.error("Failed to upload images");
+        toast.error("Failed to upload images. Please check your internet connection or try smaller files.");
         return;
     }
 
@@ -137,12 +153,12 @@ export default function CreateMatchingRewardModal({ isOpen, onClose, onSuccess }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="p-6 pb-2">
           <DialogTitle>Create Matching Point Reward</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="flex-1 pr-4 -mr-4">
-        <form onSubmit={handleSubmit} className="space-y-6 p-1">
+        <div className="flex-1 overflow-y-auto px-6 pb-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
 
           {/* Basic Info */}
           <div className="space-y-4">
@@ -278,10 +294,10 @@ export default function CreateMatchingRewardModal({ isOpen, onClose, onSuccess }
                      <div className="space-y-2">
                         <CloudinaryUpload
                             value={mainImageFile ? undefined : formData.main_image}
-                            onChange={(file) => setMainImageFile(file)}
+                            onChange={(file) => handleMainImageSelect(file)}
                             className="h-40 w-full"
                         />
-                        <p className="text-xs text-center text-muted-foreground">Primary display image</p>
+                        <p className="text-xs text-center text-muted-foreground">Primary display image (Max 4.5MB)</p>
                      </div>
                      <div className="space-y-2 flex flex-col justify-end">
                         <Label htmlFor="main_image_url" className="text-xs">Or URL</Label>
@@ -327,7 +343,7 @@ export default function CreateMatchingRewardModal({ isOpen, onClose, onSuccess }
              </div>
           </div>
 
-          <DialogFooter className="pt-4">
+          <DialogFooter className="pt-4 sticky bottom-0 bg-white z-10 border-t mt-6">
             <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
               Cancel
             </Button>
@@ -337,7 +353,7 @@ export default function CreateMatchingRewardModal({ isOpen, onClose, onSuccess }
             </Button>
           </DialogFooter>
         </form>
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
