@@ -1,13 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, QrCode, Plus, Edit, Trash2, EyeOff, Eye } from 'lucide-react';
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Loader2, QrCode, Plus, Edit, Trash2, EyeOff, Eye, Calendar, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { useGetMyCreatedCampaigns } from '@/services/campaigns/hook';
-import { CampaignResponse, CampaignType, PublicCampaignResponse } from '@/services/campaigns/types';
-import AwardPointsModal from '@/components/dashboard/matching-points/AwardPointsModal';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetCreatedMatchingRewards, useDeleteMatchingReward, useSuspendMatchingReward } from '@/services/matching-points/hook';
@@ -31,66 +28,16 @@ import { PaginatedRewardsResponse } from '@/services/matching-points/types';
 
 export default function SuperBusinessView() {
   const queryClient = useQueryClient();
-  const { data: campaignsData, isLoading: isCampaignsLoading } = useGetMyCreatedCampaigns();
+  // Campaigns data fetch removed as tab is removed
   // Fetch Real Created Rewards
   const { data: rewardsData, isLoading: isRewardsLoading } = useGetCreatedMatchingRewards({ page: 1, limit: 100 });
   const { mutate: deleteReward } = useDeleteMatchingReward();
   const { mutate: suspendReward } = useSuspendMatchingReward();
 
-  const [isAwardModalOpen, setIsAwardModalOpen] = useState(false);
   const [isCreateRewardModalOpen, setIsCreateRewardModalOpen] = useState(false);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [rewardToDelete, setRewardToDelete] = useState<string | null>(null);
-
-  if (isCampaignsLoading) {
-    return (
-      <div className="flex justify-center items-center h-96">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-      </div>
-    );
-  }
-
-  // Filter matching point campaigns and map to CampaignResponse to ensure compatibility
-  const matchingCampaigns: CampaignResponse[] = (campaignsData?.data || [])
-    .filter((c: PublicCampaignResponse) => c.campaign_type === CampaignType.MATCHING_POINT)
-    .map((c: PublicCampaignResponse) => ({
-      ...c,
-      campaignType: c.campaign_type,
-      campaignMessage: c.campaign_message,
-      bannerUrl: c.banner_url || c.bannerUrl || '',
-      startDate: c.start_date,
-      endDate: c.end_date,
-      logoUrl: c.logo_url || c.logoUrl || '',
-      // Cast to 'any' to access the snake_case property that exists on the runtime object but is missing from the type definition
-      totalMatchingPointsEarned: (c as any).total_matching_points_earned || 0,
-      totalPointsEarned: 0,
-      totalPointsRedeemed: 0,
-      matchingPointsDisabledByAdmin: false,
-      createdAt: new Date().toISOString(), // Fallback if missing
-      updatedAt: new Date().toISOString(),
-      deletedAt: null,
-      // Map other required fields with defaults
-      audienceType: c.audience_type,
-      ctaText: c.cta_text,
-      ctaBackgroundColor: c.cta_background_color,
-      ctaTextColor: c.cta_text_color,
-      textColor: c.text_color,
-      backgroundColor: c.background_color,
-      signUpPoint: 0,
-      rewardType: 'regular',
-      regularPointsThreshold: 0,
-      matchingPointsThreshold: 0,
-      earnPointPageTitle: '',
-      earnPointPageDescription: '',
-      redeemRewardPageTitle: '',
-      redeemRewardPageDescription: '',
-      contactUsPageTitle: '',
-      contactUsPageDescription: '',
-      contactEmail: '',
-      contactPhoneNumber: '',
-      footerText: '',
-    } as unknown as CampaignResponse)); // Casting as partial mapping is sufficient for UI
 
   const handleDeleteClick = (id: string) => {
     setRewardToDelete(id);
@@ -121,10 +68,7 @@ export default function SuperBusinessView() {
                  if (r.id === id) {
                      // Check both field names
                      const currentStatus = r.is_active ?? !r.isSuspended ?? true;
-                     // Logic: if is_active is present use it, else use inverse of isSuspended.
-                     // But we need to return consistent structure.
-                     // Let's assume we flip 'is_active' if it exists, or 'isSuspended' if it exists.
-                     return { ...r, is_active: !currentStatus, isSuspended: currentStatus };
+                     return { ...r, is_active: !currentStatus, isSuspended: !currentStatus }; // Toggle for next render
                  }
                  return r;
              })
@@ -135,10 +79,14 @@ export default function SuperBusinessView() {
          onSuccess: (data) => {
              toast.success("Reward status updated");
              // NOTE: We do NOT use the returned 'data' here to update the cache.
+             // Some APIs return the *previous* state or partial data which can revert the optimistic update incorrectly.
+             // We rely on the optimistic update we already did, and then invalidate to fetch the source of truth.
              queryClient.invalidateQueries({ queryKey: ['matchingPointRewards'] });
          },
          onError: () => {
              toast.error("Failed to update status");
+             // Revert on error by invalidating (fetching mostly correct data)
+             // or manually untoggling if we wanted strict rollback.
              queryClient.invalidateQueries({ queryKey: ['matchingPointRewards'] });
          }
      });
@@ -175,16 +123,20 @@ export default function SuperBusinessView() {
            {isRewardsLoading ? (
                <div className="flex justify-center py-12"><Loader2 className="animate-spin text-gray-400" /></div>
            ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {rewardsData?.data.map((reward) => {
                     // Robust mapping for display
                     const displayImage = reward.mainImage || reward.main_image || reward.image;
                     const points = reward.requiredPoints ?? reward.required_points ?? reward.pointsRequired ?? 0;
                     const isActive = reward.is_active ?? !reward.isSuspended ?? true;
+                    const audience = reward.targetAudience ?? reward.target_audience ?? 'Unknown';
+
+                    const startDate = reward.startDatetime || reward.start_datetime;
+                    const endDate = reward.endDatetime || reward.end_datetime;
 
                     return (
-                        <Card key={reward.id} className="overflow-hidden group">
-                        <div className="h-48 bg-gray-100 relative">
+                        <Card key={reward.id} className="overflow-hidden group flex flex-col h-full border hover:border-indigo-300 transition-colors">
+                        <div className="h-56 bg-gray-100 relative">
                             {displayImage ? (
                                 <img
                                     src={displayImage}
@@ -197,30 +149,53 @@ export default function SuperBusinessView() {
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
                             )}
-                            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button variant="secondary" size="icon" className="h-8 w-8" onClick={() => handleToggleStatus(reward.id)}>
+                            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white/50 p-1 rounded-md backdrop-blur-sm">
+                                <Button variant="secondary" size="icon" className="h-8 w-8 hover:bg-white" onClick={() => handleToggleStatus(reward.id)}>
                                     {isActive ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                                 </Button>
-                                <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => handleDeleteClick(reward.id)}>
+                                <Button variant="destructive" size="icon" className="h-8 w-8 hover:bg-red-100 hover:text-red-700" onClick={() => handleDeleteClick(reward.id)}>
                                     <Trash2 className="h-4 w-4" />
                                 </Button>
                             </div>
-                        </div>
-                        <CardContent className="p-4 space-y-2">
-                            <div className="flex justify-between items-start">
-                                <h3 className="font-bold text-lg">{reward.title}</h3>
-                                <span className="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full font-bold">
-                                    {points} Pts
-                                </span>
-                            </div>
-                            <p className="text-sm text-gray-600 line-clamp-2">{reward.shortDescription || reward.short_description}</p>
-                            <div className="pt-2 flex justify-between items-center text-sm text-gray-500">
-                                <span>Qty: {reward.quantity}</span>
-                                <Badge variant={isActive ? 'default' : 'secondary'}>
+                            <div className="absolute bottom-2 left-2">
+                                <Badge variant={isActive ? 'default' : 'destructive'} className="shadow-sm">
                                     {isActive ? 'Active' : 'Suspended'}
                                 </Badge>
                             </div>
+                        </div>
+                        <CardContent className="p-5 space-y-4 flex-grow">
+                            <div className="flex justify-between items-start gap-2">
+                                <h3 className="font-bold text-xl leading-tight">{reward.title}</h3>
+                                <span className="bg-indigo-100 text-indigo-700 text-sm px-2.5 py-1 rounded-full font-bold whitespace-nowrap">
+                                    {points} Pts
+                                </span>
+                            </div>
+
+                            <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
+                                {reward.shortDescription || reward.short_description || reward.longDescription || reward.long_description}
+                            </p>
+
+                            <div className="grid grid-cols-2 gap-y-2 text-xs text-gray-500 pt-2 border-t mt-auto">
+                                <div className="flex items-center gap-1.5">
+                                    <Calendar className="h-3.5 w-3.5" />
+                                    <div className="flex flex-col">
+                                        <span>Start: {startDate ? format(new Date(startDate), 'MMM d, yyyy') : 'N/A'}</span>
+                                        <span>End: {endDate ? format(new Date(endDate), 'MMM d, yyyy') : 'N/A'}</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-1.5 justify-end text-right">
+                                    <Users className="h-3.5 w-3.5" />
+                                    <div className="flex flex-col">
+                                        <span>Audience</span>
+                                        <span className="font-medium text-gray-700">{audience}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </CardContent>
+                        <CardFooter className="bg-gray-50 px-5 py-3 text-xs text-gray-500 justify-between mt-auto">
+                             <span>Qty: {reward.quantity}</span>
+                             <span>ID: {reward.id.slice(0, 8)}...</span>
+                        </CardFooter>
                         </Card>
                     );
                 })}
@@ -270,13 +245,6 @@ export default function SuperBusinessView() {
         </TabsContent>
 
       </Tabs>
-
-      {/* Award Points Modal */}
-      <AwardPointsModal
-        isOpen={isAwardModalOpen}
-        onClose={() => setIsAwardModalOpen(false)}
-        campaigns={matchingCampaigns}
-      />
 
       {/* Create Reward Modal */}
       <CreateMatchingRewardModal
