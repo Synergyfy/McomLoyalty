@@ -26,7 +26,8 @@ const activityTypeColors: Record<MatchingPointActivityType | string, string> = {
   Adjusted: 'bg-yellow-100 text-yellow-800', // Fallback/Legacy
 };
 
-const formatActivityType = (type: string) => {
+const formatActivityType = (type: string | undefined | null) => {
+  if (!type) return 'Unknown';
   return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
 };
 
