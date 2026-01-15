@@ -231,7 +231,7 @@ export const useGetPublicMatchingRewards = (params: { target_audience?: string, 
   return useQuery({
     queryKey: ['matchingPointRewards', 'public', params],
     queryFn: async () => {
-      const { data } = await api.get<PaginatedRewardsResponse>('/matching-points/rewards', { params });
+      const { data } = await api.get<PaginatedRewardsResponse>('/matching-points/rewards/public', { params });
       return data;
     }
   });
