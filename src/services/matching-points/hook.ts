@@ -253,7 +253,7 @@ export const useSuspendMatchingReward = () => {
 };
 
 const unsuspendMatchingReward = async (id: string): Promise<void> => {
-  await api.patch(`/matching-points/rewards/${id}/unsuspend`);
+  await api.patch(`/matching-points/rewards/${id}/suspend`);
 };
 
 export const useUnsuspendMatchingReward = () => {
