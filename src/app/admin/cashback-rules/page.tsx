@@ -135,6 +135,7 @@ export default function CashbackRulesPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Switch
+                            id={`switch-${rule.id}`}
                             checked={rule.isActive}
                             onCheckedChange={(c) => toggleActive(rule, c)}
                             aria-label="Toggle active status"
