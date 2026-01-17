@@ -1,5 +1,6 @@
 export type CashbackPlatform = 'MCOM_LOYALTY' | 'MCOM_MALL';
 export type CashbackRewardType = 'PERCENTAGE' | 'FIXED';
+export type CashbackEvent = string;
 
 export interface CashbackRule {
   id: string;
