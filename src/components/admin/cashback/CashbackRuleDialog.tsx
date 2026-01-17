@@ -111,44 +111,45 @@ export default function CashbackRuleDialog({ open, onOpenChange, ruleToEdit, onS
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
+        <form onSubmit={handleSubmit} className="space-y-6 py-4">
           <div className="grid gap-4">
             {/* Platform */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="platform" className="text-right">Platform</Label>
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="platform" className="text-right pt-2">Platform</Label>
               <div className="col-span-3">
-                <Select
-                  value={platform}
-                  onValueChange={(v) => setPlatform(v as CashbackPlatform)}
-                  disabled={isEditMode || isPending}
-                >
-                  <SelectTrigger id="platform">
-                    <SelectValue placeholder="Select platform" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="MCOM_LOYALTY">MCOM Loyalty</SelectItem>
-                    <SelectItem value="MCOM_MALL">MCOM Mall</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Input
+                  id="platform"
+                  value="MCOM Loyalty"
+                  disabled
+                  readOnly
+                  className="bg-muted text-muted-foreground"
+                />
+                <p className="text-[0.8rem] text-muted-foreground mt-1">
+                  The platform where this rule applies.
+                </p>
               </div>
             </div>
 
             {/* Event Type */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="eventType" className="text-right">Event Type</Label>
-              <Input
-                id="eventType"
-                value={eventType}
-                onChange={(e) => setEventType(e.target.value)}
-                placeholder="e.g. MEMBERSHIP_PURCHASE"
-                className="col-span-3"
-                disabled={isEditMode || isPending}
-              />
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="eventType" className="text-right pt-2">Event Type</Label>
+              <div className="col-span-3">
+                <Input
+                  id="eventType"
+                  value={eventType}
+                  onChange={(e) => setEventType(e.target.value)}
+                  placeholder="e.g. MEMBERSHIP_PURCHASE"
+                  disabled={isEditMode || isPending}
+                />
+                <p className="text-[0.8rem] text-muted-foreground mt-1">
+                  The system event identifier that triggers this reward.
+                </p>
+              </div>
             </div>
 
             {/* Reward Type */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="rewardType" className="text-right">Reward Type</Label>
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="rewardType" className="text-right pt-2">Reward Type</Label>
               <div className="col-span-3">
                  <Select
                   value={rewardType}
@@ -163,36 +164,48 @@ export default function CashbackRuleDialog({ open, onOpenChange, ruleToEdit, onS
                     <SelectItem value="FIXED">Fixed Amount</SelectItem>
                   </SelectContent>
                 </Select>
+                <p className="text-[0.8rem] text-muted-foreground mt-1">
+                  Choose between a percentage of the transaction or a fixed flat fee.
+                </p>
               </div>
             </div>
 
             {/* Reward Value */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="rewardValue" className="text-right">Value</Label>
-              <Input
-                id="rewardValue"
-                type="number"
-                step="0.01"
-                min="0"
-                value={rewardValue}
-                onChange={(e) => setRewardValue(e.target.value)}
-                placeholder="e.g. 5"
-                className="col-span-3"
-                disabled={isPending}
-              />
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="rewardValue" className="text-right pt-2">Value</Label>
+              <div className="col-span-3">
+                <Input
+                  id="rewardValue"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={rewardValue}
+                  onChange={(e) => setRewardValue(e.target.value)}
+                  placeholder="e.g. 5"
+                  disabled={isPending}
+                />
+                <p className="text-[0.8rem] text-muted-foreground mt-1">
+                  The numeric value of the reward (e.g., 5 for 5% or £5.00).
+                </p>
+              </div>
             </div>
 
             {/* Is Active */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="isActive" className="text-right">Active</Label>
-              <div className="col-span-3 flex items-center">
-                 <Switch
-                    id="isActive"
-                    checked={isActive}
-                    onCheckedChange={setIsActive}
-                    disabled={isPending}
-                 />
-                 <span className="ml-2 text-sm text-muted-foreground">{isActive ? 'Enabled' : 'Disabled'}</span>
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="isActive" className="text-right pt-2">Active</Label>
+              <div className="col-span-3">
+                <div className="flex items-center">
+                   <Switch
+                      id="isActive"
+                      checked={isActive}
+                      onCheckedChange={setIsActive}
+                      disabled={isPending}
+                   />
+                   <span className="ml-2 text-sm text-muted-foreground">{isActive ? 'Enabled' : 'Disabled'}</span>
+                </div>
+                 <p className="text-[0.8rem] text-muted-foreground mt-1">
+                  Disable this rule to stop awarding cashback for this event.
+                </p>
               </div>
             </div>
           </div>
