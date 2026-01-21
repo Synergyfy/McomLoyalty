@@ -18,7 +18,6 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import Link from 'next/link';
 import {
     MoreVertical,
     Edit,
@@ -29,7 +28,9 @@ import {
     Sparkles,
     Gift,
     Repeat,
-    BarChart3
+    Users,
+    Trophy,
+    Award
 } from 'lucide-react';
 import { RewardResponse } from '@/services/rewards/types';
 
@@ -160,29 +161,16 @@ export default function AdminUnifiedRewardCard({
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-1">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-gray-500 hover:text-blue-600"
-                            asChild
-                            title="Analytics"
-                        >
-                            <Link href={`/admin/rewards/${reward.id}/analytics`}>
-                                <BarChart3 className="h-4 w-4" />
-                            </Link>
-                        </Button>
-
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8"
-                                >
-                                    <MoreVertical className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                            >
+                                <MoreVertical className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-48 z-[9999]">
                                 <DropdownMenuItem onClick={() => onEdit(reward.id)}>
                                     <Edit className="mr-2 h-4 w-4" />
@@ -202,7 +190,6 @@ export default function AdminUnifiedRewardCard({
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
-                    </div>
                 </div>
             </CardHeader>
 
@@ -254,6 +241,47 @@ export default function AdminUnifiedRewardCard({
                     )}
                 </div>
             </CardContent>
+
+            <div className="px-6 pb-4">
+                <div className="grid grid-cols-2 gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
+                    <div className="flex flex-col gap-1">
+                        <span className="text-[10px] uppercase tracking-wider text-gray-500 font-medium flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            Claimed
+                        </span>
+                        <span className="text-lg font-bold text-gray-900 dark:text-white">
+                            {reward.businessClaimedCount || 0}
+                        </span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                        <span className="text-[10px] uppercase tracking-wider text-gray-500 font-medium flex items-center gap-1">
+                            <Trophy className="h-3 w-3" />
+                            Redeemed
+                        </span>
+                        <span className="text-lg font-bold text-gray-900 dark:text-white">
+                            {reward.totalRedemptionsCount || 0}
+                        </span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                        <span className="text-[10px] uppercase tracking-wider text-gray-500 font-medium flex items-center gap-1">
+                            <Coins className="h-3 w-3" />
+                            Points
+                        </span>
+                        <span className="text-lg font-bold text-gray-900 dark:text-white">
+                            {(reward.totalPointsRedeemed || 0).toLocaleString()}
+                        </span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                        <span className="text-[10px] uppercase tracking-wider text-gray-500 font-medium flex items-center gap-1">
+                            <Stamp className="h-3 w-3" />
+                            Stamps
+                        </span>
+                        <span className="text-lg font-bold text-gray-900 dark:text-white">
+                            {reward.totalStampsRedeemed || 0}
+                        </span>
+                    </div>
+                </div>
+            </div>
         </Card>
     );
 }
