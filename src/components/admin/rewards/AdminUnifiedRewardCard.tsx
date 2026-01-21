@@ -18,6 +18,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import Link from 'next/link';
 import {
     MoreVertical,
     Edit,
@@ -27,7 +28,8 @@ import {
     Coins,
     Sparkles,
     Gift,
-    Repeat
+    Repeat,
+    BarChart3
 } from 'lucide-react';
 import { RewardResponse } from '@/services/rewards/types';
 
@@ -158,35 +160,49 @@ export default function AdminUnifiedRewardCard({
                         </div>
                     </div>
 
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                                <MoreVertical className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48 z-[9999]">
-                            <DropdownMenuItem onClick={() => onEdit(reward.id)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onDuplicate(reward.id)}>
-                                <Copy className="mr-2 h-4 w-4" />
-                                Duplicate
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                                onClick={() => onDelete(reward.id)}
-                                className="text-red-600 focus:text-red-600"
-                            >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-gray-500 hover:text-blue-600"
+                            asChild
+                            title="Analytics"
+                        >
+                            <Link href={`/admin/rewards/${reward.id}/analytics`}>
+                                <BarChart3 className="h-4 w-4" />
+                            </Link>
+                        </Button>
+
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                >
+                                    <MoreVertical className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48 z-[9999]">
+                                <DropdownMenuItem onClick={() => onEdit(reward.id)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => onDuplicate(reward.id)}>
+                                    <Copy className="mr-2 h-4 w-4" />
+                                    Duplicate
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    onClick={() => onDelete(reward.id)}
+                                    className="text-red-600 focus:text-red-600"
+                                >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
             </CardHeader>
 
