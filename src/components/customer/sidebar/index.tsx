@@ -56,6 +56,12 @@ export default function CustomerSidebar({ isOpen, onClose, activePath, basePath 
           </Link>
         </li>
         <li className="mb-2">
+          <Link href={`${basePath}/gift-cards`} className={linkClasses("/gift-cards")} onClick={onClose}>
+            <CreditCard className="mr-3 text-orange-600" />
+            My Gift Cards
+          </Link>
+        </li>
+        <li className="mb-2">
           <Link href={`${basePath}/market`} className={linkClasses("/market")} onClick={onClose}>
             <Store className="mr-3 text-orange-500" />
             Marketplace Hub
