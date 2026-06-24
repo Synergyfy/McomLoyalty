@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import Link from 'next/link';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Sparkles } from 'lucide-react';
 
 const challenges = [
   { id: 1, title: "Play 3 games of Ball Drop", reward: "+200 pts", progress: 66, current: 2, total: 3 },
@@ -82,25 +82,24 @@ export default function PlayWinRewards() {
           <ChevronLeft size={20} />
         </Link>
         <div>
-          <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider">MCOM Games</p>
-          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Play & Win</h1>
+          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Play & Win Rewards</h1>
         </div>
       </header>
 
       {/* Hero Section with Spin Wheel */}
-      <section className="relative py-4 sm:py-8 flex flex-col lg:flex-row items-center gap-6 sm:gap-12 overflow-hidden">
+      <section className="relative pt-0 pb-4 sm:py-8 flex flex-col lg:flex-row items-center gap-6 sm:gap-12 overflow-hidden">
         
         {/* Left Content */}
         <div className="w-full lg:w-1/2 space-y-6">
-          <div className="inline-flex items-center gap-1.5 bg-orange-500/10 text-orange-600 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm border border-orange-500/20">
-            <span className="material-symbols-outlined text-sm">stars</span>
-            <span>DAILY GAMES LIVE</span>
+          <div className="flex flex-wrap items-center gap-3 md:gap-4">
+            <h1 className="text-4xl md:text-5xl font-bold font-headline-lg leading-tight tracking-tight text-gray-900 hidden sm:block">
+              Play & Win <span className="text-orange-600">Rewards</span>
+            </h1>
+            <div className="inline-flex items-center gap-1.5 bg-orange-500/10 text-orange-600 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm border border-orange-500/20 shrink-0">
+              <span className="material-symbols-outlined text-sm">stars</span>
+              <span>DAILY GAMES LIVE</span>
+            </div>
           </div>
-          
-          <h1 className="text-4xl md:text-5xl font-bold font-headline-lg leading-tight tracking-tight text-gray-900">
-            Play & Win <br/>
-            <span className="text-orange-600">Rewards</span>
-          </h1>
           
           <p className="text-sm md:text-base text-gray-500 leading-relaxed max-w-md">
             Experience the thrill of discovery. Play our exclusive gamified experiences daily and <span className="font-bold text-orange-600">Win up to 5,000 pts</span> instantly.
@@ -114,6 +113,13 @@ export default function PlayWinRewards() {
             >
               {spinning ? "Spinning..." : "Play Now"}
             </button>
+            <Link 
+              href="/play-win/my-rewards"
+              className="bg-white border border-gray-300 text-gray-700 px-8 py-3.5 rounded-full font-bold text-xs hover:bg-gray-50 transition active:scale-95 inline-flex items-center gap-1.5"
+            >
+              <Sparkles size={14} className="text-orange-600" />
+              <span>My Rewards</span>
+            </Link>
             <button className="border border-gray-300 text-gray-600 px-8 py-3.5 rounded-full font-bold text-xs hover:bg-gray-50 transition active:scale-95">
               View Leaderboard
             </button>
@@ -285,9 +291,17 @@ export default function PlayWinRewards() {
             </div>
           </div>
 
-          <div className="pt-6 space-y-1">
-            <span className="text-3xl font-extrabold text-orange-600 tracking-tight">1M PTS</span>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Global Prize Pool</p>
+          <div className="pt-6 flex items-center justify-between border-t border-orange-500/10 mt-4">
+            <div>
+              <span className="text-2xl font-black text-orange-600 tracking-tight block">1M PTS</span>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Global Prize Pool</p>
+            </div>
+            <Link 
+              href="/play-win/expo" 
+              className="bg-orange-600 hover:bg-orange-700 text-white px-5 py-2.5 rounded-xl text-[10px] font-bold shadow-md shadow-orange-600/10 transition-all active:scale-95 shrink-0"
+            >
+              Enter Summit
+            </Link>
           </div>
         </div>
 
