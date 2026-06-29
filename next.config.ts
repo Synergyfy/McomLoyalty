@@ -88,7 +88,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/v1/:path*',
-        destination: 'https://mcom-loyalty-api.vercel.app/api/v1/:path*',
+        destination: 'https://mcom-loyalty-api-one.vercel.app/api/v1/:path*',
       },
     ];
   },
