@@ -74,7 +74,7 @@ function SignupCard({ provisionCode }: { provisionCode?: string }) {
 
                 <button
                   onClick={() => {
-                    const solutionsUrl = process.env.NEXT_PUBLIC_MCOM_SOLUTIONS_URL || "http://localhost:3000";
+                    const solutionsUrl = process.env.NEXT_PUBLIC_MCOM_SOLUTIONS_URL || "https://mcomsolutions.vercel.app";
                     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3005";
                     window.location.href = `${solutionsUrl}/getstarted/business?source=mcomloyalty&redirect=${encodeURIComponent(`${appUrl}/sso-login`)}`;
                   }}
