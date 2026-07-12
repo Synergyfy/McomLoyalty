@@ -9,9 +9,7 @@ declare module 'axios' {
 
 export const baseURL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  (typeof window === 'undefined'
-    ? 'https://mcom-loyalty-api-one.vercel.app/api/v1'
-    : '/api/v1');
+  'https://mcom-loyalty-api-one.vercel.app/api/v1';
 
 const api = axios.create({
   baseURL,

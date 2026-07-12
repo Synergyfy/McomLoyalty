@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { Users, Gift, Megaphone, Flame, Percent, Star, ArrowUp, ArrowDown, Plus, Minus, Stamp, Wallet, Eye, Coins, Ticket, CreditCard } from "lucide-react";
+import { Users, Gift, Megaphone, Flame, Percent, Star, ArrowUp, ArrowDown, Eye, Stamp, Plus, Minus } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { useGetGeneralAnalytics, useGetChartData } from "@/services/business-dashboard/hook";
 import { useGetMySubscription } from '@/services/tiers/hook';
 import { useGetBusinessProfile } from "@/services/business/hook";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import Loader from "@/components/ui/loader";
 import type { ChartQueryDto } from "@/services/business-dashboard/types";
 
@@ -71,108 +71,11 @@ const MOCK_METRICS = {
 
 // ─── CUSTOMER WALLET PREVIEW ──────────────────────────────────────────────
 
-function CustomerWalletModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2"><Wallet className="w-5 h-5 text-orange-500" />Customer Wallet Preview</DialogTitle>
-          <DialogDescription>This is how your reward programme appears to customers.</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4">
-          <Card className="bg-gradient-to-br from-orange-50 to-white border-orange-200">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <p className="text-sm text-gray-500">Total Points</p>
-                  <p className="text-3xl font-bold text-orange-600">1,250</p>
-                </div>
-                <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
-                  <Coins className="w-6 h-6 text-orange-600" />
-                </div>
-              </div>
-              <Progress value={42} className="h-2" />
-              <p className="text-xs text-gray-400 mt-1">42% towards next reward (3,000 points)</p>
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Card className="border-orange-100">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Stamp className="w-4 h-4 text-orange-600" />
-                  <span className="text-sm font-semibold text-gray-900">Stamp Card</span>
-                </div>
-                <div className="flex gap-1 mb-2">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${i < 3 ? "bg-orange-500 text-white" : "bg-gray-100 text-gray-400"}`}>
-                      {i < 3 ? "✓" : "○"}
-                    </div>
-                  ))}
-                </div>
-                <p className="text-xs text-gray-500">3/5 stamps — buy 5 get 1 free</p>
-              </CardContent>
-            </Card>
-            <Card className="border-orange-100">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Ticket className="w-4 h-4 text-orange-600" />
-                  <span className="text-sm font-semibold text-gray-900">Vouchers</span>
-                </div>
-                <p className="text-lg font-bold text-orange-600">2</p>
-                <p className="text-xs text-gray-500">Free dessert • £5 off</p>
-              </CardContent>
-            </Card>
-            <Card className="border-orange-100">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <CreditCard className="w-4 h-4 text-orange-600" />
-                  <span className="text-sm font-semibold text-gray-900">Gift Cards</span>
-                </div>
-                <p className="text-lg font-bold text-orange-600">£25.00</p>
-                <p className="text-xs text-gray-500">1 active gift card</p>
-              </CardContent>
-            </Card>
-            <Card className="border-orange-100">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Star className="w-4 h-4 text-orange-600" />
-                  <span className="text-sm font-semibold text-gray-900">Matching Pts</span>
-                </div>
-                <p className="text-lg font-bold text-orange-600">500</p>
-                <p className="text-xs text-gray-500">Matching points available</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Recent Transactions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {[
-                { desc: "Purchase at restaurant", points: "+50", type: "earn" },
-                { desc: "Free dessert redeemed", points: "-200", type: "redeem" },
-                { desc: "Referral bonus", points: "+100", type: "earn" },
-              ].map((t, i) => (
-                <div key={i} className="flex items-center justify-between py-1.5 border-b border-gray-100 last:border-0">
-                  <span className="text-sm text-gray-600">{t.desc}</span>
-                  <span className={`text-sm font-semibold ${t.type === "earn" ? "text-green-600" : "text-red-600"}`}>{t.points}</span>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────
 
 export default function BusinessDashboard() {
+  const router = useRouter();
   const [timeRange, setTimeRange] = useState<TimeRange>("30d");
-  const [walletPreviewOpen, setWalletPreviewOpen] = useState(false);
 
   const { data: analyticsData, isLoading: isAnalyticsLoading, isError: isAnalyticsError } = useGetGeneralAnalytics();
   const { data: chartData, isLoading: isChartLoading, isError: isChartError } = useGetChartData({ period: timeRange });
@@ -210,7 +113,7 @@ export default function BusinessDashboard() {
           <h1 className="text-2xl font-bold text-gray-900">Business Dashboard</h1>
           <p className="text-sm text-gray-500">Your loyalty programme at a glance</p>
         </div>
-        <Button variant="outline" onClick={() => setWalletPreviewOpen(true)} className="gap-2 border-orange-200 text-orange-600 hover:bg-orange-50">
+        <Button variant="outline" onClick={() => router.push('/dashboard/wallet?tab=customer')} className="gap-2 border-orange-200 text-orange-600 hover:bg-orange-50">
           <Eye className="w-4 h-4" />Customer Wallet Preview
         </Button>
       </div>
@@ -363,8 +266,6 @@ export default function BusinessDashboard() {
         </CardContent>
       </Card>
 
-      {/* Phase 11: Customer Wallet Modal */}
-      <CustomerWalletModal isOpen={walletPreviewOpen} onClose={() => setWalletPreviewOpen(false)} />
     </div>
   );
 }
