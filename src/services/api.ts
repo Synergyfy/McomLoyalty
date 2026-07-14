@@ -8,8 +8,9 @@ declare module 'axios' {
 }
 
 export const baseURL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  'https://mcom-loyalty-api-one.vercel.app/api/v1';
+  typeof window === 'undefined'
+    ? (process.env.NEXT_PUBLIC_API_BASE_URL || 'https://mcom-reward-api-one.vercel.app/api/v1')
+    : '/api/v1';
 
 const api = axios.create({
   baseURL,
@@ -181,7 +182,7 @@ api.interceptors.response.use(
       try {
         // Attempt to refresh the token
         const response = await axios.post(
-          `${baseURL}/auth/refresh`,
+          `${baseURL}/auth/refresh-token`,
           { refreshToken: refreshTokenValue },
           {
             headers: {
@@ -190,22 +191,23 @@ api.interceptors.response.use(
           }
         );
 
-        const { access_token, refresh_token } = response.data;
+        const accessToken = response.data.accessToken || response.data.access_token;
+        const refreshToken = response.data.refreshToken || response.data.refresh_token;
 
         // Update tokens in cookies
-        Cookies.set('access', access_token);
-        Cookies.set('refresh', refresh_token);
+        Cookies.set('access', accessToken);
+        Cookies.set('refresh', refreshToken);
 
         // Update bearer token
-        setBearerToken(access_token);
+        setBearerToken(accessToken);
 
         // Process queued requests
-        processQueue(null, access_token);
+        processQueue(null, accessToken);
         isRefreshing = false;
 
         // Retry the original request with new token
         if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${access_token}`;
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         }
         return api(originalRequest);
       } catch (refreshError) {
