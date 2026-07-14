@@ -63,12 +63,23 @@ export default function BusinessSidebar({
 }: BusinessSidebarProps) {
   const [openSubmenus, setOpenSubmenus] = useState<Record<string, boolean>>({});
 
+  // Submenu ancestry: key → parent keys that should stay open when this one opens
+  const submenuAncestry: Record<string, string[]> = {
+    groupcircles: ['myassets'],
+  };
+
   const toggleSubmenu = (key: string) => {
     setOpenSubmenus(prev => {
       const isOpening = !prev[key];
       if (isOpening) {
-        // Close all other submenus, open only this one
         const next: Record<string, boolean> = {};
+        // Keep ancestors open (nested submenus shouldn't collapse their parent)
+        const ancestors = submenuAncestry[key] ?? [];
+        for (const k of Object.keys(prev)) {
+          if (prev[k] && ancestors.includes(k)) {
+            next[k] = true;
+          }
+        }
         next[key] = true;
         return next;
       }
