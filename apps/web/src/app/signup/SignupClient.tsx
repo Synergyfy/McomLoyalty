@@ -4,21 +4,19 @@ import React, { Suspense } from "react";
 import { motion } from "framer-motion";
 import { Building2, User } from "lucide-react";
 import Link from "next/link";
+import { getCentralCustomerSignupUrl, getCentralBusinessSignupUrl } from "@/lib/sso-utils";
 
 interface SignupClientProps {
   provisionCode?: string;
 }
 
 function SignupCard() {
-  const solutionsUrl = process.env.NEXT_PUBLIC_MCOM_SOLUTIONS_URL || "https://mcomsolutions.vercel.app";
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-
   const handleCustomerSignup = () => {
-    window.location.href = `${solutionsUrl}/register/customer?source=mcomloyalty&redirect=${encodeURIComponent(`${appUrl}/auth/sso`)}`;
+    window.location.href = getCentralCustomerSignupUrl();
   };
 
   const handleBusinessSignup = () => {
-    window.location.href = `${solutionsUrl}/getstarted/business?source=mcomloyalty&redirect=${encodeURIComponent(`${appUrl}/auth/sso`)}`;
+    window.location.href = getCentralBusinessSignupUrl();
   };
 
   return (

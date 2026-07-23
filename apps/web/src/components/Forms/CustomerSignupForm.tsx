@@ -12,6 +12,8 @@ import { useParticipantLogin } from "@/services/auth/hook";
 import { isAxiosError } from "axios";
 import { useQueryClient } from "@tanstack/react-query";
 
+import { getCentralCustomerSignupUrl } from "@/lib/sso-utils";
+
 type SignupData = {
   name: string;
   email: string;
@@ -94,8 +96,7 @@ export default function CustomerSignupPage() {
   };
 
   const handleGoogleSignup = () => {
-    toast.info("Redirecting to Google Sign-In...");
-    // TODO: integrate Google OAuth flow here
+    window.location.href = getCentralCustomerSignupUrl();
   };
 
   return (

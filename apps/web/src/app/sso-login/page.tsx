@@ -9,7 +9,7 @@ import { toast } from "sonner";
 function SsoLoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const token = searchParams.get("token") || searchParams.get("sso_token");
   const error = searchParams.get("error");
   const { mutateAsync: ssoLogin } = useSsoLogin();
   const attempted = useRef(false);
