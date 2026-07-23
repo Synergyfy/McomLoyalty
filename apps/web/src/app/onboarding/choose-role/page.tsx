@@ -9,20 +9,21 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { getCentralCustomerSignupUrl, getCentralBusinessSignupUrl } from "@/lib/sso-utils";
 
 const roles = [
   {
+    type: "customer",
     title: "Sign up as a Customer",
     description:
       "Join exciting campaigns, earn reward points, and redeem deals from your favorite businesses.",
-    path: "/customer/signup",
     cta: "Continue as a Customer",
   },
   {
+    type: "business",
     title: "Sign up as a Business Owner",
     description:
       "Create loyalty campaigns, engage your customers, and track performance through powerful tools.",
-    path: "/business/signup",
     cta: "Continue as a Business Owner",
   },
 ];
@@ -30,8 +31,12 @@ const roles = [
 export default function ChooseRolePage() {
   const router = useRouter();
 
-  const handleRoleSelection = (path: string) => {
-    router.push(path);
+  const handleRoleSelection = (type: string) => {
+    if (type === "customer") {
+      window.location.href = getCentralCustomerSignupUrl();
+    } else {
+      window.location.href = getCentralBusinessSignupUrl();
+    }
   };
 
   return (
@@ -50,7 +55,7 @@ export default function ChooseRolePage() {
           {roles.map((role) => (
             <div
               key={role.title}
-              onClick={() => handleRoleSelection(role.path)}
+              onClick={() => handleRoleSelection(role.type)}
               className="group relative cursor-pointer"
             >
               <Card className="h-full transform transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-xl">
