@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { getCentralCustomerSignupUrl, getCentralLoginUrl } from "@/lib/sso-utils";
 
 type LoginData = {
   email: string;
@@ -17,21 +18,13 @@ type LoginData = {
 export default function CustomerLoginPage() {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginData>();
   const router = useRouter();
-  const solutionsUrl = process.env.NEXT_PUBLIC_MCOM_SOLUTIONS_URL || "https://mcomsolutions.vercel.app";
-  const [appUrl, setAppUrl] = useState("http://localhost:3005");
-
-  useEffect(() => {
-    setAppUrl(window.location.origin);
-  }, []);
 
   const onSubmit = async (data: LoginData) => {
-    const redirectUrl = `${appUrl}/sso-login`;
-    window.location.href = `${solutionsUrl}/login?source=mcomloyalty&redirect=${encodeURIComponent(redirectUrl)}`;
+    window.location.href = getCentralLoginUrl("/sso-login");
   };
 
   const handleGoogleLogin = () => {
-    const redirectUrl = `${appUrl}/sso-login`;
-    window.location.href = `${solutionsUrl}/login?source=mcomloyalty&redirect=${encodeURIComponent(redirectUrl)}`;
+    window.location.href = getCentralLoginUrl("/sso-login");
   };
 
   return (
@@ -107,7 +100,7 @@ export default function CustomerLoginPage() {
 
         <p className="text-center text-sm text-gray-600">
           Don’t have an account?{" "}
-          <a href={`${solutionsUrl}/register/customer?source=mcomloyalty&redirect=${encodeURIComponent(`${appUrl}/sso-login`)}`} className="text-orange-500 hover:underline font-medium">
+          <a href={getCentralCustomerSignupUrl("/sso-login")} className="text-orange-500 hover:underline font-medium">
             Join now
           </a>
         </p>

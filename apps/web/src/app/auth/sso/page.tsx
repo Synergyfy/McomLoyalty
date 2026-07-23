@@ -13,7 +13,7 @@ function SSOReceiverContent() {
   const attempted = useRef(false);
   const mountedRef = useRef(true);
 
-  const ssoToken = searchParams.get("sso_token");
+  const ssoToken = searchParams.get("sso_token") || searchParams.get("token");
   const role = searchParams.get("role");
   const error = searchParams.get("error");
 
